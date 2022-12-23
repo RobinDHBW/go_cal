@@ -1,0 +1,15 @@
+{
+  "dateTime": "",
+  "title": "",
+  "description":"",
+  "userid": null,
+  "timeseries":{
+    "repeat": false,
+    "intervall": 0
+  },
+  "share": {
+    "public": false,
+    "url": ""
+  }
+
+}
