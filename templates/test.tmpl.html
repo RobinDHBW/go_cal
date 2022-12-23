@@ -34,6 +34,9 @@
                         <button style="font-size: 16px" name="today" id="today" type="submit">Today: {{.Current.Format "02.01.2006"}}</button>
                     </li>
                 </ul>
+            </form><br>
+            <form id="terminForm" method="post" action="/terminlist">
+                <button style="font-size: 16px" name="terminlist" id="terminlist" type="submit">Termine</button>
             </form>
         </div>
     <div class="calendar">

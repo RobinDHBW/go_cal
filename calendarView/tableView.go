@@ -1,7 +1,7 @@
 package calendarView
 
 import (
-	"html/template"
+	"go_cal/templates"
 	"net/http"
 	"strconv"
 	"time"
@@ -84,6 +84,5 @@ func UpdateCalendarHandler(w http.ResponseWriter, r *http.Request) {
 		Cal.ChooseMonth(year, time.Month(month))
 	}
 
-	var tempInit = template.Must(template.ParseFiles("./templates/test.tmpl.html"))
-	tempInit.Execute(w, Cal)
+	templates.TempInit.Execute(w, Cal)
 }

@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Terminlist</title>
+    <link href="templates/static/terminlist.css" type="text/css" rel="stylesheet">
+</head>
+<body>
+
+<div class="calendar-container">
+    <div class="month">
+        <form id="terminListForm" method="post" action="/updateTerminList">
+            <ul>
+                <li>
+                    Terminübersicht<br><br>
+                    <button style="font-size: 16px" name="calendarBack" id="calendarBack" type="submit">Zurück zum Kalendar</button>
+                    <span></span>
+                    <input style="font-size: 16px" name="dataChoose" id="dateChoose" type="date" value="{{.MinDate}}">Datum wählen</input>
+                    <input style="font-size: 16px" name="numberPerSite" id="numberPerSite" type="number" min="1" step="1" value="{{.TerminPerSite}}">Anzahl Termine pro Seite</input>
+                    <button style="font-size: 16px" name="choose" id="choose" type="submit">Submit</button>
+
+                    <input class="select" id="siteChoose" name="siteChoose" type="number" min="1" step="1" value="1"/>
+                </li>
+            </ul>
+        </form>
+    </div>
+    <div class="calendar">
+        <span class="day-name">Mon</span>
+        <span class="day-name">Tue</span>
+        <span class="day-name">Wed</span>
+        <span class="day-name">Thu</span>
+        <span class="day-name">Fri</span>
+        <span class="day-name">Sat</span>
+        <span class="day-name">Sun</span>
+
+    </div>
+</div>
+
+</body>
+</html>
