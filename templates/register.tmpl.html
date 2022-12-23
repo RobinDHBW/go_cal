@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <title>Register</title>
+    <link href="templates/static/login.css" type="text/css" rel="stylesheet">
+</head>
+<body>
+
+<h1>Register</h1>
+<div>
+    <form id="registerForm" method="post" action="/register">
+        <div>
+            <label for="uname">Username</label>
+        </div>
+        <div>
+            <input name="uname" id="uname" type="text" placeholder="enter username..." required/>
+        </div>
+        <br>
+        <div>
+            <label for="passwd">Password</label>
+        </div>
+        <div>
+            <input name="passwd" id="passwd" type="password" placeholder="enter password..." required/>
+        </div>
+        <br>
+<!--        <div>-->
+<!--            <input name="passwd" id="passwdConfirm" type="passwdConfirm" placeholder="enter password again..." required/>-->
+<!--        </div>-->
+<!--        <br>-->
+        <button type="submit" name="register" id="register">Register</button>
+    </form>
+
+</div>
+</body>
+</html>

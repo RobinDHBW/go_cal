@@ -14,7 +14,7 @@ type Calendar struct {
 }
 
 // has to be removed
-var cal = Calendar{
+var Cal = Calendar{
 	Month:   time.Now().Month(),
 	Year:    time.Now().Year(),
 	Current: time.Now(),
@@ -73,17 +73,17 @@ func UpdateCalendarHandler(w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
 	switch {
 	case r.Form.Has("next"):
-		cal.NextMonth()
+		Cal.NextMonth()
 	case r.Form.Has("prev"):
-		cal.PrevMonth()
+		Cal.PrevMonth()
 	case r.Form.Has("today"):
-		cal.CurrentMonth()
+		Cal.CurrentMonth()
 	case r.Form.Has("choose"):
 		year, _ := strconv.Atoi(r.Form.Get("chooseYear"))
 		month, _ := strconv.Atoi(r.Form.Get("chooseMonth"))
-		cal.ChooseMonth(year, time.Month(month))
+		Cal.ChooseMonth(year, time.Month(month))
 	}
 
 	var tempInit = template.Must(template.ParseFiles("./templates/test.tmpl.html"))
-	tempInit.Execute(w, cal)
+	tempInit.Execute(w, Cal)
 }
