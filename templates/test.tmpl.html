@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <title>Go To-Do list</title>
+    <link href="templates/static/calendar.css" type="text/css" rel="stylesheet">
+</head>
+<body>
+
+<div class="calendar-container">
+        <div class="month">
+            <ul>
+                <li class="prev"><button>&#10094;</button></li>
+                <li class="next"><button>&#10095;</button></li>
+                <li>
+                    {{.Month}} {{.Year}} <button>▾</button><br><br>
+                    <button style="font-size: 16px">Today: {{.Current.Format "02.01.2006"}}</button>
+                </li>
+            </ul>
+        </div>
+    <div class="calendar">
+        <span class="day-name">Mon</span>
+        <span class="day-name">Tue</span>
+        <span class="day-name">Wed</span>
+        <span class="day-name">Thu</span>
+        <span class="day-name">Fri</span>
+        <span class="day-name">Sat</span>
+        <span class="day-name">Sun</span>
+
+        {{range .GetDaysBeforeMonthBegin}}
+            <div class="day day--disabled"></div>
+        {{end}}
+
+        {{if eq .Month .Current.Month}}
+            {{range $day := .GetDaysOfMonth}}
+                {{if eq $day $.Current.Day}}
+                    <div class="day day-active">{{$day}}</div>
+                {{else}}
+                    <div class="day">{{$day}}</div>
+                {{end}}
+            {{end}}
+        {{else}}
+            {{range $day := .GetDaysOfMonth}}}
+                <div class="day">{{$day}}</div>
+            {{end}}
+        {{end}}
+
+        <!--<section class="task">Projects</section>
+        <section class="task">Design Sprint</section>
+        <section class="task">Product Checkup 1<div class="task__detail">
+            <h2>Product Checkup 1</h2>
+            <p>15-17th November</p>
+        </div>
+        </section>
+        <section class="task">Product Checkup 2</section>-->
+    </div>
+</div>
+
+</body>
+</html>
