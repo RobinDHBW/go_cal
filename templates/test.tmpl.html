@@ -1,21 +1,40 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-    <title>Go To-Do list</title>
+    <title>Calendar</title>
     <link href="templates/static/calendar.css" type="text/css" rel="stylesheet">
 </head>
 <body>
 
 <div class="calendar-container">
         <div class="month">
-            <ul>
-                <li class="prev"><button>&#10094;</button></li>
-                <li class="next"><button>&#10095;</button></li>
-                <li>
-                    {{.Month}} {{.Year}} <button>▾</button><br><br>
-                    <button style="font-size: 16px">Today: {{.Current.Format "02.01.2006"}}</button>
-                </li>
-            </ul>
+            <form id="calendarForm" method="post" action="/updateCalendar">
+                <ul>
+                    <li class="prev"><button name="prev" id="prev" type="submit">&#10094;</button></li>
+                    <li class="next"><button name="next" id="next" type="submit">&#10095;</button></li>
+                    <li>
+                        {{.Month}} {{.Year}}<br><br>
+                        <select name="chooseMonth" id="chooseMonth">
+                            <option value="1" {{if eq .Month 1}} selected {{end}}>Januar</option>
+                            <option value="2" {{if eq .Month 2}} selected {{end}}>Februar</option>
+                            <option value="3" {{if eq .Month 3}} selected {{end}}>März</option>
+                            <option value="4" {{if eq .Month 4}} selected {{end}}>April</option>
+                            <option value="5" {{if eq .Month 5}} selected {{end}}>Mai</option>
+                            <option value="6" {{if eq .Month 6}} selected {{end}}>Juni</option>
+                            <option value="7" {{if eq .Month 7}} selected {{end}}>Juli</option>
+                            <option value="8" {{if eq .Month 8}} selected {{end}}>August</option>
+                            <option value="9" {{if eq .Month 9}} selected {{end}}>September</option>
+                            <option value="10" {{if eq .Month 10}} selected {{end}}>Oktober</option>
+                            <option value="11" {{if eq .Month 11}} selected {{end}}>November</option>
+                            <option value="12" {{if eq .Month 12}} selected {{end}}>Dezember</option>
+                        </select>
+                        <input class="select" id="chooseYear" name="chooseYear" type="number" min="0" step="1" value="{{.Year}}"/>
+                        <button style="font-size: 16px" name="choose" id="choose" type="submit">Submit</button>
+                        <br><br>
+                        <button style="font-size: 16px" name="today" id="today" type="submit">Today: {{.Current.Format "02.01.2006"}}</button>
+                    </li>
+                </ul>
+            </form>
         </div>
     <div class="calendar">
         <span class="day-name">Mon</span>
@@ -30,7 +49,7 @@
             <div class="day day--disabled"></div>
         {{end}}
 
-        {{if eq .Month .Current.Month}}
+        {{if and (eq .Month .Current.Month) (eq .Year .Current.Year)}}
             {{range $day := .GetDaysOfMonth}}
                 {{if eq $day $.Current.Day}}
                     <div class="day day-active">{{$day}}</div>
@@ -39,7 +58,7 @@
                 {{end}}
             {{end}}
         {{else}}
-            {{range $day := .GetDaysOfMonth}}}
+            {{range $day := .GetDaysOfMonth}}
                 <div class="day">{{$day}}</div>
             {{end}}
         {{end}}
