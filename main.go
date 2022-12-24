@@ -27,13 +27,14 @@ func main() {
 	if err != nil {
 		fmt.Println(err)
 	}
-
 	http.HandleFunc("/updateCalendar", calendarView.UpdateCalendarHandler)
 	http.HandleFunc("/register", authentication.RegisterHandler)
 	http.HandleFunc("/error", ErrorHandler)
+	http.HandleFunc("/logout", authentication.LogoutHandler)
+	http.HandleFunc("/", authentication.LoginHandler)
 
 	http.Handle("/templates/static/", http.StripPrefix("/templates/static", http.FileServer(http.Dir("templates/static"))))
-	http.HandleFunc("/", authentication.LoginHandler)
+
 	log.Fatalln(http.ListenAndServe(":8080", nil))
 }
 
