@@ -27,19 +27,19 @@ func NewDM(dataPath string) DataModel {
 	return DataModel{uList, fH}
 }
 
-func (dm DataModel) getUser(id int) {
+func (dm DataModel) GetUserById(id int) data.User {
 
 }
 
-func (dm DataModel) addUser() {
+func (dm DataModel) AddUser() {
 
 }
 
 // Call by reference or call by value?
-func (dm DataModel) addAppointment(id int, ap data.Appointment) {
+func (dm DataModel) AddAppointment(id int, ap data.Appointment) {
 
 }
 
-func (dm DataModel) deleteAppointment(id int) {
+func (dm DataModel) DeleteAppointment(id int) {
 
 }

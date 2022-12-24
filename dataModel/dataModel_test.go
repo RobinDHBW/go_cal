@@ -38,3 +38,13 @@ func TestNewDM(t *testing.T) {
 	//Check if dataPath correct and UserList correct
 	assert.EqualValues(t, uList, dM.UserList)
 }
+
+func TestDataModel_GetUserById(t *testing.T) {
+	dP := "../data/test"
+	dM := NewDM(dP)
+
+	uID := 1
+	user := dM.GetUserById(uID)
+
+	assert.EqualValues(t, uID, user.Id)
+}
