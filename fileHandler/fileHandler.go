@@ -6,34 +6,8 @@ import (
 	"os"
 	"path"
 	"strconv"
+	"strings"
 )
-
-type Appointment struct {
-	DateTime    string `json:"dateTime"`
-	Title       string `json:"title"`
-	Description string `json:"description"`
-	Userid      int    `json:"userid"`
-	UserLevel   int    `json:"userLevel"`
-	Timeseries  struct {
-		Repeat    bool `json:"repeat"`
-		Intervall int  `json:"intervall"`
-	} `json:"timeseries"`
-	Share struct {
-		Public bool   `json:"public"`
-		Url    string `json:"url"`
-	} `json:"share"`
-}
-
-type User struct {
-	UserName     string `json:"userName"`
-	Password     string `json:"password"`
-	Id           int    `json:"id"`
-	Appointments []Appointment
-}
-
-func NewUser(name, pw string, id int) User {
-	return User{name, pw, id, nil}
-}
 
 type FileHandler struct {
 	dataPath  string
@@ -46,7 +20,7 @@ func NewFH(dataPath string) FileHandler {
 	if err != nil {
 		log.Fatal(err)
 	}
-	fN := make([]string, len(files))
+	fN := []string{} //make([]string, len(files))
 	for _, f := range files {
 		fN = append(fN, f.Name())
 	}
@@ -77,4 +51,17 @@ func (fh FileHandler) ReadFromFile(id int) string {
 	return string(byteVal)
 	//json.Unmarshal(byteVal, &user)
 	//return user
+}
+
+func (fh FileHandler) ReadAll() []string {
+	var uStrings []string
+
+	for _, name := range fh.fileNames {
+		id, err := strconv.Atoi(strings.Split(name, ".")[0])
+		if err != nil {
+			log.Fatal(err)
+		}
+		uStrings = append(uStrings, fh.ReadFromFile(id))
+	}
+	return uStrings
 }

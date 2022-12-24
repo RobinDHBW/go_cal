@@ -3,10 +3,12 @@ package fileHandler
 import (
 	"encoding/json"
 	"github.com/stretchr/testify/assert"
+	"go_cal/data"
+	//"go_cal/dataModel"
 	"testing"
 )
 
-func fileWriteRead(user User, fH FileHandler) User {
+func fileWriteRead(user data.User, fH FileHandler) data.User {
 	write, err := json.Marshal(user)
 	if err != nil {
 		panic(err)
@@ -15,13 +17,20 @@ func fileWriteRead(user User, fH FileHandler) User {
 
 	fString := fH.ReadFromFile(1)
 
-	var rUser User
+	var rUser data.User
 	json.Unmarshal([]byte(fString), &rUser)
 	return rUser
 }
 
+func TestNewFH(t *testing.T) {
+	dP := "../data/test"
+	fH := NewFH(dP)
+
+	assert.EqualValues(t, dP, fH.dataPath)
+}
+
 func TestFileHandler_SyncToFile(t *testing.T) {
-	user := NewUser("test", "test", 1)
+	user := data.NewUser("test", "test", 1)
 	fH := NewFH("../data/test")
 	rUser := fileWriteRead(user, fH)
 
@@ -30,10 +39,28 @@ func TestFileHandler_SyncToFile(t *testing.T) {
 
 func TestFileHandler_ReadFromFile(t *testing.T) {
 
-	user := NewUser("test", "test", 1)
+	user := data.NewUser("test", "test", 1)
 	fH := NewFH("../data/test")
 	rUser := fileWriteRead(user, fH)
 
 	assert.EqualValues(t, user, rUser)
+}
 
+func TestFileHandler_ReadAll(t *testing.T) {
+
+	uList := []data.User{data.NewUser("test1", "test", 1), data.NewUser("test2", "test", 2), data.NewUser("test3", "test", 3)}
+	fH := NewFH("../data/test")
+	for _, uD := range uList {
+		fileWriteRead(uD, fH)
+	}
+
+	//rSList := fH.ReadAll()
+	rUList := []data.User{}
+	for _, uString := range fH.ReadAll() {
+		var user data.User
+		json.Unmarshal([]byte(uString), &user)
+
+		rUList = append(rUList, user)
+	}
+	assert.EqualValues(t, uList, rUList)
 }
