@@ -28,7 +28,13 @@ func NewDM(dataPath string) DataModel {
 }
 
 func (dm DataModel) GetUserById(id int) data.User {
-
+	var res data.User
+	for _, user := range dm.UserList {
+		if user.Id == id {
+			res = user
+		}
+	}
+	return res
 }
 
 func (dm DataModel) AddUser() {
