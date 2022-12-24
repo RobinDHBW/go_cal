@@ -1,8 +1,10 @@
 package calendarView
 
 import (
+	"go_cal/authentication"
 	"html/template"
 	"net/http"
+	"net/url"
 	"strconv"
 	"time"
 )
@@ -70,21 +72,26 @@ func (cal *Calendar) ChooseMonth(year int, month time.Month) {
 }
 
 func UpdateCalendarHandler(w http.ResponseWriter, r *http.Request) {
-	if r.Method == http.MethodPost {
-		r.ParseForm()
-		switch {
-		case r.Form.Has("next"):
-			Cal.NextMonth()
-		case r.Form.Has("prev"):
-			Cal.PrevMonth()
-		case r.Form.Has("today"):
-			Cal.CurrentMonth()
-		case r.Form.Has("choose"):
-			year, _ := strconv.Atoi(r.Form.Get("chooseYear"))
-			month, _ := strconv.Atoi(r.Form.Get("chooseMonth"))
-			Cal.ChooseMonth(year, time.Month(month))
+	isCookieValid := authentication.CheckCookie(r)
+	if isCookieValid {
+		if r.Method == http.MethodPost {
+			r.ParseForm()
+			switch {
+			case r.Form.Has("next"):
+				Cal.NextMonth()
+			case r.Form.Has("prev"):
+				Cal.PrevMonth()
+			case r.Form.Has("today"):
+				Cal.CurrentMonth()
+			case r.Form.Has("choose"):
+				year, _ := strconv.Atoi(r.Form.Get("chooseYear"))
+				month, _ := strconv.Atoi(r.Form.Get("chooseMonth"))
+				Cal.ChooseMonth(year, time.Month(month))
+			}
 		}
-
+	} else {
+		http.Redirect(w, r, "/error?type=authentification&link="+url.QueryEscape("/"), http.StatusUnauthorized)
+		return
 	}
 
 	var tempInit = template.Must(template.ParseFiles("./templates/test.tmpl.html"))

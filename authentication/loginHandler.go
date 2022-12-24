@@ -3,7 +3,6 @@ package authentication
 import (
 	"encoding/json"
 	"fmt"
-	"go_cal/calendarView"
 	"go_cal/templates"
 	"golang.org/x/crypto/bcrypt"
 	"math/rand"
@@ -14,76 +13,69 @@ import (
 	"time"
 )
 
+// map with username and corresponding hashed password
 var users = map[string][]byte{}
 
+// struct: Credentials for a user
 type Credentials struct {
 	Username string `json:"username"`
 	Password []byte `json:"password"`
 }
 
+// session consist of a user and an expire time
 type session struct {
 	uname   string
 	expires time.Time
 }
 
+// map with SessionTokens and corresponding sessions
 var sessions = map[string]session{}
 
+// determines if a Session is expired
 func (s session) isExpired() bool {
 	return s.expires.Before(time.Now())
 }
 
 func LoginHandler(w http.ResponseWriter, r *http.Request) {
-	// zu überprüfen: Datei zu User finden (exisitert der User?), Passwort abgleichen, Cookie setzen
+	// Cookie überprüfen
+	isCookieValid := CheckCookie(r)
 
-	r.ParseForm()
-	if r.PostForm.Has("login") && r.Method == http.MethodPost {
-		password := []byte(r.PostFormValue("passwd"))
-		username := r.PostFormValue("uname")
-		successful := AuthenticateUser(username, password)
-		if successful {
-			sessionToken := createUUID(10)
-			expires := time.Now().Add(120 * time.Second)
-			sessions[sessionToken] = session{
-				uname:   username,
-				expires: expires,
+	// no cookie sent with the request --> login-procedure
+	if !isCookieValid {
+		// zu überprüfen: Datei zu User finden (exisitert der User?), Passwort abgleichen, Cookie setzen
+		r.ParseForm()
+		if r.PostForm.Has("login") && r.Method == http.MethodPost {
+			password := []byte(r.PostFormValue("passwd"))
+			username := r.PostFormValue("uname")
+			successful := AuthenticateUser(username, password)
+			if successful {
+				sessionToken := createUUID(10)
+				expires := time.Now().Add(120 * time.Second)
+				sessions[sessionToken] = session{
+					uname:   username,
+					expires: expires,
+				}
+
+				http.SetCookie(w, &http.Cookie{
+					Name:    "session_token",
+					Value:   sessionToken,
+					Expires: expires,
+				})
+
+				http.Redirect(w, r, "/updateCalendar", http.StatusFound)
+				return
+			} else {
+				r.Method = http.MethodGet
+				http.Redirect(w, r, "error?type=authentification&link="+url.QueryEscape("/"), http.StatusContinue)
+				return
 			}
-
-			http.SetCookie(w, &http.Cookie{
-				Name:    "session_token",
-				Value:   sessionToken,
-				Expires: expires,
-			})
-
-			http.Redirect(w, r, "/updateCalendar", http.StatusFound)
-			return
-		} else {
-			r.Method = http.MethodGet
-			http.Redirect(w, r, "error?type=authentification&link="+url.QueryEscape("/"), http.StatusContinue)
-			return
 		}
+		// Cookie sent with the request + valid
+	} else {
+		http.Redirect(w, r, "/updateCalendar", http.StatusFound)
 	}
-	templates.TempLogin.Execute(w, nil)
 
-	//if r.PostFormValue("uname") == "" && r.PostFormValue("passwd") == "" {
-	//	templates.TempLogin.Execute(w, nil)
-	//} else {
-	//	file, err := os.ReadFile("./files/" + r.PostFormValue("uname") + ".json")
-	//	if err != nil {
-	//		fmt.Println(err)
-	//		templates.TempLogin.Execute(w, nil)
-	//		return
-	//	}
-	//	var user Credentials
-	//	json.Unmarshal(file, &user)
-	//	err = bcrypt.CompareHashAndPassword(user.Passwd, []byte(r.PostFormValue("passwd")))
-	//	if err == nil {
-	//		fmt.Println("Successfully logged in")
-	//		templates.TempInit.Execute(w, calendarView.Cal)
-	//	} else {
-	//		fmt.Println("login failed")
-	//		templates.TempLogin.Execute(w, nil)
-	//	}
-	//}
+	templates.TempLogin.Execute(w, nil)
 }
 
 func RegisterHandler(w http.ResponseWriter, r *http.Request) {
@@ -139,7 +131,7 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		templates.TempInit.Execute(w, calendarView.Cal)
+		//templates.TempInit.Execute(w, calendarView.Cal)
 	}
 }
 
@@ -186,6 +178,28 @@ func AuthenticateUser(username string, password []byte) (successful bool) {
 	} else {
 		return true
 	}
+}
+
+func CheckCookie(r *http.Request) (successful bool) {
+	cookie, err := r.Cookie("session_token")
+	if err == http.ErrNoCookie {
+		return false
+	}
+
+	sessionToken := cookie.Value
+
+	// look up in session map
+	session, ok := sessions[sessionToken]
+	// no SessionToken found
+	if !ok {
+		return false
+	}
+	// SessionToken is expired
+	if session.isExpired() {
+		delete(sessions, sessionToken)
+		return false
+	}
+	return true
 }
 
 //func createUser(uname *string, passwd *string) error {
