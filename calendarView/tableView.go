@@ -70,18 +70,21 @@ func (cal *Calendar) ChooseMonth(year int, month time.Month) {
 }
 
 func UpdateCalendarHandler(w http.ResponseWriter, r *http.Request) {
-	r.ParseForm()
-	switch {
-	case r.Form.Has("next"):
-		Cal.NextMonth()
-	case r.Form.Has("prev"):
-		Cal.PrevMonth()
-	case r.Form.Has("today"):
-		Cal.CurrentMonth()
-	case r.Form.Has("choose"):
-		year, _ := strconv.Atoi(r.Form.Get("chooseYear"))
-		month, _ := strconv.Atoi(r.Form.Get("chooseMonth"))
-		Cal.ChooseMonth(year, time.Month(month))
+	if r.Method == http.MethodPost {
+		r.ParseForm()
+		switch {
+		case r.Form.Has("next"):
+			Cal.NextMonth()
+		case r.Form.Has("prev"):
+			Cal.PrevMonth()
+		case r.Form.Has("today"):
+			Cal.CurrentMonth()
+		case r.Form.Has("choose"):
+			year, _ := strconv.Atoi(r.Form.Get("chooseYear"))
+			month, _ := strconv.Atoi(r.Form.Get("chooseMonth"))
+			Cal.ChooseMonth(year, time.Month(month))
+		}
+
 	}
 
 	var tempInit = template.Must(template.ParseFiles("./templates/test.tmpl.html"))
