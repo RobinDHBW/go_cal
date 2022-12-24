@@ -9,20 +9,19 @@ import (
 	"net/http"
 	"net/url"
 	"os"
-	"strings"
 	"time"
 )
 
 // map with username and corresponding hashed password
 var users = map[string][]byte{}
 
-// struct: Credentials for a user
+// Credentials struct for a user
 type Credentials struct {
 	Username string `json:"username"`
 	Password []byte `json:"password"`
 }
 
-// session consist of a user and an expire time
+// session consist of an user and an expire time
 type session struct {
 	uname   string
 	expires time.Time
@@ -49,24 +48,17 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 			username := r.PostFormValue("uname")
 			successful := AuthenticateUser(username, password)
 			if successful {
-				sessionToken := createUUID(10)
-				expires := time.Now().Add(120 * time.Second)
-				sessions[sessionToken] = session{
-					uname:   username,
-					expires: expires,
-				}
-
+				sessionToken, expires := createSession(username)
 				http.SetCookie(w, &http.Cookie{
 					Name:    "session_token",
 					Value:   sessionToken,
 					Expires: expires,
 				})
-
 				http.Redirect(w, r, "/updateCalendar", http.StatusFound)
 				return
 			} else {
 				r.Method = http.MethodGet
-				http.Redirect(w, r, "error?type=authentification&link="+url.QueryEscape("/"), http.StatusContinue)
+				http.Redirect(w, r, "error?type=authentification&link="+url.QueryEscape("/"), http.StatusUnauthorized)
 				return
 			}
 		}
@@ -74,65 +66,70 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 	} else {
 		http.Redirect(w, r, "/updateCalendar", http.StatusFound)
 	}
-
 	templates.TempLogin.Execute(w, nil)
 }
 
 func RegisterHandler(w http.ResponseWriter, r *http.Request) {
-	// exisitiert der Nutzer schon?
-
-	if r.PostFormValue("uname") == "" && r.PostFormValue("passwd") == "" {
-		templates.TempRegister.Execute(w, nil)
-	} else {
-		passwd, _ := bcrypt.GenerateFromPassword([]byte(r.PostFormValue("passwd")), bcrypt.DefaultCost)
-		user := Credentials{
-			Username: r.PostForm.Get("uname"),
-			Password: passwd,
-		}
-
-		// write userinfo to filesystem
-
-		// cookie setzen
-
-		folder, err := os.Open("./files")
-		if err != nil {
-			fmt.Println(err)
+	r.ParseForm()
+	if r.PostForm.Has("register") && r.Method == http.MethodPost {
+		// exisitiert der Nutzer schon?
+		duplicate := isDuplicateUsername(r.PostFormValue("username"))
+		if duplicate {
+			r.Method = http.MethodGet
+			http.Redirect(w, r, "error?type=authentification&link="+url.QueryEscape("/register"), http.StatusUnauthorized)
 			return
-		}
-
-		files, err := folder.Readdir(0)
-		if err != nil {
-			fmt.Println(err)
-		}
-		for _, file := range files {
-			if user.Username == strings.Split(file.Name(), ".")[0] {
-				templates.TempRegister.Execute(w, nil)
+		} else {
+			hashedPassword, _ := bcrypt.GenerateFromPassword([]byte(r.PostFormValue("passwd")), bcrypt.DefaultCost)
+			username := r.PostForm.Get("uname")
+			user := Credentials{
+				Username: username,
+				Password: hashedPassword,
+			}
+			// ab hier Speicherprozess
+			folder, err := os.Open("./files")
+			if err != nil {
+				fmt.Println(err)
 				return
 			}
-		}
 
-		text, _ := json.Marshal(user)
+			_, err = folder.Readdir(0)
+			if err != nil {
+				fmt.Println(err)
+			}
 
-		file, err := os.Create("./files/" + user.Username + ".json")
-		if err != nil {
-			fmt.Println(err)
+			text, _ := json.Marshal(user)
+
+			file, err := os.Create("./files/" + user.Username + ".json")
+			if err != nil {
+				fmt.Println(err)
+				return
+			}
+
+			_, err = file.Write(text)
+			if err != nil {
+				fmt.Println(err)
+				return
+			}
+
+			err = file.Close()
+			if err != nil {
+				fmt.Println(err)
+				return
+			}
+			// Cookie erstellen
+			sessionToken, expires := createSession(username)
+			http.SetCookie(w, &http.Cookie{
+				Name:    "session_token",
+				Value:   sessionToken,
+				Expires: expires,
+			})
+			// sync file to variables
+			LoadUsersFromFiles()
+			http.Redirect(w, r, "/updateCalendar", http.StatusFound)
 			return
 		}
-
-		_, err = file.Write(text)
-		if err != nil {
-			fmt.Println(err)
-			return
-		}
-
-		err = file.Close()
-		if err != nil {
-			fmt.Println(err)
-			return
-		}
-
-		//templates.TempInit.Execute(w, calendarView.Cal)
 	}
+	templates.TempRegister.Execute(w, nil)
 }
 
 // TODO
@@ -202,10 +199,17 @@ func CheckCookie(r *http.Request) (successful bool) {
 	return true
 }
 
-//func createUser(uname *string, passwd *string) error {
-//
-//}
-//
-//func createCookie() {
-//
-//}
+func isDuplicateUsername(username string) (isDuplicate bool) {
+	_, ok := users[username]
+	return ok
+}
+
+func createSession(username string) (sessionToken string, expires time.Time) {
+	sessionToken = createUUID(10)
+	expires = time.Now().Add(120 * time.Second)
+	sessions[sessionToken] = session{
+		uname:   username,
+		expires: expires,
+	}
+	return sessionToken, expires
+}

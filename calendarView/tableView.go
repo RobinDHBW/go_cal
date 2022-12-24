@@ -90,6 +90,7 @@ func UpdateCalendarHandler(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 	} else {
+		r.Method = http.MethodGet
 		http.Redirect(w, r, "/error?type=authentification&link="+url.QueryEscape("/"), http.StatusUnauthorized)
 		return
 	}
