@@ -11,7 +11,7 @@ func fileWriteRead(user User, fH FileHandler) User {
 	if err != nil {
 		panic(err)
 	}
-	fH.SyncToFile(string(write))
+	fH.SyncToFile(write, user.Id)
 
 	fString := fH.ReadFromFile(1)
 
@@ -20,23 +20,18 @@ func fileWriteRead(user User, fH FileHandler) User {
 	return rUser
 }
 
-// Check to write json struct to file and readback --> struct must be same
 func TestFileHandler_SyncToFile(t *testing.T) {
 	user := NewUser("test", "test", 1)
-	fH := NewFH("../data")
+	fH := NewFH("../data/test")
 	rUser := fileWriteRead(user, fH)
 
 	assert.EqualValues(t, user, rUser)
 }
 
-// Check to read json from file
 func TestFileHandler_ReadFromFile(t *testing.T) {
-	//Step 1: common way to create a user
-	//Step 2: write to disk
-	//Step 3: reread --> must be the same
 
 	user := NewUser("test", "test", 1)
-	fH := NewFH("../data")
+	fH := NewFH("../data/test")
 	rUser := fileWriteRead(user, fH)
 
 	assert.EqualValues(t, user, rUser)
