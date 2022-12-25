@@ -20,7 +20,7 @@ func NewFH(dataPath string) FileHandler {
 	if err != nil {
 		log.Fatal(err)
 	}
-	fN := []string{} //make([]string, len(files))
+	fN := []string{}
 	for _, f := range files {
 		fN = append(fN, f.Name())
 	}
@@ -29,7 +29,7 @@ func NewFH(dataPath string) FileHandler {
 
 func (fh FileHandler) SyncToFile(json []byte, id int) {
 	fN := strconv.Itoa(id) + ".json"
-	file, err := os.Create(path.Join(fh.dataPath, fN))
+	file, err := os.Create(path.Join(fh.dataPath, fN)) //os.Create --> if already existing, file will be truncated
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -45,17 +45,15 @@ func (fh FileHandler) ReadFromFile(id int) string {
 		log.Fatal(err)
 	}
 	defer file.Close()
-	//var user User
 
 	byteVal, _ := io.ReadAll(file)
 	return string(byteVal)
-	//json.Unmarshal(byteVal, &user)
-	//return user
 }
 
 func (fh FileHandler) ReadAll() []string {
 	var uStrings []string
 
+	//@TODO Make parallel
 	for _, name := range fh.fileNames {
 		id, err := strconv.Atoi(strings.Split(name, ".")[0])
 		if err != nil {

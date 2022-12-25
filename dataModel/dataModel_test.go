@@ -8,7 +8,7 @@ import (
 	"testing"
 )
 
-var uList = []data.User{data.NewUser("test1", "test", 1), data.NewUser("test2", "test", 2), data.NewUser("test3", "test", 3)}
+var uList = []data.User{data.NewUser("test1", "test", 1, 3), data.NewUser("test2", "test", 2, 2), data.NewUser("test3", "test", 3, 0)}
 
 func fileWriteRead(user data.User, fH fileHandler.FileHandler) data.User {
 	write, err := json.Marshal(user)
