@@ -28,13 +28,14 @@ func NewFH(dataPath string) FileHandler {
 }
 
 func (fh FileHandler) SyncToFile(json []byte, id int) {
-	fN := strconv.Itoa(id) + ".json"
-	file, err := os.Create(path.Join(fh.dataPath, fN)) //os.Create --> if already existing, file will be truncated
+	fileName := strconv.Itoa(id) + ".json"
+	file, err := os.Create(path.Join(fh.dataPath, fileName)) //os.Create --> if already existing, file will be truncated
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	defer file.Close()
+	fh.fileNames = append(fh.fileNames, fileName)
 	file.Write(json)
 }
 

@@ -4,11 +4,13 @@ import (
 	"encoding/json"
 	"github.com/stretchr/testify/assert"
 	"go_cal/data"
+	"os"
+
 	//"go_cal/dataModel"
 	"testing"
 )
 
-func fileWriteRead(user data.User, fH FileHandler) data.User {
+func fileWriteRead(user data.User, fH *FileHandler) data.User {
 	write, err := json.Marshal(user)
 	if err != nil {
 		panic(err)
@@ -22,6 +24,11 @@ func fileWriteRead(user data.User, fH FileHandler) data.User {
 	return rUser
 }
 
+func after() {
+	os.RemoveAll("../data/test/")
+	os.MkdirAll("../data/test/", 777)
+}
+
 func TestNewFH(t *testing.T) {
 	dP := "../data/test"
 	fH := NewFH(dP)
@@ -30,29 +37,33 @@ func TestNewFH(t *testing.T) {
 }
 
 func TestFileHandler_SyncToFile(t *testing.T) {
-	user := data.NewUser("test", "test", 1)
+	user := data.NewUser("test", "test", 1, 3)
 	fH := NewFH("../data/test")
-	rUser := fileWriteRead(user, fH)
+	rUser := fileWriteRead(user, &fH)
+
+	defer after()
 
 	assert.EqualValues(t, user, rUser)
 }
 
 func TestFileHandler_ReadFromFile(t *testing.T) {
 
-	user := data.NewUser("test", "test", 1)
+	user := data.NewUser("test", "test", 1, 3)
 	fH := NewFH("../data/test")
-	rUser := fileWriteRead(user, fH)
+	rUser := fileWriteRead(user, &fH)
+
+	defer after()
 
 	assert.EqualValues(t, user, rUser)
 }
 
 func TestFileHandler_ReadAll(t *testing.T) {
-
-	uList := []data.User{data.NewUser("test1", "test", 1), data.NewUser("test2", "test", 2), data.NewUser("test3", "test", 3)}
+	uList := []data.User{data.NewUser("test1", "test", 1, 3), data.NewUser("test2", "test", 2, 3), data.NewUser("test3", "test", 3, 3)}
 	fH := NewFH("../data/test")
 	for _, uD := range uList {
-		fileWriteRead(uD, fH)
+		fileWriteRead(uD, &fH)
 	}
+	//defer after()
 
 	//rSList := fH.ReadAll()
 	rUList := []data.User{}

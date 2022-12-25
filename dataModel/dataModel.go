@@ -37,7 +37,7 @@ func (dm DataModel) GetUserById(id int) data.User {
 	return res
 }
 
-func (dm DataModel) AddUser() {
+func (dm DataModel) AddUser(name, pw string, id, userLevel int, appointment data.Appointment) {
 
 }
 

@@ -32,19 +32,30 @@ func init() {
 }
 
 func TestNewDM(t *testing.T) {
-	dP := "../data/test"
-	dM := NewDM(dP)
+	dataPath := "../data/test"
+	dataModel := NewDM(dataPath)
 
 	//Check if dataPath correct and UserList correct
-	assert.EqualValues(t, uList, dM.UserList)
+	assert.EqualValues(t, uList, dataModel.UserList)
 }
 
 func TestDataModel_GetUserById(t *testing.T) {
-	dP := "../data/test"
-	dM := NewDM(dP)
+	dataPath := "../data/test"
+	dataModel := NewDM(dataPath)
 
 	uID := 1
-	user := dM.GetUserById(uID)
+	user := dataModel.GetUserById(uID)
 
 	assert.EqualValues(t, uID, user.Id)
 }
+
+//func TestDataModel_AddUser(t *testing.T) {
+//	dataPath := "../data/test"
+//	dataModel := NewDM(dataPath)
+//
+//	dataModel.AddUser()
+//	//test if user has same attributes
+//	//test if file on disk has same attributes
+//
+//	assert.EqualValues(t)
+//}
