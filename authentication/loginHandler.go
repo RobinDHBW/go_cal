@@ -167,10 +167,10 @@ func LoadUsersFromFiles() error {
 	return nil
 }
 
-func AuthenticateUser(username string, password []byte) (successful bool) {
+func AuthenticateUser(username string, unHashedPassword []byte) (successful bool) {
 	expectedPasswordHash, ok := users[username]
 
-	if !ok || bcrypt.CompareHashAndPassword(expectedPasswordHash, password) != nil {
+	if !ok || bcrypt.CompareHashAndPassword(expectedPasswordHash, unHashedPassword) != nil {
 		return false
 	} else {
 		return true

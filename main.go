@@ -22,6 +22,7 @@ func mainHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
+	templates.Init()
 	configErrorList()
 	err := authentication.LoadUsersFromFiles()
 	if err != nil {

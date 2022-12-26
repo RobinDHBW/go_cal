@@ -2,7 +2,7 @@ package calendarView
 
 import (
 	"go_cal/authentication"
-	"html/template"
+	"go_cal/templates"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -95,6 +95,5 @@ func UpdateCalendarHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var tempInit = template.Must(template.ParseFiles("./templates/test.tmpl.html"))
-	tempInit.Execute(w, Cal)
+	templates.TempInit.Execute(w, Cal)
 }
