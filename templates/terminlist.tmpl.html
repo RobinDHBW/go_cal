@@ -14,24 +14,37 @@
                 <li>
                     Terminübersicht<br><br>
                     <button style="font-size: 16px" name="calendarBack" id="calendarBack" type="submit">Zurück zum Kalendar</button>
-                    <span></span>
-                    <input style="font-size: 16px" name="dataChoose" id="dateChoose" type="date" value="{{.MinDate}}">Datum wählen</input>
-                    <input style="font-size: 16px" name="numberPerSite" id="numberPerSite" type="number" min="1" step="1" value="{{.TerminPerSite}}">Anzahl Termine pro Seite</input>
-                    <button style="font-size: 16px" name="choose" id="choose" type="submit">Submit</button>
+                    <br>
+                    <label class="inputlabel" for="dateChoose">Datum wählen</label>
+                    <input style="font-size: 16px" name="dateChoose" id="dateChoose" type="date" value='{{.MinDate.Format "2006-01-02"}}'/>
+                    <br>
+                    <label class="inputlabel" for="numberPerSite">Anzahl Termine pro Seite</label>
+                    <input style="font-size: 16px" name="numberPerSite" id="numberPerSite" type="number" min="1" step="1" value="{{.TerminPerSite}}"/><br>
 
-                    <input class="select" id="siteChoose" name="siteChoose" type="number" min="1" step="1" value="1"/>
+                    <label class="inputlabel" for="siteChoose">Seitenzahl wählen</label>
+                    <input style="font-size: 16px" id="siteChoose" name="siteChoose" type="number" min="1" step="1" value="{{.TerminSite}}"/>
+
+                    <button style="font-size: 16px" name="submitTermin" id="submitTermin" type="submit">Submit</button>
                 </li>
             </ul>
         </form>
     </div>
-    <div class="calendar">
-        <span class="day-name">Mon</span>
-        <span class="day-name">Tue</span>
-        <span class="day-name">Wed</span>
-        <span class="day-name">Thu</span>
-        <span class="day-name">Fri</span>
-        <span class="day-name">Sat</span>
-        <span class="day-name">Sun</span>
+    <div class="terminlist">
+            {{range .GetTerminList}}
+                <span class="termin">
+                    {{.Title}}
+                    <br>
+                    Zeitpunkt: {{.Begin.Format "02.01.2006 15:04:05"}} bis {{.End.Format "02.01.2006 15:04:05"}}
+                    <br>
+                    {{.Content}}
+                    <hr>
+                </span>
+            {{else}}
+                <span class="termin">
+                    Keine Termine vorhanden
+                    <hr>
+                </span>
+            {{end}}
 
     </div>
 </div>
