@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Terminlist</title>
+    <link href="templates/static/terminlist.css" type="text/css" rel="stylesheet">
+</head>
+<body>
+
+<div class="calendar-container">
+    <div class="month">
+        <form id="terminListForm" method="post" action="/updateTerminList">
+            <ul>
+                <li>
+                    Termin bearbeiten<br><br>
+                    <button style="font-size: 16px" name="calendarBack" id="calendarBack" type="submit">Zurück zum Kalendar</button>
+                    <br>
+                    <label class="inputlabel" for="dateChoose">Datum wählen</label>
+                    <input style="font-size: 16px" name="dateChoose" id="dateChoose" type="date" value='{{.MinDate.Format "2006-01-02"}}'/>
+                    <br>
+                    <label class="inputlabel" for="numberPerSite">Anzahl Termine pro Seite</label>
+                    <input style="font-size: 16px" name="numberPerSite" id="numberPerSite" type="number" min="1" step="1" value="{{.TerminPerSite}}"/><br>
+
+                    <label class="inputlabel" for="siteChoose">Seitenzahl wählen</label>
+                    <input style="font-size: 16px" id="siteChoose" name="siteChoose" type="number" min="1" step="1" value="{{.TerminSite}}"/>
+
+                    <button style="font-size: 16px" name="submitTermin" id="submitTermin" type="submit">Submit</button>
+                </li>
+            </ul>
+        </form>
+    </div>
+    <div class="terminlist">
+        
+
+    </div>
+</div>
+
+</body>
+</html>

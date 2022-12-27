@@ -1,0 +1,106 @@
+html,
+body {
+    width: 100%;
+    height: 100%;
+}
+
+body {
+    background: #f5f7fa;
+    padding: 40px 0;
+    box-sizing: border-box;
+    color: #51565d;
+    font-family: Verdana, sans-serif;
+
+}
+
+.calendar {
+    display: grid;
+    width: 100%;
+    grid-template-columns: repeat(7, minmax(120px, 1fr));
+    grid-template-rows: 50px;
+    grid-auto-rows: 120px;
+    overflow: auto;
+}
+
+.calendar-container {
+    width: 90%;
+    margin: auto;
+    overflow: hidden;
+    box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
+    border-radius: 10px;
+    background: #fff;
+    max-width: 1200px;
+}
+
+
+.calendar-container button {
+    font-size: 28px;
+    color: white;
+    background: #1abc9c;
+
+}
+
+.termin{
+    font-size: 16px;
+    line-height: 18px;
+    font-weight: 500;
+}
+
+.terminlist {
+    padding-top: 12px;
+    padding-left: 12px;
+}
+
+h2 {
+    font-size: 15px;
+    margin: 0;
+    color: #51565d;
+}
+
+p {
+    margin-top: 4px;
+    font-size: 12px;
+    margin-bottom: 0;
+    font-weight: 500;
+    color: #51565d
+}
+
+ul {
+    list-style-type: none;
+}
+
+.month {
+    padding: 70px 25px 25px;
+    width: 100%;
+    background: #1abc9c;
+    text-align: center;
+}
+
+.month ul {
+    margin: 0;
+    padding: 0;
+}
+
+.month ul li {
+    color: white;
+    font-size: 20px;
+    text-transform: uppercase;
+    letter-spacing: 3px;
+}
+.inputlabel{
+    font-size: 16px;
+    text-transform: none;
+    letter-spacing: normal;
+}
+
+.month .prev {
+    float: left;
+}
+
+.month .next {
+    float: right;
+}
+
+button:hover {
+    background-color: #777777;
+}
