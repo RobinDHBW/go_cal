@@ -9,28 +9,42 @@
 
 <div class="calendar-container">
     <div class="month">
-        <form id="terminListForm" method="post" action="/updateTerminList">
+        <form id="backToCalendar" method="post" action="/updateTerminList">
             <ul>
                 <li>
                     Termin bearbeiten<br><br>
                     <button style="font-size: 16px" name="calendarBack" id="calendarBack" type="submit">Zurück zum Kalendar</button>
                     <br>
-                    <label class="inputlabel" for="dateChoose">Datum wählen</label>
-                    <input style="font-size: 16px" name="dateChoose" id="dateChoose" type="date" value='{{.MinDate.Format "2006-01-02"}}'/>
-                    <br>
-                    <label class="inputlabel" for="numberPerSite">Anzahl Termine pro Seite</label>
-                    <input style="font-size: 16px" name="numberPerSite" id="numberPerSite" type="number" min="1" step="1" value="{{.TerminPerSite}}"/><br>
-
-                    <label class="inputlabel" for="siteChoose">Seitenzahl wählen</label>
-                    <input style="font-size: 16px" id="siteChoose" name="siteChoose" type="number" min="1" step="1" value="{{.TerminSite}}"/>
-
-                    <button style="font-size: 16px" name="submitTermin" id="submitTermin" type="submit">Submit</button>
+                    <button style="font-size: 16px" name="terminlistBack" id="terminlistBack" type="submit">Zurück zur Terminliste</button>
                 </li>
-            </ul>
-        </form>
+            </ul></form>
     </div>
     <div class="terminlist">
-        
+        <form id="terminEditForm" method="post" action="/editTermin">
+
+        <span class="termin">
+            <input style="font-size: 16px" id="title" name="title" type="text" value="{{.Title}}"/>
+                    <br>
+                    Zeitpunkt:
+            <input style="font-size: 16px" name="dateBegin" id="dateBegin" type="datetime-local" value='{{.Begin.Format "2006-01-02 15:04"}}'/>
+            bis
+            <input style="font-size: 16px" name="dateEnd" id="dateEnd" type="datetime-local" value='{{.End.Format "2006-01-02 15:04"}}'/>
+                    <br>
+            <textarea style="font-size: 16px" id="content" name="content" type="text" value="{{.Content}}">{{.Content}}</textarea>
+            <br>
+            Wiederholung: <select name="chooseRepeat" id="chooseRepeat">
+                            <option value="none" {{if eq .Repeating "keine"}} selected {{end}}>keine</option>
+                            <option value="day" {{if eq .Repeating "täglich"}} selected {{end}}>täglich</option>
+                            <option value="week" {{if eq .Repeating "wöchentlich"}} selected {{end}}>wöchentlich</option>
+                            <option value="month" {{if eq .Repeating "monatlich"}} selected {{end}}>monatlich</option>
+                            <option value="year" {{if eq .Repeating "jährlich"}} selected {{end}}>jährlich</option>
+                        </select>
+            <button style="font-size: 16px" name="editTerminSubmit" id="editTerminSubmit" type="submit">Änderungen bestätigen</button>
+            <button style="font-size: 16px" name="deleteTerminSubmit" id="deleteTerminSubmit" type="submit">Termin löschen</button>
+
+                    <hr>
+                </span>
+        </form>
 
     </div>
 </div>

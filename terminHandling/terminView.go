@@ -20,11 +20,11 @@ type Termin struct {
 type RepeatingMode string
 
 const (
-	None  RepeatingMode = "none"
-	Day   RepeatingMode = "day"
-	Week  RepeatingMode = "week"
-	Month RepeatingMode = "month"
-	Year  RepeatingMode = "year"
+	None  RepeatingMode = "keine"
+	Day   RepeatingMode = "täglich"
+	Week  RepeatingMode = "wöchentlich"
+	Month RepeatingMode = "monatlich"
+	Year  RepeatingMode = "jährlich"
 )
 
 type TerminList struct {
@@ -53,6 +53,8 @@ func TerminHandler(w http.ResponseWriter, r *http.Request) {
 	switch {
 	case r.Form.Has("calendarBack"):
 		templates.TempInit.Execute(w, calendarView.Cal)
+	case r.Form.Has("terminlistBack"):
+		templates.TempTerminList.Execute(w, TView)
 	case r.Form.Has("submitTermin"):
 		TView.TerminPerSite, _ = strconv.Atoi(r.Form.Get("numberPerSite"))
 		TView.TerminSite, _ = strconv.Atoi(r.Form.Get("siteChoose"))
@@ -61,7 +63,6 @@ func TerminHandler(w http.ResponseWriter, r *http.Request) {
 		templates.TempTerminList.Execute(w, TView)
 	default:
 		templates.TempTerminList.Execute(w, TView)
-
 	}
 
 }

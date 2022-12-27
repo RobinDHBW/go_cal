@@ -30,11 +30,11 @@
         </form>
     </div>
     <div class="terminlist">
-            {{range $index := .GetTerminList}}
+            {{range $index, $v := .GetTerminList}}
                 <span class="termin">
                     {{.Title}}
                     <br>
-                    Zeitpunkt: {{.Begin.Format "02.01.2006 15:04"}} bis {{.End.Format "02.01.2006 15:04"}}
+                    Zeitpunkt: {{.Begin.Format "02.01.2006 15:04"}} bis {{.End.Format "02.01.2006 15:04"}} (Wiederholung: {{.Repeating}})
                     <br>
                     {{.Content}}
                     <form id="terminChangeForm" method="post" action="/editTermin">
