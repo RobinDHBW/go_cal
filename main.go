@@ -6,15 +6,15 @@ import (
 	"go_cal/calendarView"
 	"go_cal/templates"
 	"go_cal/terminHandling"
-	"html/template"
 	"log"
 	"net/http"
+	"time"
 )
 
 var globalTemp = 0
 
 func mainHandler(w http.ResponseWriter, r *http.Request) {
-	
+
 }
 
 func main() {
@@ -23,14 +23,14 @@ func main() {
 	if err != nil {
 		fmt.Println(err)
 	}
-  if globalTemp == 0 { // nur zum Testen
+	if globalTemp == 0 { // nur zum Testen
 		terminHandling.TView.TList.CreateTermin("T1", "1 content", time.Now().AddDate(0, 0, -1), time.Now())
 		terminHandling.TView.TList.CreateTermin("T2", "2 content", time.Now(), time.Now())
 		terminHandling.TView.TList.CreateTermin("T3", "3 content", time.Now().AddDate(0, 0, -2), time.Now())
 	}
 	globalTemp = 1
-  
-  http.HandleFunc("/updateCalendar", calendarView.UpdateCalendarHandler)
+
+	http.HandleFunc("/updateCalendar", calendarView.UpdateCalendarHandler)
 	http.HandleFunc("/register", authentication.RegisterHandler)
 	http.HandleFunc("/logout", authentication.LogoutHandler)
 	http.HandleFunc("/", authentication.LoginHandler)
