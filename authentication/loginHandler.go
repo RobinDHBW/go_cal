@@ -65,6 +65,7 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 		// Cookie sent with the request + valid
 	} else {
 		http.Redirect(w, r, "/updateCalendar", http.StatusFound)
+		return
 	}
 	templates.TempLogin.Execute(w, nil)
 }
@@ -73,18 +74,19 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
 	if r.PostForm.Has("register") && r.Method == http.MethodPost {
 		// exisitiert der Nutzer schon?
-		duplicate := isDuplicateUsername(r.PostFormValue("username"))
+		duplicate := isDuplicateUsername(r.PostFormValue("uname"))
 		if duplicate {
 			r.Method = http.MethodGet
 			http.Redirect(w, r, "error?type=authentification&link="+url.QueryEscape("/register"), http.StatusUnauthorized)
 			return
 		} else {
 			hashedPassword, _ := bcrypt.GenerateFromPassword([]byte(r.PostFormValue("passwd")), bcrypt.DefaultCost)
-			username := r.PostForm.Get("uname")
+			username := r.PostFormValue("uname")
 			user := Credentials{
 				Username: username,
 				Password: hashedPassword,
 			}
+
 			// ab hier Speicherprozess
 			folder, err := os.Open("./files")
 			if err != nil {
@@ -95,6 +97,7 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 			_, err = folder.Readdir(0)
 			if err != nil {
 				fmt.Println(err)
+				return
 			}
 
 			text, _ := json.Marshal(user)

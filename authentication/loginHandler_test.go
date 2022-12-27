@@ -1,8 +1,8 @@
 package authentication
 
 import (
-	"bytes"
 	"github.com/stretchr/testify/assert"
+	"go_cal/templates"
 	"golang.org/x/crypto/bcrypt"
 	"net/http"
 	"net/http/httptest"
@@ -141,35 +141,41 @@ func TestLoginHandlerWithoutCookie(t *testing.T) {
 	http.HandlerFunc(LoginHandler).ServeHTTP(response, request)
 
 	assert.Equal(t, http.StatusFound, response.Result().StatusCode)
-	location, err := response.Result().Location()
+	locationHeader, err := response.Result().Location()
 	assert.NoError(t, err)
-	assert.Equal(t, "/updateCalendar", location.Path)
+	assert.Equal(t, "/updateCalendar", locationHeader.Path)
 	cookies := response.Result().Cookies()[0]
 	_, ok := sessions[cookies.Value]
 	assert.True(t, ok)
 	assert.Equal(t, "testUser", sessions[cookies.Value].uname)
 	assert.Equal(t, "session_token", cookies.Name)
-
-	assert.Equal(t, sessions[cookies.Value].expires.UTC().Round(1*time.Second), cookies.Expires.UTC().Round(1*time.Second))
+	assert.Equal(t, sessions[cookies.Value].expires.UTC().Round(2*time.Second), cookies.Expires.UTC().Round(2*time.Second))
+	assert.NoError(t, bcrypt.CompareHashAndPassword(users["testUser"], []byte("test123")))
 }
 
-func TestLoginHandlerWithCookie(t *testing.T) {
-	username := "testUser"
-	sessionToken := "cookie123"
-	expires := time.Now().Add(120 * time.Second)
-	// prepare session
-	sessions[sessionToken] = session{
-		uname:   username,
-		expires: expires,
-	}
+func TestLoginHandlerWithValidCookie(t *testing.T) {
+	deleteAllUsers()
+	deleteAllSessions()
 
-	request, _ := http.NewRequest(http.MethodPost, "/", bytes.NewBuffer([]byte("uname=testUser&passwd=test&login=")))
+	// create user
+	hashedPassword, _ := bcrypt.GenerateFromPassword([]byte("test123"), bcrypt.DefaultCost)
+	users["testUser"] = hashedPassword
+	// create session
+	sessionToken, _ := createSession("testUser")
+
+	// TODO: http und localhost
+	request, _ := http.NewRequest(http.MethodGet, "http://localhost:8080/", nil)
 	request.AddCookie(&http.Cookie{
 		Name:  "session_token",
 		Value: sessionToken,
 	})
-	//client := &http.Client{}
-	//response, _ := client.Do(request)
+	response := httptest.NewRecorder()
+	http.HandlerFunc(LoginHandler).ServeHTTP(response, request)
+
+	assert.Equal(t, http.StatusFound, response.Result().StatusCode)
+	locationHeader, err := response.Result().Location()
+	assert.NoError(t, err)
+	assert.Equal(t, "/updateCalendar", locationHeader.Path)
 }
 
 // TODO: filepaths not working
@@ -179,11 +185,57 @@ func TestLoginHandlerWithCookie(t *testing.T) {
 //}
 
 func TestLogoutHandler(t *testing.T) {
+	deleteAllUsers()
+	deleteAllSessions()
 
+	// create user
+	hashedPassword, _ := bcrypt.GenerateFromPassword([]byte("test123"), bcrypt.DefaultCost)
+	users["testUser"] = hashedPassword
+	// create session
+	sessionToken, _ := createSession("testUser")
+
+	// TODO: http und localhost
+	request, _ := http.NewRequest(http.MethodPost, "http://localhost:8080/logout", nil)
+	request.AddCookie(&http.Cookie{
+		Name:  "session_token",
+		Value: sessionToken,
+	})
+	response := httptest.NewRecorder()
+	http.HandlerFunc(LogoutHandler).ServeHTTP(response, request)
+
+	assert.Empty(t, sessions)
+
+	assert.Equal(t, http.StatusFound, response.Result().StatusCode)
+	locationHeader, err := response.Result().Location()
+	assert.NoError(t, err)
+	assert.Equal(t, "/", locationHeader.Path)
+
+	assert.Equal(t, "session_token", response.Result().Cookies()[0].Name)
+	assert.Equal(t, "", response.Result().Cookies()[0].Value)
+	assert.LessOrEqual(t, response.Result().Cookies()[0].Expires, time.Now())
 }
 
 func TestRegisterHandler(t *testing.T) {
+	deleteAllUsers()
+	deleteAllSessions()
+	templates.Init()
 
+	// TODO: http und localhost
+	request, _ := http.NewRequest(http.MethodPost, "http://localhost:8080/register", nil)
+	form := url.Values{}
+	form.Add("uname", "testUser")
+	form.Add("passwd", "test123")
+	form.Add("register", "")
+	request.PostForm = form
+
+	response := httptest.NewRecorder()
+	http.HandlerFunc(RegisterHandler).ServeHTTP(response, request)
+
+	assert.NotEmpty(t, sessions)
+	assert.NotEmpty(t, users)
+	pw, ok := users["testUser"]
+	assert.True(t, ok)
+	assert.Nil(t, bcrypt.CompareHashAndPassword(pw, []byte("test123")))
 }
 
 func deleteAllUsers() {

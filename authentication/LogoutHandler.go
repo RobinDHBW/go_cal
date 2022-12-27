@@ -8,6 +8,7 @@ import (
 func LogoutHandler(w http.ResponseWriter, r *http.Request) {
 	cookie, err := r.Cookie("session_token")
 	if err == http.ErrNoCookie {
+		http.Redirect(w, r, "/", http.StatusFound)
 		return
 	}
 	sessionToken := cookie.Value
