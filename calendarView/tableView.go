@@ -90,7 +90,8 @@ func UpdateCalendarHandler(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 	} else {
-		error2.CreateError(error2.Authentification, "/", w, http.StatusUnauthorized)
+		w.WriteHeader(http.StatusUnauthorized)
+		templates.TempError.Execute(w, error2.CreateError(error2.Authentification, "/"))
 		return
 	}
 	templates.TempInit.Execute(w, Cal)

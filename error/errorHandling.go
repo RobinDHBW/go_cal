@@ -1,10 +1,5 @@
 package error
 
-import (
-	"go_cal/templates"
-	"net/http"
-)
-
 type ErrorType string
 
 // add more error descriptions here
@@ -15,19 +10,16 @@ const (
 	WrongCredentials  ErrorType = "Username or password is wrong"
 )
 
-type displayedError struct {
+type DisplayedError struct {
 	Text string
 	Link string
 }
 
-func CreateError(errorType ErrorType, prevLink string, w http.ResponseWriter, code int) {
-	var error displayedError
-	error = displayedError{
+func CreateError(errorType ErrorType, prevLink string) (error DisplayedError) {
+	error = DisplayedError{
 		Text: string(errorType),
 		// TODO: http + host austauschen
 		Link: "http://localhost:8080" + prevLink,
 	}
-	w.WriteHeader(code)
-	templates.TempError.Execute(w, error)
-	return
+	return error
 }

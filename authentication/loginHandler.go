@@ -59,7 +59,8 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 				http.Redirect(w, r, "/updateCalendar", http.StatusFound)
 				return
 			} else {
-				error2.CreateError(error2.WrongCredentials, "/", w, http.StatusUnauthorized)
+				w.WriteHeader(http.StatusUnauthorized)
+				templates.TempError.Execute(w, error2.CreateError(error2.WrongCredentials, "/"))
 				return
 			}
 		}
@@ -77,7 +78,8 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 		// exisitiert der Nutzer schon?
 		duplicate := isDuplicateUsername(r.PostFormValue("uname"))
 		if duplicate {
-			error2.CreateError(error2.DuplicateUserName, "/register", w, http.StatusUnauthorized)
+			w.WriteHeader(http.StatusUnauthorized)
+			templates.TempError.Execute(w, error2.CreateError(error2.DuplicateUserName, "/register"))
 			return
 		} else {
 			hashedPassword, _ := bcrypt.GenerateFromPassword([]byte(r.PostFormValue("passwd")), bcrypt.DefaultCost)
