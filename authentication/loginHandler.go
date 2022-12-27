@@ -1,13 +1,15 @@
 package authentication
 
+// session authentification inspired from https://github.com/sohamkamani/go-session-auth-example
+
 import (
 	"encoding/json"
 	"fmt"
+	error2 "go_cal/error"
 	"go_cal/templates"
 	"golang.org/x/crypto/bcrypt"
 	"math/rand"
 	"net/http"
-	"net/url"
 	"os"
 	"time"
 )
@@ -57,8 +59,7 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 				http.Redirect(w, r, "/updateCalendar", http.StatusFound)
 				return
 			} else {
-				r.Method = http.MethodGet
-				http.Redirect(w, r, "error?type=authentification&link="+url.QueryEscape("/"), http.StatusUnauthorized)
+				error2.CreateError(error2.WrongCredentials, "/", w, http.StatusUnauthorized)
 				return
 			}
 		}
@@ -76,8 +77,7 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 		// exisitiert der Nutzer schon?
 		duplicate := isDuplicateUsername(r.PostFormValue("uname"))
 		if duplicate {
-			r.Method = http.MethodGet
-			http.Redirect(w, r, "error?type=authentification&link="+url.QueryEscape("/register"), http.StatusUnauthorized)
+			error2.CreateError(error2.DuplicateUserName, "/register", w, http.StatusUnauthorized)
 			return
 		} else {
 			hashedPassword, _ := bcrypt.GenerateFromPassword([]byte(r.PostFormValue("passwd")), bcrypt.DefaultCost)

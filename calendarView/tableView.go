@@ -2,9 +2,9 @@ package calendarView
 
 import (
 	"go_cal/authentication"
+	error2 "go_cal/error"
 	"go_cal/templates"
 	"net/http"
-	"net/url"
 	"strconv"
 	"time"
 )
@@ -90,10 +90,9 @@ func UpdateCalendarHandler(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 	} else {
-		r.Method = http.MethodGet
-		http.Redirect(w, r, "/error?type=authentification&link="+url.QueryEscape("/"), http.StatusUnauthorized)
+		error2.CreateError(error2.Authentification, "/", w, http.StatusUnauthorized)
 		return
 	}
-
 	templates.TempInit.Execute(w, Cal)
+	return
 }
