@@ -12,7 +12,7 @@
         <form id="terminListForm" method="post" action="/updateTerminList">
             <ul>
                 <li>
-                    Terminübersicht<br><br>
+                    Termin bearbeiten<br><br>
                     <button style="font-size: 16px" name="calendarBack" id="calendarBack" type="submit">Zurück zum Kalendar</button>
                     <br>
                     <label class="inputlabel" for="dateChoose">Datum wählen</label>
@@ -30,25 +30,7 @@
         </form>
     </div>
     <div class="terminlist">
-            {{range $index := .GetTerminList}}
-                <span class="termin">
-                    {{.Title}}
-                    <br>
-                    Zeitpunkt: {{.Begin.Format "02.01.2006 15:04"}} bis {{.End.Format "02.01.2006 15:04"}}
-                    <br>
-                    {{.Content}}
-                    <form id="terminChangeForm" method="post" action="/editTermin">
-                        <button style="font-size: 16px" name="editTermin" type="submit" value="{{$index}}">Termin bearbeiten/löschen</button>
-
-                    </form>
-                    <hr>
-                </span>
-            {{else}}
-                <span class="termin">
-                    Keine Termine vorhanden
-                    <hr>
-                </span>
-            {{end}}
+        
 
     </div>
 </div>

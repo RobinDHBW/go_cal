@@ -35,6 +35,7 @@ func main() {
 	http.HandleFunc("/login", authentication.LoginHandler)
 	http.HandleFunc("/register", authentication.RegisterHandler)
 	http.HandleFunc("/terminlist", terminHandling.TerminHandler)
+	http.HandleFunc("/editTermin", terminHandling.TerminEditHandler)
 	http.HandleFunc("/updateTerminList", terminHandling.TerminHandler)
 	http.Handle("/templates/static/", http.StripPrefix("/templates/static", http.FileServer(http.Dir("templates/static"))))
 	log.Fatalln(http.ListenAndServe(":8080", nil))
