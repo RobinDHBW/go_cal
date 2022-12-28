@@ -11,7 +11,7 @@ import (
 //Class to hold all data and coordinate sync to/from file
 
 func encryptPW(password string) string {
-	hash, err := bcrypt.GenerateFromPassword([]byte(password), 512)
+	hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.MinCost)
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -48,12 +48,18 @@ func (dm *DataModel) GetUserById(id int) data.User {
 }
 
 func (dm *DataModel) AddUser(name, pw string, userLevel int, appointment []data.Appointment) data.User {
-	user := data.NewUser(name, encryptPW(pw), len(dm.UserList), userLevel)
+	user := data.NewUser(name, encryptPW(pw), len(dm.UserList)+1, userLevel)
 	if appointment != nil {
 		for _, ap := range appointment {
 			user = dm.AddAppointment(user.Id, ap)
 		}
 	}
+	write, err := json.Marshal(user)
+	if err != nil {
+		log.Fatal(err)
+	}
+	//@TODO make parallel
+	dm.fH.SyncToFile(write, user.Id)
 	return user
 }
 

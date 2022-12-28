@@ -5,6 +5,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"go_cal/data"
 	"go_cal/fileHandler"
+	"os"
 	"testing"
 )
 
@@ -24,16 +25,28 @@ func fileWriteRead(user data.User, fH *fileHandler.FileHandler) data.User {
 	return rUser
 }
 
-func init() {
-	fH := fileHandler.NewFH("../data/test")
-	for _, uD := range uList {
-		fileWriteRead(uD, &fH)
-	}
+//func init() {
+//	//fH := fileHandler.NewFH("../data/test")
+//	//for _, uD := range uList {
+//	//	fileWriteRead(uD, &fH)
+//	//}
+//}
+
+func after() {
+	os.RemoveAll("../data/test/")
+	os.MkdirAll("../data/test/", 777)
 }
 
 func TestNewDM(t *testing.T) {
 	dataPath := "../data/test"
+
+	fH := fileHandler.NewFH("../data/test")
+	for _, uD := range uList {
+		fileWriteRead(uD, &fH)
+	}
 	dataModel := NewDM(dataPath)
+
+	defer after()
 
 	//Check if dataPath correct and UserList correct
 	assert.EqualValues(t, uList, dataModel.UserList)
@@ -41,7 +54,14 @@ func TestNewDM(t *testing.T) {
 
 func TestDataModel_GetUserById(t *testing.T) {
 	dataPath := "../data/test"
+
+	fH := fileHandler.NewFH("../data/test")
+	for _, uD := range uList {
+		fileWriteRead(uD, &fH)
+	}
 	dataModel := NewDM(dataPath)
+
+	defer after()
 
 	uID := 1
 	user := dataModel.GetUserById(uID)
@@ -53,12 +73,25 @@ func TestDataModel_AddUser(t *testing.T) {
 	dataPath := "../data/test"
 	dataModel := NewDM(dataPath)
 
+	defer after()
+
 	user := dataModel.AddUser("test", "abc", 1, nil)
+	userFile := dataModel.fH.ReadFromFile(user.Id)
+	var user2 data.User
+
+	json.Unmarshal([]byte(userFile), &user2)
+
 	//test if user has same attributes
 	//test if file on disk has same attributes
 
 	assert.EqualValues(t, "test", user.UserName)
-	assert.EqualValues(t, 1, user.Id)
+	assert.EqualValues(t, 1, user.UserLevel)
 	assert.EqualValues(t, 0, len(user.Appointments))
 	assert.EqualValues(t, true, dataModel.ComparePW("abc", user.Password))
+
+	assert.EqualValues(t, "test", user2.UserName)
+	assert.EqualValues(t, 1, user2.UserLevel)
+	assert.EqualValues(t, 0, len(user2.Appointments))
+	assert.EqualValues(t, true, dataModel.ComparePW("abc", user2.Password))
+
 }
