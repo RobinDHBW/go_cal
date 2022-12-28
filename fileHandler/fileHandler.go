@@ -27,7 +27,7 @@ func NewFH(dataPath string) FileHandler {
 	return FileHandler{dataPath, fN}
 }
 
-func (fh FileHandler) SyncToFile(json []byte, id int) {
+func (fh *FileHandler) SyncToFile(json []byte, id int) {
 	fileName := strconv.Itoa(id) + ".json"
 	file, err := os.Create(path.Join(fh.dataPath, fileName)) //os.Create --> if already existing, file will be truncated
 	if err != nil {
@@ -39,7 +39,7 @@ func (fh FileHandler) SyncToFile(json []byte, id int) {
 	file.Write(json)
 }
 
-func (fh FileHandler) ReadFromFile(id int) string {
+func (fh *FileHandler) ReadFromFile(id int) string {
 	fP := path.Join(fh.dataPath, strconv.Itoa(id)+".json")
 	file, err := os.Open(fP)
 	if err != nil {
@@ -51,7 +51,7 @@ func (fh FileHandler) ReadFromFile(id int) string {
 	return string(byteVal)
 }
 
-func (fh FileHandler) ReadAll() []string {
+func (fh *FileHandler) ReadAll() []string {
 	var uStrings []string
 
 	//@TODO Make parallel

@@ -10,7 +10,7 @@ import (
 
 var uList = []data.User{data.NewUser("test1", "test", 1, 3), data.NewUser("test2", "test", 2, 2), data.NewUser("test3", "test", 3, 0)}
 
-func fileWriteRead(user data.User, fH fileHandler.FileHandler) data.User {
+func fileWriteRead(user data.User, fH *fileHandler.FileHandler) data.User {
 	write, err := json.Marshal(user)
 	if err != nil {
 		panic(err)
@@ -27,7 +27,7 @@ func fileWriteRead(user data.User, fH fileHandler.FileHandler) data.User {
 func init() {
 	fH := fileHandler.NewFH("../data/test")
 	for _, uD := range uList {
-		fileWriteRead(uD, fH)
+		fileWriteRead(uD, &fH)
 	}
 }
 
@@ -49,13 +49,16 @@ func TestDataModel_GetUserById(t *testing.T) {
 	assert.EqualValues(t, uID, user.Id)
 }
 
-//func TestDataModel_AddUser(t *testing.T) {
-//	dataPath := "../data/test"
-//	dataModel := NewDM(dataPath)
-//
-//	dataModel.AddUser()
-//	//test if user has same attributes
-//	//test if file on disk has same attributes
-//
-//	assert.EqualValues(t)
-//}
+func TestDataModel_AddUser(t *testing.T) {
+	dataPath := "../data/test"
+	dataModel := NewDM(dataPath)
+
+	user := dataModel.AddUser("test", "abc", 1, nil)
+	//test if user has same attributes
+	//test if file on disk has same attributes
+
+	assert.EqualValues(t, "test", user.UserName)
+	assert.EqualValues(t, 1, user.Id)
+	assert.EqualValues(t, 0, len(user.Appointments))
+	assert.EqualValues(t, true, dataModel.ComparePW("abc", user.Password))
+}
