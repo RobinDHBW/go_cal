@@ -75,7 +75,8 @@ func UpdateCalendarHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == http.MethodPost {
 		err := r.ParseForm()
 		if err != nil {
-			error2.CreateError(error2.InvalidInput, "/listTermin", w, http.StatusBadRequest)
+			w.WriteHeader(http.StatusBadRequest)
+			templates.TempError.Execute(w, error2.CreateError(error2.InvalidInput, "/updateCalendar"))
 			return
 		}
 
@@ -87,19 +88,21 @@ func UpdateCalendarHandler(w http.ResponseWriter, r *http.Request) {
 		case r.Form.Has("today"):
 			Cal.CurrentMonth()
 		case r.Form.Has("choose"):
-				year, err := strconv.Atoi(r.Form.Get("chooseYear"))
-				if err != nil {
-					error2.CreateError(error2.InvalidInput, "/updateCalendar", w, http.StatusBadRequest)
-					return
-				}
-				month, err := strconv.Atoi(r.Form.Get("chooseMonth"))
+			year, err := strconv.Atoi(r.Form.Get("chooseYear"))
 			if err != nil {
-				error2.CreateError(error2.InvalidInput, "/updateCalendar", w, http.StatusBadRequest)
+				w.WriteHeader(http.StatusBadRequest)
+				templates.TempError.Execute(w, error2.CreateError(error2.InvalidInput, "/updateCalendar"))
+				return
+			}
+			month, err := strconv.Atoi(r.Form.Get("chooseMonth"))
+			if err != nil {
+				w.WriteHeader(http.StatusBadRequest)
+				templates.TempError.Execute(w, error2.CreateError(error2.InvalidInput, "/updateCalendar"))
 				return
 			}
 			Cal.ChooseMonth(year, time.Month(month))
 		}
-	}			
+	}
 	calendarAppointments.GetAppointmentsForMonth(Cal.Month, Cal.Year)
 	templates.TempInit.Execute(w, Cal)
 	return

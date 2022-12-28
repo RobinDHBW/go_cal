@@ -50,7 +50,8 @@ var TView = TerminView{
 func TerminHandler(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {
-		error2.CreateError(error2.InvalidInput, "/listTermin", w, http.StatusBadRequest)
+		w.WriteHeader(http.StatusBadRequest)
+		templates.TempError.Execute(w, error2.CreateError(error2.InvalidInput, "/listTermin"))
 		return
 	}
 
@@ -63,21 +64,24 @@ func TerminHandler(w http.ResponseWriter, r *http.Request) {
 	case r.Form.Has("submitTermin"):
 		input, err := strconv.Atoi(r.Form.Get("numberPerSite"))
 		if err != nil {
-			error2.CreateError(error2.InvalidInput, "/listTermin", w, http.StatusBadRequest)
+			w.WriteHeader(http.StatusBadRequest)
+			templates.TempError.Execute(w, error2.CreateError(error2.InvalidInput, "/listTermin"))
 			return
 		}
 		TView.TerminPerSite = input
 
 		input, err = strconv.Atoi(r.Form.Get("siteChoose"))
 		if err != nil {
-			error2.CreateError(error2.InvalidInput, "/listTermin", w, http.StatusBadRequest)
+			w.WriteHeader(http.StatusBadRequest)
+			templates.TempError.Execute(w, error2.CreateError(error2.InvalidInput, "/listTermin"))
 			return
 		}
 		TView.TerminSite = input
 
 		inputDate, err := time.Parse("2006-01-02", r.Form.Get("dateChoose"))
 		if err != nil {
-			error2.CreateError(error2.InvalidInput, "/listTermin", w, http.StatusBadRequest)
+			w.WriteHeader(http.StatusBadRequest)
+			templates.TempError.Execute(w, error2.CreateError(error2.InvalidInput, "/listTermin"))
 			return
 		}
 		TView.MinDate = inputDate

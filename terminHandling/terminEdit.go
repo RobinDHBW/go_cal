@@ -15,7 +15,8 @@ func TerminEditHandler(w http.ResponseWriter, r *http.Request) {
 
 	err := r.ParseForm()
 	if err != nil {
-		error2.CreateError(error2.Default2, "/editTermin", w, http.StatusInternalServerError)
+		w.WriteHeader(http.StatusInternalServerError)
+		templates.TempError.Execute(w, error2.CreateError(error2.Default2, "/editTermin"))
 		return
 	}
 
@@ -23,7 +24,8 @@ func TerminEditHandler(w http.ResponseWriter, r *http.Request) {
 	case r.Form.Has("editTermin"):
 		index, err := strconv.Atoi(r.Form.Get("editTermin"))
 		if err != nil {
-			error2.CreateError(error2.InvalidInput, "/editTermin", w, http.StatusBadRequest)
+			w.WriteHeader(http.StatusBadRequest)
+			templates.TempError.Execute(w, error2.CreateError(error2.InvalidInput, "/editTermin"))
 			return
 		}
 		fmt.Println(index)
@@ -90,23 +92,27 @@ func GetRepeatingMode(mode string) RepeatingMode {
 func (tl *TerminList) EditTerminFromInput(w http.ResponseWriter, r *http.Request, edit bool) bool {
 	begin, err := time.Parse("2006-01-02T15:04", r.Form.Get("dateBegin"))
 	if err != nil {
-		error2.CreateError(error2.InvalidInput, "/listTermin", w, http.StatusBadRequest)
+		w.WriteHeader(http.StatusBadRequest)
+		templates.TempError.Execute(w, error2.CreateError(error2.InvalidInput, "/listTermin"))
 		return false
 	}
 	end, err := time.Parse("2006-01-02T15:04", r.Form.Get("dateEnd"))
 	if err != nil {
-		error2.CreateError(error2.InvalidInput, "/listTermin", w, http.StatusBadRequest)
+		w.WriteHeader(http.StatusBadRequest)
+		templates.TempError.Execute(w, error2.CreateError(error2.InvalidInput, "/listTermin"))
 		return false
 	}
 	if end.Before(begin) {
-		error2.CreateError(error2.EndBeforeBegin, "/listTermin", w, http.StatusBadRequest)
+		w.WriteHeader(http.StatusBadRequest)
+		templates.TempError.Execute(w, error2.CreateError(error2.EndBeforeBegin, "/listTermin"))
 		return false
 	}
 
 	repeat := GetRepeatingMode(r.Form.Get("chooseRepeat"))
 	title := r.Form.Get("title")
 	if len(title) == 0 {
-		error2.CreateError(error2.TitleIsEmpty, "/listTermin", w, http.StatusBadRequest)
+		w.WriteHeader(http.StatusBadRequest)
+		templates.TempError.Execute(w, error2.CreateError(error2.TitleIsEmpty, "/listTermin"))
 		return false
 	}
 	content := r.Form.Get("content")
