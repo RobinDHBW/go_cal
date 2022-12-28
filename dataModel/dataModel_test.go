@@ -7,6 +7,7 @@ import (
 	"go_cal/fileHandler"
 	"os"
 	"testing"
+	"time"
 )
 
 var uList = []data.User{data.NewUser("test1", "test", 1, 3), data.NewUser("test2", "test", 2, 2), data.NewUser("test3", "test", 3, 0)}
@@ -94,4 +95,33 @@ func TestDataModel_AddUser(t *testing.T) {
 	assert.EqualValues(t, 0, len(user2.Appointments))
 	assert.EqualValues(t, true, dataModel.ComparePW("abc", user2.Password))
 
+}
+
+func TestDataModel_AddAppointment(t *testing.T) {
+	dataPath := "../data/test"
+	dataModel := NewDM(dataPath)
+
+	defer after()
+
+	tNow := time.Now()
+	user := dataModel.AddUser("test", "abc", 1, nil)
+	user = dataModel.AddAppointment(user.Id, data.NewAppointment("test", "hello123", tNow, user.Id, false, 0, false, ""))
+
+	assert.EqualValues(t, "test", user.Appointments[0].Title)
+	assert.EqualValues(t, tNow, user.Appointments[0].DateTime)
+	assert.EqualValues(t, user.Id, user.Appointments[0].Userid)
+	assert.EqualValues(t, false, user.Appointments[0].Share.Public)
+	assert.EqualValues(t, false, user.Appointments[0].Timeseries.Repeat)
+
+}
+
+func TestDataModel_ComparePW(t *testing.T) {
+	dataPath := "../data/test"
+	dataModel := NewDM(dataPath)
+
+	defer after()
+
+	user := dataModel.AddUser("test", "abc", 1, nil)
+	assert.EqualValues(t, true, dataModel.ComparePW("abc", user.Password))
+	assert.EqualValues(t, false, dataModel.ComparePW("123", user.Password))
 }

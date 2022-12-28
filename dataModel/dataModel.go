@@ -37,21 +37,21 @@ func NewDM(dataPath string) DataModel {
 	return DataModel{uList, fH}
 }
 
-func (dm *DataModel) GetUserById(id int) data.User {
+func (dm *DataModel) GetUserById(id int) *data.User {
 	var res data.User
 	for _, user := range dm.UserList {
 		if user.Id == id {
 			res = user
 		}
 	}
-	return res
+	return &res
 }
 
-func (dm *DataModel) AddUser(name, pw string, userLevel int, appointment []data.Appointment) data.User {
+func (dm *DataModel) AddUser(name, pw string, userLevel int, appointment []data.Appointment) *data.User {
 	user := data.NewUser(name, encryptPW(pw), len(dm.UserList)+1, userLevel)
 	if appointment != nil {
 		for _, ap := range appointment {
-			user = dm.AddAppointment(user.Id, ap)
+			user = *dm.AddAppointment(user.Id, ap)
 		}
 	}
 	write, err := json.Marshal(user)
@@ -59,18 +59,21 @@ func (dm *DataModel) AddUser(name, pw string, userLevel int, appointment []data.
 		log.Fatal(err)
 	}
 	//@TODO make parallel
+	dm.UserList = append(dm.UserList, user)
 	dm.fH.SyncToFile(write, user.Id)
-	return user
+	return &user
 }
 
 // Call by reference or call by value?
-func (dm *DataModel) AddAppointment(id int, ap data.Appointment) data.User {
-	return data.NewUser("abc", "abc", 1, 1)
+func (dm *DataModel) AddAppointment(id int, ap data.Appointment) *data.User {
+	user := dm.GetUserById(id)
+	user.Appointments = append(user.Appointments, ap)
+	return user
 }
 
-func (dm *DataModel) DeleteAppointment(id int) data.User {
-	return data.NewUser("abc", "abc", 1, 1)
-}
+//func (dm *DataModel) DeleteAppointment(id int) data.User {
+//	return data.NewUser("abc", "abc", 1, 1)
+//}
 
 func (dm *DataModel) ComparePW(clear, hash string) bool {
 	err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(clear))
