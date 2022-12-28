@@ -18,8 +18,9 @@ func TerminCreateHandler(w http.ResponseWriter, r *http.Request) {
 	case r.Form.Has("createTermin"):
 		templates.TempCreateTermin.Execute(w, TView)
 	case r.Form.Has("createTerminSubmit"):
-		EditTerminFromInput(w, r, false)
-		templates.TempTerminList.Execute(w, TView)
+		if TView.TList.EditTerminFromInput(w, r, false) {
+			templates.TempTerminList.Execute(w, TView)
+		}
 
 	default:
 		templates.TempTerminList.Execute(w, TView)

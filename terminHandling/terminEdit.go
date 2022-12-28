@@ -1,6 +1,7 @@
 package terminHandling
 
 import (
+	"fmt"
 	error2 "go_cal/error"
 	"go_cal/templates"
 	"net/http"
@@ -14,7 +15,7 @@ func TerminEditHandler(w http.ResponseWriter, r *http.Request) {
 
 	err := r.ParseForm()
 	if err != nil {
-		error2.CreateError(error2.Default2, "/terminedit", w, http.StatusInternalServerError)
+		error2.CreateError(error2.Default2, "/editTermin", w, http.StatusInternalServerError)
 		return
 	}
 
@@ -22,15 +23,18 @@ func TerminEditHandler(w http.ResponseWriter, r *http.Request) {
 	case r.Form.Has("editTermin"):
 		index, err := strconv.Atoi(r.Form.Get("editTermin"))
 		if err != nil {
-			error2.CreateError(error2.InvalidInput, "/terminedit", w, http.StatusBadRequest)
+			error2.CreateError(error2.InvalidInput, "/editTermin", w, http.StatusBadRequest)
 			return
 		}
+		fmt.Println(index)
 		TView.TList.GetTerminFromEditIndex(index)
 		templates.TempTerminEdit.Execute(w, TView.TList.Termine[currentTerminIndex])
 
 	case r.Form.Has("editTerminSubmit"):
-		TView.TList.EditTerminFromInput(w, r, true)
-		templates.TempTerminList.Execute(w, TView)
+		if TView.TList.EditTerminFromInput(w, r, true) {
+			templates.TempTerminList.Execute(w, TView)
+
+		}
 
 	case r.Form.Has("deleteTerminSubmit"):
 		TView.TList.DeleteTermin()
@@ -41,11 +45,13 @@ func TerminEditHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// ToDO: Problem, dass repeating termin anderes Datum hat => Termine nicht gleich
 func (tl *TerminList) GetTerminFromEditIndex(index int) {
 	t := TView.GetTerminList()[index]
 	for i := range (*tl).Termine {
-		if t == (*tl).Termine[i] {
+		if t.Title == (*tl).Termine[i].Title && t.Content == (*tl).Termine[i].Content && t.Repeating == (*tl).Termine[i].Repeating {
 			currentTerminIndex = i
+			return
 		}
 	}
 }
@@ -81,27 +87,27 @@ func GetRepeatingMode(mode string) RepeatingMode {
 	}
 }
 
-func (tl *TerminList) EditTerminFromInput(w http.ResponseWriter, r *http.Request, edit bool) {
+func (tl *TerminList) EditTerminFromInput(w http.ResponseWriter, r *http.Request, edit bool) bool {
 	begin, err := time.Parse("2006-01-02T15:04", r.Form.Get("dateBegin"))
 	if err != nil {
-		error2.CreateError(error2.InvalidInput, "/terminlist", w, http.StatusBadRequest)
-		return
+		error2.CreateError(error2.InvalidInput, "/listTermin", w, http.StatusBadRequest)
+		return false
 	}
 	end, err := time.Parse("2006-01-02T15:04", r.Form.Get("dateEnd"))
 	if err != nil {
-		error2.CreateError(error2.InvalidInput, "/terminlist", w, http.StatusBadRequest)
-		return
+		error2.CreateError(error2.InvalidInput, "/listTermin", w, http.StatusBadRequest)
+		return false
 	}
 	if end.Before(begin) {
-		error2.CreateError(error2.EndBeforeBegin, "/terminlist", w, http.StatusBadRequest)
-		return
+		error2.CreateError(error2.EndBeforeBegin, "/listTermin", w, http.StatusBadRequest)
+		return false
 	}
 
 	repeat := GetRepeatingMode(r.Form.Get("chooseRepeat"))
 	title := r.Form.Get("title")
 	if len(title) == 0 {
-		error2.CreateError(error2.TitleIsEmpty, "/terminlist", w, http.StatusBadRequest)
-		return
+		error2.CreateError(error2.TitleIsEmpty, "/listTermin", w, http.StatusBadRequest)
+		return false
 	}
 	content := r.Form.Get("content")
 	if edit {
@@ -109,4 +115,5 @@ func (tl *TerminList) EditTerminFromInput(w http.ResponseWriter, r *http.Request
 	} else {
 		tl.CreateTermin(title, content, begin, end, repeat)
 	}
+	return true
 }

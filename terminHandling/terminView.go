@@ -1,7 +1,6 @@
 package terminHandling
 
 import (
-	"go_cal/calendarView"
 	error2 "go_cal/error"
 	"go_cal/templates"
 	"net/http"
@@ -51,38 +50,39 @@ var TView = TerminView{
 func TerminHandler(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {
-		error2.CreateError(error2.InvalidInput, "/terminlist", w, http.StatusBadRequest)
+		error2.CreateError(error2.InvalidInput, "/listTermin", w, http.StatusBadRequest)
 		return
 	}
 
 	switch {
 	case r.Form.Has("calendarBack"):
-		templates.TempInit.Execute(w, calendarView.Cal)
+		//ToDo wieder einkommentieren (aber dann error wegen cycle import)
+		//templates.TempInit.Execute(w, calendarView.Cal)
 	case r.Form.Has("terminlistBack"):
 		templates.TempTerminList.Execute(w, TView)
 	case r.Form.Has("submitTermin"):
 		input, err := strconv.Atoi(r.Form.Get("numberPerSite"))
 		if err != nil {
-			error2.CreateError(error2.InvalidInput, "/terminlist", w, http.StatusBadRequest)
+			error2.CreateError(error2.InvalidInput, "/listTermin", w, http.StatusBadRequest)
 			return
 		}
 		TView.TerminPerSite = input
 
 		input, err = strconv.Atoi(r.Form.Get("siteChoose"))
 		if err != nil {
-			error2.CreateError(error2.InvalidInput, "/terminlist", w, http.StatusBadRequest)
+			error2.CreateError(error2.InvalidInput, "/listTermin", w, http.StatusBadRequest)
 			return
 		}
 		TView.TerminSite = input
 
 		inputDate, err := time.Parse("2006-01-02", r.Form.Get("dateChoose"))
 		if err != nil {
-			error2.CreateError(error2.InvalidInput, "/terminlist", w, http.StatusBadRequest)
+			error2.CreateError(error2.InvalidInput, "/listTermin", w, http.StatusBadRequest)
 			return
 		}
 		TView.MinDate = inputDate
 
-		TView.GetTerminList()
+		//TView.GetTerminList()
 		templates.TempTerminList.Execute(w, TView)
 	default:
 		templates.TempTerminList.Execute(w, TView)
@@ -108,10 +108,18 @@ func (tv TerminView) GetTerminList() []Termin {
 
 	datefilteredTL := make([]Termin, 0, 1)
 	for i := range tv.TList.Termine {
-		if tv.MinDate.Before(tv.TList.Termine[i].Begin) || tv.MinDate.Equal(tv.TList.Termine[i].Begin) || tv.TList.Termine[i].Repeating != None {
+		if tv.MinDate.Before(tv.TList.Termine[i].Begin) || tv.MinDate.Equal(tv.TList.Termine[i].Begin) {
 			datefilteredTL = append(datefilteredTL, tv.TList.Termine[i])
+		} else if tv.TList.Termine[i].Repeating != None {
+			t := tv.TList.Termine[i].GetFirstTerminOfRepeatingInDate()
+			datefilteredTL = append(datefilteredTL, t)
 		}
 	}
+
+	sort.SliceStable(datefilteredTL, func(i, j int) bool {
+		return datefilteredTL[i].Begin.Before(datefilteredTL[j].Begin)
+	})
+
 	if tv.TerminPerSite*(tv.TerminSite-1) > len(datefilteredTL) {
 		return nil
 	}
@@ -119,4 +127,33 @@ func (tv TerminView) GetTerminList() []Termin {
 		return datefilteredTL[tv.TerminPerSite*(tv.TerminSite-1):]
 	}
 	return datefilteredTL[tv.TerminPerSite*(tv.TerminSite-1) : tv.TerminSite*tv.TerminPerSite]
+}
+
+func (t Termin) GetFirstTerminOfRepeatingInDate() Termin {
+	switch t.Repeating {
+	case Week:
+		for t.Begin.Before(TView.MinDate) {
+			t.Begin = t.Begin.AddDate(0, 0, 7)
+			t.End = t.End.AddDate(0, 0, 7)
+		}
+		return t
+	case Day:
+		for t.Begin.Before(TView.MinDate) {
+			t.Begin = t.Begin.AddDate(0, 0, 1)
+			t.End = t.End.AddDate(0, 0, 1)
+		}
+		return t
+	case Month:
+		for t.Begin.Before(TView.MinDate) {
+			t.Begin = t.Begin.AddDate(0, 1, 0)
+			t.End = t.End.AddDate(0, 1, 0)
+		}
+	case Year:
+		for t.Begin.Before(TView.MinDate) {
+			t.Begin = t.Begin.AddDate(1, 0, 0)
+			t.End = t.End.AddDate(1, 0, 0)
+		}
+		return t
+	}
+	return t
 }

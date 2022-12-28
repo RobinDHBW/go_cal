@@ -2,6 +2,7 @@ package calendarView
 
 import (
 	"go_cal/authentication"
+	"go_cal/calendarAppointments"
 	error2 "go_cal/error"
 	"go_cal/templates"
 	"net/http"
@@ -77,7 +78,7 @@ func UpdateCalendarHandler(w http.ResponseWriter, r *http.Request) {
 		if r.Method == http.MethodPost {
 			err := r.ParseForm()
 			if err != nil {
-				error2.CreateError(error2.InvalidInput, "/terminlist", w, http.StatusBadRequest)
+				error2.CreateError(error2.InvalidInput, "/listTermin", w, http.StatusBadRequest)
 				return
 			}
 
@@ -106,6 +107,7 @@ func UpdateCalendarHandler(w http.ResponseWriter, r *http.Request) {
 		error2.CreateError(error2.Authentification, "/", w, http.StatusUnauthorized)
 		return
 	}
+	calendarAppointments.GetAppointmentsForMonth(Cal.Month, Cal.Year)
 	templates.TempInit.Execute(w, Cal)
 	return
 }
