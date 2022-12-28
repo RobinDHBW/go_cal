@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Terminlist</title>
+    <link href="templates/static/terminlist.css" type="text/css" rel="stylesheet">
+</head>
+<body>
+
+<div class="calendar-container">
+    <div class="month">
+        <form id="backToCalendar" method="post" action="/updateTerminList">
+            <ul>
+                <li>
+                    Termin bearbeiten<br><br>
+                    <button style="font-size: 16px" name="calendarBack" id="calendarBack" type="submit">Zurück zum Kalendar</button>
+                    <br>
+                    <button style="font-size: 16px" name="terminlistBack" id="terminlistBack" type="submit">Zurück zur Terminliste</button>
+                </li>
+            </ul></form>
+    </div>
+    <div class="terminlist">
+        <form id="terminEditForm" method="post" action="/createTermin">
+
+        <span class="termin">
+            <input style="font-size: 16px" id="title" name="title" type="text" placeholder="Titel ..."/>
+                    <br>
+                    Zeitpunkt:
+            <input style="font-size: 16px" name="dateBegin" id="dateBegin" type="datetime-local"/>
+            bis
+            <input style="font-size: 16px" name="dateEnd" id="dateEnd" type="datetime-local"/>
+                    <br>
+            <textarea style="font-size: 16px" id="content" name="content" type="text" placeholder="Beschreibung ..."></textarea>
+            <br>
+            Wiederholung: <select name="chooseRepeat" id="chooseRepeat">
+                            <option value="none" selected>keine</option>
+            <option value="day">täglich</option>
+            <option value="week">wöchentlich</option>
+            <option value="month">monatlich</option>
+            <option value="year">jährlich</option>
+                        </select>
+            <button style="font-size: 16px" name="createTerminSubmit" id="createTerminSubmit" type="submit">Termin anlegen</button>
+                    <hr>
+                </span>
+        </form>
+
+    </div>
+</div>
+
+</body>
+</html>

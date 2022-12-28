@@ -23,7 +23,7 @@ type Credentials struct {
 	Password []byte `json:"password"`
 }
 
-// session consist of an user and an expire time
+// session consist of n user and an expiry time
 type session struct {
 	uname   string
 	expires time.Time

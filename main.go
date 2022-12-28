@@ -24,9 +24,9 @@ func main() {
 		fmt.Println(err)
 	}
 	if globalTemp == 0 { // nur zum Testen
-		terminHandling.TView.TList.CreateTermin("T1", "1 content", time.Now().AddDate(0, 0, -1), time.Now())
-		terminHandling.TView.TList.CreateTermin("T2", "2 content", time.Now(), time.Now())
-		terminHandling.TView.TList.CreateTermin("T3", "3 content", time.Now().AddDate(0, 0, -2), time.Now())
+		terminHandling.TView.TList.CreateTermin("T1", "1 content", time.Now().AddDate(0, 0, -1), time.Now(), terminHandling.None)
+		terminHandling.TView.TList.CreateTermin("T2", "2 content", time.Now(), time.Now(), terminHandling.None)
+		terminHandling.TView.TList.CreateTermin("T3", "3 content", time.Now().AddDate(0, 0, -2), time.Now(), terminHandling.None)
 	}
 	globalTemp = 1
 
@@ -34,9 +34,10 @@ func main() {
 	http.HandleFunc("/register", authentication.RegisterHandler)
 	http.HandleFunc("/logout", authentication.LogoutHandler)
 	http.HandleFunc("/", authentication.LoginHandler)
-	http.HandleFunc("/terminlist", terminHandling.TerminHandler)
+	http.HandleFunc("/listTermin", terminHandling.TerminHandler)
+	http.HandleFunc("/createTermin", terminHandling.TerminCreateHandler)
 	http.HandleFunc("/editTermin", terminHandling.TerminEditHandler)
-	http.HandleFunc("/updateTerminList", terminHandling.TerminHandler)
+	//http.HandleFunc("/updateTerminList", terminHandling.TerminHandler)
 	http.Handle("/templates/static/", http.StripPrefix("/templates/static", http.FileServer(http.Dir("templates/static"))))
 
 	log.Fatalln(http.ListenAndServe(":8080", nil))

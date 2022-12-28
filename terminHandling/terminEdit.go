@@ -1,6 +1,7 @@
 package terminHandling
 
 import (
+	error2 "go_cal/error"
 	"go_cal/templates"
 	"net/http"
 	"strconv"
@@ -10,22 +11,31 @@ import (
 var currentTerminIndex int = -1
 
 func TerminEditHandler(w http.ResponseWriter, r *http.Request) {
-	r.ParseForm()
+
+	err := r.ParseForm()
+	if err != nil {
+		error2.CreateError(error2.Default2, "/terminedit", w, http.StatusInternalServerError)
+		return
+	}
 
 	switch {
 	case r.Form.Has("editTermin"):
-		index, _ := strconv.Atoi(r.Form.Get("editTermin"))
+		index, err := strconv.Atoi(r.Form.Get("editTermin"))
+		if err != nil {
+			error2.CreateError(error2.InvalidInput, "/terminedit", w, http.StatusBadRequest)
+			return
+		}
 		TView.TList.GetTerminFromEditIndex(index)
 		templates.TempTerminEdit.Execute(w, TView.TList.Termine[currentTerminIndex])
+
 	case r.Form.Has("editTerminSubmit"):
-		begin, _ := time.Parse("2006-01-02T15:04", r.Form.Get("dateBegin"))
-		end, _ := time.Parse("2006-01-02T15:04", r.Form.Get("dateEnd"))
-		repeat := GetRepeatingMode(r.Form.Get("chooseRepeat"))
-		TView.TList.Termine[currentTerminIndex].editTermin(r.Form.Get("title"), r.Form.Get("content"), begin, end, repeat)
+		TView.TList.EditTerminFromInput(w, r, true)
 		templates.TempTerminList.Execute(w, TView)
+
 	case r.Form.Has("deleteTerminSubmit"):
 		TView.TList.DeleteTermin()
 		templates.TempTerminList.Execute(w, TView)
+
 	default:
 		templates.TempTerminList.Execute(w, TView)
 	}
@@ -68,5 +78,35 @@ func GetRepeatingMode(mode string) RepeatingMode {
 		return Year
 	default:
 		return None
+	}
+}
+
+func (tl *TerminList) EditTerminFromInput(w http.ResponseWriter, r *http.Request, edit bool) {
+	begin, err := time.Parse("2006-01-02T15:04", r.Form.Get("dateBegin"))
+	if err != nil {
+		error2.CreateError(error2.InvalidInput, "/terminlist", w, http.StatusBadRequest)
+		return
+	}
+	end, err := time.Parse("2006-01-02T15:04", r.Form.Get("dateEnd"))
+	if err != nil {
+		error2.CreateError(error2.InvalidInput, "/terminlist", w, http.StatusBadRequest)
+		return
+	}
+	if end.Before(begin) {
+		error2.CreateError(error2.EndBeforeBegin, "/terminlist", w, http.StatusBadRequest)
+		return
+	}
+
+	repeat := GetRepeatingMode(r.Form.Get("chooseRepeat"))
+	title := r.Form.Get("title")
+	if len(title) == 0 {
+		error2.CreateError(error2.TitleIsEmpty, "/terminlist", w, http.StatusBadRequest)
+		return
+	}
+	content := r.Form.Get("content")
+	if edit {
+		tl.Termine[currentTerminIndex].editTermin(title, content, begin, end, repeat)
+	} else {
+		tl.CreateTermin(title, content, begin, end, repeat)
 	}
 }

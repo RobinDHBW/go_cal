@@ -2,6 +2,7 @@ package terminHandling
 
 import (
 	"go_cal/calendarView"
+	error2 "go_cal/error"
 	"go_cal/templates"
 	"net/http"
 	"sort"
@@ -48,7 +49,11 @@ var TView = TerminView{
 }
 
 func TerminHandler(w http.ResponseWriter, r *http.Request) {
-	r.ParseForm()
+	err := r.ParseForm()
+	if err != nil {
+		error2.CreateError(error2.InvalidInput, "/terminlist", w, http.StatusBadRequest)
+		return
+	}
 
 	switch {
 	case r.Form.Has("calendarBack"):
@@ -56,9 +61,27 @@ func TerminHandler(w http.ResponseWriter, r *http.Request) {
 	case r.Form.Has("terminlistBack"):
 		templates.TempTerminList.Execute(w, TView)
 	case r.Form.Has("submitTermin"):
-		TView.TerminPerSite, _ = strconv.Atoi(r.Form.Get("numberPerSite"))
-		TView.TerminSite, _ = strconv.Atoi(r.Form.Get("siteChoose"))
-		TView.MinDate, _ = time.Parse("2006-01-02", r.Form.Get("dateChoose"))
+		input, err := strconv.Atoi(r.Form.Get("numberPerSite"))
+		if err != nil {
+			error2.CreateError(error2.InvalidInput, "/terminlist", w, http.StatusBadRequest)
+			return
+		}
+		TView.TerminPerSite = input
+
+		input, err = strconv.Atoi(r.Form.Get("siteChoose"))
+		if err != nil {
+			error2.CreateError(error2.InvalidInput, "/terminlist", w, http.StatusBadRequest)
+			return
+		}
+		TView.TerminSite = input
+
+		inputDate, err := time.Parse("2006-01-02", r.Form.Get("dateChoose"))
+		if err != nil {
+			error2.CreateError(error2.InvalidInput, "/terminlist", w, http.StatusBadRequest)
+			return
+		}
+		TView.MinDate = inputDate
+
 		TView.GetTerminList()
 		templates.TempTerminList.Execute(w, TView)
 	default:
@@ -67,13 +90,13 @@ func TerminHandler(w http.ResponseWriter, r *http.Request) {
 
 }
 
-func (tl *TerminList) CreateTermin(title string, content string, begin time.Time, end time.Time) {
+func (tl *TerminList) CreateTermin(title string, content string, begin time.Time, end time.Time, repeat RepeatingMode) {
 	termin := Termin{
 		Title:     title,
 		Content:   content,
 		Begin:     begin,
 		End:       end,
-		Repeating: None,
+		Repeating: repeat,
 	}
 	tl.Termine = append(tl.Termine, termin)
 }
@@ -85,7 +108,7 @@ func (tv TerminView) GetTerminList() []Termin {
 
 	datefilteredTL := make([]Termin, 0, 1)
 	for i := range tv.TList.Termine {
-		if tv.MinDate.Before(tv.TList.Termine[i].Begin) || tv.MinDate.Equal(tv.TList.Termine[i].Begin) {
+		if tv.MinDate.Before(tv.TList.Termine[i].Begin) || tv.MinDate.Equal(tv.TList.Termine[i].Begin) || tv.TList.Termine[i].Repeating != None {
 			datefilteredTL = append(datefilteredTL, tv.TList.Termine[i])
 		}
 	}
