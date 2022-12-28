@@ -14,9 +14,11 @@ import (
 	"time"
 )
 
+// TODO: has to be removed, use datamodel
 // map with username and corresponding hashed password
 var users = map[string][]byte{}
 
+// TODO: has to be removed, use datamodel
 // Credentials struct for a user
 type Credentials struct {
 	Username string `json:"username"`
@@ -32,57 +34,77 @@ type session struct {
 // map with SessionTokens and corresponding sessions
 var sessions = map[string]session{}
 
-// determines if a Session is expired
+// prüft ob Session abgelaufen ist
 func (s session) isExpired() bool {
 	return s.expires.Before(time.Now())
 }
 
 func LoginHandler(w http.ResponseWriter, r *http.Request) {
 	// Cookie überprüfen
-	isCookieValid := CheckCookie(r)
+	isCookieValid := checkCookie(r)
 
-	// no cookie sent with the request --> login-procedure
+	// kein gültiger Cookie im Request --> login-procedure
 	if !isCookieValid {
-		// zu überprüfen: Datei zu User finden (exisitert der User?), Passwort abgleichen, Cookie setzen
+		// übermitteltes Formular parsen
 		r.ParseForm()
+		// wenn Login-Button gedrückt und POST ausgeführt wurde
 		if r.PostForm.Has("login") && r.Method == http.MethodPost {
+			// Eingabefelder (username und password) auslesen
 			password := []byte(r.PostFormValue("passwd"))
 			username := r.PostFormValue("uname")
+			// user authentifizieren
 			successful := AuthenticateUser(username, password)
+			// user erfolgreich authentifiziert
 			if successful {
+				// neue session erstellen
 				sessionToken, expires := createSession(username)
+				// Cookie in response setzen
 				http.SetCookie(w, &http.Cookie{
 					Name:    "session_token",
 					Value:   sessionToken,
 					Expires: expires,
 				})
+				// redirect auf Kalender
 				http.Redirect(w, r, "/updateCalendar", http.StatusFound)
 				return
+				// user nicht erfolgreich authentifiziert (username oder password falsch)
 			} else {
+				// Response header 401 setzen
 				w.WriteHeader(http.StatusUnauthorized)
+				// Fehlermeldung für Nutzer anzeigen
 				templates.TempError.Execute(w, error2.CreateError(error2.WrongCredentials, "/"))
 				return
 			}
 		}
-		// Cookie sent with the request + valid
+		// gültiger Cookie im Request --> kein Login nötig
 	} else {
+		// redirect auf Kalender
 		http.Redirect(w, r, "/updateCalendar", http.StatusFound)
 		return
 	}
+	// Login-Seite ausliefern
 	templates.TempLogin.Execute(w, nil)
 }
 
 func RegisterHandler(w http.ResponseWriter, r *http.Request) {
+	// übermitteltes Formular parsen
 	r.ParseForm()
+	// wenn Register-Button gedrückt und POST ausgeführt wurde
 	if r.PostForm.Has("register") && r.Method == http.MethodPost {
-		// exisitiert der Nutzer schon?
+		// exisitiert der Nutzername schon?
 		duplicate := isDuplicateUsername(r.PostFormValue("uname"))
+		// wenn Nutzername schon exisitert
 		if duplicate {
+			// Response header 401 setzen
 			w.WriteHeader(http.StatusUnauthorized)
+			// Fehlermeldung für Nutzer anzeigen
 			templates.TempError.Execute(w, error2.CreateError(error2.DuplicateUserName, "/register"))
 			return
+			// Nutzername exisitert noch nicht --> register möglich
 		} else {
+			// Passwort hashen
 			hashedPassword, _ := bcrypt.GenerateFromPassword([]byte(r.PostFormValue("passwd")), bcrypt.DefaultCost)
+			// username auslesen
 			username := r.PostFormValue("uname")
 			user := Credentials{
 				Username: username,
@@ -121,8 +143,9 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 				fmt.Println(err)
 				return
 			}
-			// Cookie erstellen
+			// neue session erstellen
 			sessionToken, expires := createSession(username)
+			// Cookie in response setzen
 			http.SetCookie(w, &http.Cookie{
 				Name:    "session_token",
 				Value:   sessionToken,
@@ -130,11 +153,33 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 			})
 			// sync file to variables
 			LoadUsersFromFiles()
+			// redirect auf Kalender
 			http.Redirect(w, r, "/updateCalendar", http.StatusFound)
 			return
 		}
 	}
+	// Register-Seite ausliefern
 	templates.TempRegister.Execute(w, nil)
+}
+
+// Wrapper für Authentifizierung mit Cookie
+func Wrapper(handler http.HandlerFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		// Cookie aus Request überprüfen
+		isCookieValid := checkCookie(r)
+		// wenn Cookie valid
+		if isCookieValid {
+			// handler aufrufen
+			handler(w, r)
+			// wenn Cookie invalide
+		} else {
+			// Response header 401 setzen
+			w.WriteHeader(http.StatusUnauthorized)
+			// Fehlermeldung für Nutzer anzeigen
+			templates.TempError.Execute(w, error2.CreateError(error2.Authentification, "/"))
+			return
+		}
+	}
 }
 
 // TODO
@@ -146,7 +191,6 @@ func createUUID(n int) string {
 		b[i] = letterBytes[rand.Intn(len(letterBytes))]
 	}
 	return string(b)
-
 }
 
 func LoadUsersFromFiles() error {
@@ -174,7 +218,6 @@ func LoadUsersFromFiles() error {
 
 func AuthenticateUser(username string, unHashedPassword []byte) (successful bool) {
 	expectedPasswordHash, ok := users[username]
-
 	if !ok || bcrypt.CompareHashAndPassword(expectedPasswordHash, unHashedPassword) != nil {
 		return false
 	} else {
@@ -182,22 +225,24 @@ func AuthenticateUser(username string, unHashedPassword []byte) (successful bool
 	}
 }
 
-func CheckCookie(r *http.Request) (successful bool) {
+func checkCookie(r *http.Request) (successful bool) {
+	// Cookie auslesen
 	cookie, err := r.Cookie("session_token")
+	// kein Cookie
 	if err == http.ErrNoCookie {
 		return false
 	}
-
+	// Sessiontoken auslesen
 	sessionToken := cookie.Value
-
-	// look up in session map
+	// session auslesen
 	session, ok := sessions[sessionToken]
-	// no SessionToken found
+	// keine Session zu Sessiontoken gefunden
 	if !ok {
 		return false
 	}
-	// SessionToken is expired
+	// SessionToken is abgelaufen
 	if session.isExpired() {
+		// Session löschen
 		delete(sessions, sessionToken)
 		return false
 	}
@@ -205,13 +250,17 @@ func CheckCookie(r *http.Request) (successful bool) {
 }
 
 func isDuplicateUsername(username string) (isDuplicate bool) {
+	// existiert der username schon?
 	_, ok := users[username]
 	return ok
 }
 
 func createSession(username string) (sessionToken string, expires time.Time) {
-	sessionToken = createUUID(10)
+	// Sessiontoken generieren
+	sessionToken = createUUID(25)
+	// Session läuft nach x Minuten ab
 	expires = time.Now().Add(120 * time.Second)
+	// Session anhand des Sessiontokens speichern
 	sessions[sessionToken] = session{
 		uname:   username,
 		expires: expires,

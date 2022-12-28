@@ -48,7 +48,7 @@ func TestCheckCookieSuccessful(t *testing.T) {
 	http.SetCookie(recorder, &http.Cookie{Name: "session_token", Value: sessionToken})
 	// copy cookie to request
 	request := &http.Request{Header: http.Header{"Cookie": recorder.Header()["Set-Cookie"]}}
-	assert.True(t, CheckCookie(request))
+	assert.True(t, checkCookie(request))
 }
 
 func TestCheckCookieUnsuccessfulWrongCookieName(t *testing.T) {
@@ -64,7 +64,7 @@ func TestCheckCookieUnsuccessfulWrongCookieName(t *testing.T) {
 	http.SetCookie(recorder, &http.Cookie{Name: "wrong_session_token", Value: sessionToken})
 	// copy cookie to request
 	request := &http.Request{Header: http.Header{"Cookie": recorder.Header()["Set-Cookie"]}}
-	assert.False(t, CheckCookie(request))
+	assert.False(t, checkCookie(request))
 }
 
 func TestCheckCookieUnsuccessfulWrongSessionToken(t *testing.T) {
@@ -80,7 +80,7 @@ func TestCheckCookieUnsuccessfulWrongSessionToken(t *testing.T) {
 	http.SetCookie(recorder, &http.Cookie{Name: "session_token", Value: "cookie"})
 	// copy cookie to request
 	request := &http.Request{Header: http.Header{"Cookie": recorder.Header()["Set-Cookie"]}}
-	assert.False(t, CheckCookie(request))
+	assert.False(t, checkCookie(request))
 }
 
 func TestCheckCookieUnsuccessfulSessionExpired(t *testing.T) {
@@ -96,7 +96,7 @@ func TestCheckCookieUnsuccessfulSessionExpired(t *testing.T) {
 	http.SetCookie(recorder, &http.Cookie{Name: "session_token", Value: "cookie123"})
 	// copy cookie to request
 	request := &http.Request{Header: http.Header{"Cookie": recorder.Header()["Set-Cookie"]}}
-	assert.False(t, CheckCookie(request))
+	assert.False(t, checkCookie(request))
 }
 
 func TestCreateSession(t *testing.T) {
