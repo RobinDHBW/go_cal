@@ -32,7 +32,7 @@ type session struct {
 }
 
 // map with SessionTokens and corresponding sessions
-var sessions = map[string]session{}
+var sessions = map[string]*session{}
 
 // prüft ob Session abgelaufen ist
 func (s session) isExpired() bool {
@@ -169,6 +169,14 @@ func Wrapper(handler http.HandlerFunc) http.HandlerFunc {
 		isCookieValid := checkCookie(r)
 		// wenn Cookie valid
 		if isCookieValid {
+			// Cookie verlängern
+			sessionToken, expires := refreshCookie(r)
+			// Cookie setzen
+			http.SetCookie(w, &http.Cookie{
+				Name:    "session_token",
+				Value:   sessionToken,
+				Expires: expires,
+			})
 			// handler aufrufen
 			handler(w, r)
 			// wenn Cookie invalide
@@ -182,10 +190,21 @@ func Wrapper(handler http.HandlerFunc) http.HandlerFunc {
 	}
 }
 
-// TODO
+func refreshCookie(r *http.Request) (sessionToken string, expires time.Time) {
+	// Cookie auslesen
+	cookie, _ := r.Cookie("session_token")
+	// Sessiontoken auslesen
+	sessionToken = cookie.Value
+	// session auslesen
+	session, _ := sessions[sessionToken]
+	// Session ist valide, da zuvor CheckCookie ausgeführt wurde
+	// expires um 10 min verlägern
+	session.expires = session.expires.Add(1 * time.Minute)
+	return sessionToken, session.expires
+}
+
 func createUUID(n int) string {
 	const letterBytes = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
-
 	b := make([]byte, n)
 	for i := range b {
 		b[i] = letterBytes[rand.Intn(len(letterBytes))]
@@ -259,9 +278,9 @@ func createSession(username string) (sessionToken string, expires time.Time) {
 	// Sessiontoken generieren
 	sessionToken = createUUID(25)
 	// Session läuft nach x Minuten ab
-	expires = time.Now().Add(120 * time.Second)
+	expires = time.Now().Add(1 * time.Minute)
 	// Session anhand des Sessiontokens speichern
-	sessions[sessionToken] = session{
+	sessions[sessionToken] = &session{
 		uname:   username,
 		expires: expires,
 	}

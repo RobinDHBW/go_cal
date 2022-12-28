@@ -2,7 +2,6 @@ package authentication
 
 import (
 	"github.com/stretchr/testify/assert"
-	"go_cal/templates"
 	"golang.org/x/crypto/bcrypt"
 	"net/http"
 	"net/http/httptest"
@@ -40,7 +39,7 @@ func TestCheckCookieSuccessful(t *testing.T) {
 	sessionToken := "cookie123"
 	expires := time.Now().Add(120 * time.Second)
 	// prepare session
-	sessions[sessionToken] = session{
+	sessions[sessionToken] = &session{
 		uname:   username,
 		expires: expires,
 	}
@@ -56,7 +55,7 @@ func TestCheckCookieUnsuccessfulWrongCookieName(t *testing.T) {
 	sessionToken := "cookie123"
 	expires := time.Now().Add(120 * time.Second)
 	// prepare session
-	sessions[sessionToken] = session{
+	sessions[sessionToken] = &session{
 		uname:   username,
 		expires: expires,
 	}
@@ -72,7 +71,7 @@ func TestCheckCookieUnsuccessfulWrongSessionToken(t *testing.T) {
 	sessionToken := "cookie123"
 	expires := time.Now().Add(120 * time.Second)
 	// prepare session
-	sessions[sessionToken] = session{
+	sessions[sessionToken] = &session{
 		uname:   username,
 		expires: expires,
 	}
@@ -88,7 +87,7 @@ func TestCheckCookieUnsuccessfulSessionExpired(t *testing.T) {
 	sessionToken := "cookie123"
 	expires := time.Now().Add(-120 * time.Second)
 	// prepare session
-	sessions[sessionToken] = session{
+	sessions[sessionToken] = &session{
 		uname:   username,
 		expires: expires,
 	}
@@ -184,28 +183,28 @@ func TestLoginHandlerWithValidCookie(t *testing.T) {
 //	assert.NotEmpty(t, users)
 //}
 
-func TestRegisterHandler(t *testing.T) {
-	deleteAllUsers()
-	deleteAllSessions()
-	templates.Init()
-
-	// TODO: http und localhost
-	request, _ := http.NewRequest(http.MethodPost, "http://localhost:8080/register", nil)
-	form := url.Values{}
-	form.Add("uname", "testUser")
-	form.Add("passwd", "test123")
-	form.Add("register", "")
-	request.PostForm = form
-
-	response := httptest.NewRecorder()
-	http.HandlerFunc(RegisterHandler).ServeHTTP(response, request)
-
-	assert.NotEmpty(t, sessions)
-	assert.NotEmpty(t, users)
-	pw, ok := users["testUser"]
-	assert.True(t, ok)
-	assert.Nil(t, bcrypt.CompareHashAndPassword(pw, []byte("test123")))
-}
+//func TestRegisterHandler(t *testing.T) {
+//	deleteAllUsers()
+//	deleteAllSessions()
+//	templates.Init()
+//
+//	// TODO: http und localhost
+//	request, _ := http.NewRequest(http.MethodPost, "http://localhost:8080/register", nil)
+//	form := url.Values{}
+//	form.Add("uname", "testUser")
+//	form.Add("passwd", "test123")
+//	form.Add("register", "")
+//	request.PostForm = form
+//
+//	response := httptest.NewRecorder()
+//	http.HandlerFunc(RegisterHandler).ServeHTTP(response, request)
+//
+//	assert.NotEmpty(t, sessions)
+//	assert.NotEmpty(t, users)
+//	pw, ok := users["testUser"]
+//	assert.True(t, ok)
+//	assert.Nil(t, bcrypt.CompareHashAndPassword(pw, []byte("test123")))
+//}
 
 func deleteAllUsers() {
 	for k := range users {
