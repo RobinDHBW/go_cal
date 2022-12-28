@@ -7,10 +7,10 @@
 </head>
 <body>
 
-<div style="margin-bottom: 5px">
-    <button><a href="/">Login</a></button>
-    <button><a href="/logout">Logout</a></button>
-</div>
+{{template "header"}}
+<!--<div style="margin-bottom: 5px">-->
+<!--    <button><a href="/logout">Logout</a></button>-->
+<!--</div>-->
 <div class="calendar-container">
         <div class="month">
             <form id="calendarForm" method="post" action="/updateCalendar">
