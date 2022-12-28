@@ -1,7 +1,6 @@
 package calendarView
 
 import (
-	"go_cal/authentication"
 	"go_cal/calendarAppointments"
 	error2 "go_cal/error"
 	"go_cal/templates"
@@ -73,40 +72,34 @@ func (cal *Calendar) ChooseMonth(year int, month time.Month) {
 }
 
 func UpdateCalendarHandler(w http.ResponseWriter, r *http.Request) {
-	isCookieValid := authentication.CheckCookie(r)
-	if isCookieValid {
-		if r.Method == http.MethodPost {
-			err := r.ParseForm()
-			if err != nil {
-				error2.CreateError(error2.InvalidInput, "/listTermin", w, http.StatusBadRequest)
-				return
-			}
+	if r.Method == http.MethodPost {
+		err := r.ParseForm()
+		if err != nil {
+			error2.CreateError(error2.InvalidInput, "/listTermin", w, http.StatusBadRequest)
+			return
+		}
 
-			switch {
-			case r.Form.Has("next"):
-				Cal.NextMonth()
-			case r.Form.Has("prev"):
-				Cal.PrevMonth()
-			case r.Form.Has("today"):
-				Cal.CurrentMonth()
-			case r.Form.Has("choose"):
+		switch {
+		case r.Form.Has("next"):
+			Cal.NextMonth()
+		case r.Form.Has("prev"):
+			Cal.PrevMonth()
+		case r.Form.Has("today"):
+			Cal.CurrentMonth()
+		case r.Form.Has("choose"):
 				year, err := strconv.Atoi(r.Form.Get("chooseYear"))
 				if err != nil {
 					error2.CreateError(error2.InvalidInput, "/updateCalendar", w, http.StatusBadRequest)
 					return
 				}
 				month, err := strconv.Atoi(r.Form.Get("chooseMonth"))
-				if err != nil {
-					error2.CreateError(error2.InvalidInput, "/updateCalendar", w, http.StatusBadRequest)
-					return
-				}
-				Cal.ChooseMonth(year, time.Month(month))
+			if err != nil {
+				error2.CreateError(error2.InvalidInput, "/updateCalendar", w, http.StatusBadRequest)
+				return
 			}
+			Cal.ChooseMonth(year, time.Month(month))
 		}
-	} else {
-		error2.CreateError(error2.Authentification, "/", w, http.StatusUnauthorized)
-		return
-	}
+	}			
 	calendarAppointments.GetAppointmentsForMonth(Cal.Month, Cal.Year)
 	templates.TempInit.Execute(w, Cal)
 	return

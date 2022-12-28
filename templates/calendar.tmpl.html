@@ -3,13 +3,14 @@
 <head>
     <title>Calendar</title>
     <link href="templates/static/calendar.css" type="text/css" rel="stylesheet">
+    <link rel="icon" href="data:,">
 </head>
 <body>
 
-<div style="margin-bottom: 5px">
-    <button><a href="/">Login</a></button>
-    <button><a href="/logout">Logout</a></button>
-</div>
+{{template "header"}}
+<!--<div style="margin-bottom: 5px">-->
+<!--    <button><a href="/logout">Logout</a></button>-->
+<!--</div>-->
 <div class="calendar-container">
         <div class="month">
             <form id="calendarForm" method="post" action="/updateCalendar">

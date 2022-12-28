@@ -30,7 +30,7 @@ func main() {
 	}
 	globalTemp = 1
 
-	http.HandleFunc("/updateCalendar", calendarView.UpdateCalendarHandler)
+	http.HandleFunc("/updateCalendar", authentication.Wrapper(calendarView.UpdateCalendarHandler))
 	http.HandleFunc("/register", authentication.RegisterHandler)
 	http.HandleFunc("/logout", authentication.LogoutHandler)
 	http.HandleFunc("/", authentication.LoginHandler)
