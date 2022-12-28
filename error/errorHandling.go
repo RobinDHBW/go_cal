@@ -8,6 +8,9 @@ const (
 	Authentification  ErrorType = "Authentification failed"
 	DuplicateUserName ErrorType = "Username already exists"
 	WrongCredentials  ErrorType = "Username or password is wrong"
+	InvalidInput      ErrorType = "Given input has wrong type"
+	TitleIsEmpty      ErrorType = "Title of appointment is empty"
+	EndBeforeBegin    ErrorType = "End date is earlier than start date"
 )
 
 type DisplayedError struct {

@@ -11,32 +11,36 @@
 {{template "header"}}
 <div class="calendar-container">
     <div class="month">
-        <form id="terminListForm" method="post" action="/updateTerminList">
             <ul>
                 <li>
-                    Terminübersicht<br><br>
-                    <button style="font-size: 16px" name="calendarBack" id="calendarBack" type="submit">Zurück zum Kalendar</button>
-                    <br>
-                    <label class="inputlabel" for="dateChoose">Datum wählen</label>
-                    <input style="font-size: 16px" name="dateChoose" id="dateChoose" type="date" value='{{.MinDate.Format "2006-01-02"}}'/>
-                    <br>
-                    <label class="inputlabel" for="numberPerSite">Anzahl Termine pro Seite</label>
-                    <input style="font-size: 16px" name="numberPerSite" id="numberPerSite" type="number" min="1" step="1" value="{{.TerminPerSite}}"/><br>
+                    <form id="terminListForm" method="post" action="/listTermin">
+                        Terminübersicht<br><br>
+                        <button style="font-size: 16px" name="calendarBack" id="calendarBack" type="submit">Zurück zum Kalendar</button>
+                        <br>
+                        <label class="inputlabel" for="dateChoose">Datum wählen</label>
+                        <input style="font-size: 16px" name="dateChoose" id="dateChoose" type="date" value='{{.MinDate.Format "2006-01-02"}}'/>
+                        <br>
+                        <label class="inputlabel" for="numberPerSite">Anzahl Termine pro Seite</label>
+                        <input style="font-size: 16px" name="numberPerSite" id="numberPerSite" type="number" min="1" step="1" value="{{.TerminPerSite}}"/><br>
 
-                    <label class="inputlabel" for="siteChoose">Seitenzahl wählen</label>
-                    <input style="font-size: 16px" id="siteChoose" name="siteChoose" type="number" min="1" step="1" value="{{.TerminSite}}"/>
+                        <label class="inputlabel" for="siteChoose">Seitenzahl wählen</label>
+                        <input style="font-size: 16px" id="siteChoose" name="siteChoose" type="number" min="1" step="1" value="{{.TerminSite}}"/>
 
-                    <button style="font-size: 16px" name="submitTermin" id="submitTermin" type="submit">Submit</button>
-                </li>
+                        <button style="font-size: 16px" name="submitTermin" id="submitTermin" type="submit">Submit</button>
+                    </form>
+                </li><br>
+                    <form id="createTerminForm" method="post" action="/createTermin">
+                        <button style="font-size: 16px" name="createTermin" id="createTermin" type="submit">Termin anlegen</button>
+                    </form>
             </ul>
-        </form>
+
     </div>
     <div class="terminlist">
-            {{range $index := .GetTerminList}}
+            {{range $index, $v := .GetTerminList}}
                 <span class="termin">
                     {{.Title}}
                     <br>
-                    Zeitpunkt: {{.Begin.Format "02.01.2006 15:04"}} bis {{.End.Format "02.01.2006 15:04"}}
+                    Zeitpunkt: {{.Begin.Format "02.01.2006 15:04"}} bis {{.End.Format "02.01.2006 15:04"}} (Wiederholung: {{.Repeating}})
                     <br>
                     {{.Content}}
                     <form id="terminChangeForm" method="post" action="/editTermin">
