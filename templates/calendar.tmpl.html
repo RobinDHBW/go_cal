@@ -8,9 +8,7 @@
 <body>
 
 {{template "header"}}
-<!--<div style="margin-bottom: 5px">-->
-<!--    <button><a href="/logout">Logout</a></button>-->
-<!--</div>-->
+
 <div class="calendar-container">
         <div class="month">
             <form id="calendarForm" method="post" action="/updateCalendar">
@@ -52,33 +50,26 @@
         <span class="day-name">Fri</span>
         <span class="day-name">Sat</span>
         <span class="day-name">Sun</span>
-
         {{range .GetDaysBeforeMonthBegin}}
             <div class="day day--disabled"></div>
         {{end}}
+        {{$t := .GetAppointmentsForMonth}}
 
         {{if and (eq .Month .Current.Month) (eq .Year .Current.Year)}}
             {{range $day := .GetDaysOfMonth}}
                 {{if eq $day $.Current.Day}}
-                    <div class="day day-active">{{$day}}</div>
+                    <div class="day day-active">{{$day}}{{if gt (index $t $day) 0}}<br><br><br>Termine: {{index $t $day}}{{end}}</div>
                 {{else}}
-                    <div class="day">{{$day}}</div>
+                    <div class="day">{{$day}}{{if gt (index $t $day) 0}}<br><br><br>Termine: {{index $t $day}}{{end}}</div>
                 {{end}}
             {{end}}
         {{else}}
             {{range $day := .GetDaysOfMonth}}
-                <div class="day">{{$day}}</div>
+                <div class="day">{{$day}}{{if gt (index $t $day) 0}}<br><br><br>Termine: {{index $t $day}}{{end}}</div>
+
             {{end}}
         {{end}}
 
-        <!--<section class="task">Projects</section>
-        <section class="task">Design Sprint</section>
-        <section class="task">Product Checkup 1<div class="task__detail">
-            <h2>Product Checkup 1</h2>
-            <p>15-17th November</p>
-        </div>
-        </section>
-        <section class="task">Product Checkup 2</section>-->
     </div>
 </div>
 
