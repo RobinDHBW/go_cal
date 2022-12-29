@@ -6,6 +6,7 @@ import (
 	"go_cal/fileHandler"
 	"golang.org/x/crypto/bcrypt"
 	"log"
+	"strings"
 	"time"
 )
 
@@ -90,12 +91,23 @@ func (dm *DataModel) EditAppointment(uId int, ap data.Appointment) *data.User {
 	return user
 }
 
-func (dm *DataModel) GetAppointmentByTimeFrame(uId int, tFrom, tTo time.Time) (*data.User, *map[int]data.Appointment) {
+func (dm *DataModel) GetAppointmentsByTimeFrame(uId int, tFrom, tTo time.Time) (*data.User, *map[int]data.Appointment) {
 	user := dm.GetUserById(uId)
 	res := make(map[int]data.Appointment)
 	for key, val := range user.Appointments {
+		if CheckDate(val.DateTimeStart, tFrom, tTo) || CheckDate(val.DateTimeEnd, tFrom, tTo) {
+			res[key] = val
+		}
+	}
 
-		if CheckDate(val.DateTimeStart, tFrom, tTo) && CheckDate(val.DateTimeEnd, tFrom, tTo) {
+	return user, &res
+}
+
+func (dm *DataModel) GetAppointmentsBySearchString(uId int, search string) (*data.User, *map[int]data.Appointment) {
+	user := dm.GetUserById(uId)
+	res := make(map[int]data.Appointment)
+	for key, val := range user.Appointments {
+		if strings.Contains(val.Title, search) || strings.Contains(val.Description, search) {
 			res[key] = val
 		}
 	}
