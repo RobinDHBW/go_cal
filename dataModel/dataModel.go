@@ -6,9 +6,9 @@ import (
 	"go_cal/fileHandler"
 	"golang.org/x/crypto/bcrypt"
 	"log"
+	"strings"
+	"time"
 )
-
-//Class to hold all data and coordinate sync to/from file
 
 func encryptPW(password string) string {
 	hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.MinCost)
@@ -18,62 +18,102 @@ func encryptPW(password string) string {
 	return string(hash)
 }
 
+func DataSync(user *data.User, dm *DataModel) {
+	//@TODO make parallel
+	write, err := json.Marshal(user)
+	if err != nil {
+		log.Fatal(err)
+	}
+	dm.UserMap[user.Id] = *user
+	dm.fH.SyncToFile(write, user.Id)
+}
+
+func CheckDate(toCheck, from, to time.Time) bool {
+	return from.Equal(toCheck) || !from.After(toCheck) || to.Equal(toCheck) || !to.Before(toCheck)
+}
+
 type DataModel struct {
-	UserList []data.User
-	fH       fileHandler.FileHandler
+	UserMap map[int]data.User
+	fH      fileHandler.FileHandler
 }
 
 func NewDM(dataPath string) DataModel {
 	fH := fileHandler.NewFH(dataPath)
 	sList := fH.ReadAll()
-	var uList []data.User
+	uMap := make(map[int]data.User)
 
 	for _, uString := range sList {
 		var user data.User
 		json.Unmarshal([]byte(uString), &user)
-		uList = append(uList, user)
+		uMap[user.Id] = user
 	}
 
-	return DataModel{uList, fH}
+	return DataModel{uMap, fH}
 }
 
 func (dm *DataModel) GetUserById(id int) *data.User {
-	var res data.User
-	for _, user := range dm.UserList {
-		if user.Id == id {
-			res = user
-		}
+	if res, ok := dm.UserMap[id]; ok {
+		return &res
 	}
-	return &res
+	return nil
 }
 
-func (dm *DataModel) AddUser(name, pw string, userLevel int, appointment []data.Appointment) *data.User {
-	user := data.NewUser(name, encryptPW(pw), len(dm.UserList)+1, userLevel)
-	if appointment != nil {
-		for _, ap := range appointment {
-			user = *dm.AddAppointment(user.Id, ap)
-		}
-	}
-	write, err := json.Marshal(user)
-	if err != nil {
-		log.Fatal(err)
-	}
-	//@TODO make parallel
-	dm.UserList = append(dm.UserList, user)
-	dm.fH.SyncToFile(write, user.Id)
+func (dm *DataModel) AddUser(name, pw string, userLevel int) *data.User {
+	user := data.NewUser(name, encryptPW(pw), len(dm.UserMap)+1, userLevel)
+
+	DataSync(&user, dm)
 	return &user
 }
 
 // Call by reference or call by value?
 func (dm *DataModel) AddAppointment(id int, ap data.Appointment) *data.User {
 	user := dm.GetUserById(id)
-	user.Appointments = append(user.Appointments, ap)
+	//user.Appointments = append(user.Appointments, ap)
+	user.Appointments[ap.Id] = ap
+
+	DataSync(user, dm)
 	return user
 }
 
-//func (dm *DataModel) DeleteAppointment(id int) data.User {
-//	return data.NewUser("abc", "abc", 1, 1)
-//}
+func (dm *DataModel) DeleteAppointment(apId, uId int) *data.User {
+	user := dm.GetUserById(uId)
+	delete(user.Appointments, apId)
+
+	DataSync(user, dm)
+	return user
+}
+
+func (dm *DataModel) EditAppointment(uId int, ap data.Appointment) *data.User {
+	user := dm.GetUserById(uId)
+	user.Appointments[ap.Id] = ap
+
+	DataSync(user, dm)
+	return user
+}
+
+func (dm *DataModel) GetAppointmentsByTimeFrame(uId int, tFrom, tTo time.Time) (*data.User, *map[int]data.Appointment) {
+	user := dm.GetUserById(uId)
+	res := make(map[int]data.Appointment)
+	for key, val := range user.Appointments {
+		if CheckDate(val.DateTimeStart, tFrom, tTo) || CheckDate(val.DateTimeEnd, tFrom, tTo) {
+			res[key] = val
+		}
+	}
+
+	return user, &res
+}
+
+func (dm *DataModel) GetAppointmentsBySearchString(uId int, search string) (*data.User, *map[int]data.Appointment) {
+	user := dm.GetUserById(uId)
+	res := make(map[int]data.Appointment)
+	for key, val := range user.Appointments {
+		if strings.Contains(val.Title, search) || strings.Contains(val.Description, search) {
+			res[key] = val
+		}
+	}
+
+	return user, &res
+}
 
 func (dm *DataModel) ComparePW(clear, hash string) bool {
 	err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(clear))
