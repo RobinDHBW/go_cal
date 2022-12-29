@@ -77,7 +77,7 @@ func TestDataModel_AddUser(t *testing.T) {
 
 	defer after()
 
-	user := dataModel.AddUser("test", "abc", 1, nil)
+	user := dataModel.AddUser("test", "abc", 1)
 	userFile := dataModel.fH.ReadFromFile(user.Id)
 	var user2 data.User
 
@@ -106,7 +106,7 @@ func TestDataModel_AddAppointment(t *testing.T) {
 
 	tNow := time.Now()
 	tThen := tNow.Add(time.Hour * time.Duration(1))
-	user := dataModel.AddUser("test", "abc", 1, nil)
+	user := dataModel.AddUser("test", "abc", 1)
 	user = dataModel.AddAppointment(user.Id, data.NewAppointment("test", "hello123", tNow, tThen, user.Id, false, 0, false, ""))
 
 	assert.EqualValues(t, "test", user.Appointments[0].Title)
@@ -115,7 +115,35 @@ func TestDataModel_AddAppointment(t *testing.T) {
 	assert.EqualValues(t, user.Id, user.Appointments[0].Userid)
 	assert.EqualValues(t, false, user.Appointments[0].Share.Public)
 	assert.EqualValues(t, false, user.Appointments[0].Timeseries.Repeat)
+}
 
+func TestDataModel_DeleteAppointment(t *testing.T) {
+	dataPath := "../data/test"
+	dataModel := NewDM(dataPath)
+
+	defer after()
+	user := dataModel.AddUser("test", "abc", 1)
+
+	tNow := time.Now()
+	tThen := tNow.Add(time.Hour * time.Duration(1))
+
+	ap1 := data.NewAppointment("test", "hello 123", tNow, tThen, user.Id, false, 0, false, "")
+	ap2 := data.NewAppointment("test1", "hello 123", tNow, tThen, user.Id, false, 0, false, "")
+	ap3 := data.NewAppointment("test2", "hello 123", tNow, tThen, user.Id, false, 0, false, "")
+
+	user = dataModel.AddAppointment(dataModel.AddAppointment(dataModel.AddAppointment(user.Id, ap1).Id, ap2).Id, ap3)
+	//user = dataModel.AddAppointment(user.Id, ap2)
+	//user = dataModel.AddAppointment(user.Id, ap3)
+
+	lenAp := len(user.Appointments)
+	user = dataModel.DeleteAppointment(ap1.Id, user.Id)
+
+	_, ok := user.Appointments[ap1.Id]
+
+	assert.EqualValues(t, lenAp-1, len(user.Appointments))
+	assert.False(t, ok)
+
+	//check id's of appointments in user struct
 }
 
 func TestDataModel_ComparePW(t *testing.T) {
@@ -124,7 +152,7 @@ func TestDataModel_ComparePW(t *testing.T) {
 
 	defer after()
 
-	user := dataModel.AddUser("test", "abc", 1, nil)
+	user := dataModel.AddUser("test", "abc", 1)
 	assert.EqualValues(t, true, dataModel.ComparePW("abc", user.Password))
 	assert.EqualValues(t, false, dataModel.ComparePW("123", user.Password))
 }

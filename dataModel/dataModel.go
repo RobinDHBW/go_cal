@@ -36,17 +36,15 @@ func NewDM(dataPath string) DataModel {
 }
 
 func (dm *DataModel) GetUserById(id int) *data.User {
-	res := dm.UserMap[id]
-	return &res
+	if res, ok := dm.UserMap[id]; ok {
+		return &res
+	}
+	return nil
 }
 
-func (dm *DataModel) AddUser(name, pw string, userLevel int, appointment []data.Appointment) *data.User {
+func (dm *DataModel) AddUser(name, pw string, userLevel int) *data.User {
 	user := data.NewUser(name, encryptPW(pw), len(dm.UserMap)+1, userLevel)
-	if appointment != nil {
-		for _, ap := range appointment {
-			user = *dm.AddAppointment(user.Id, ap)
-		}
-	}
+
 	write, err := json.Marshal(user)
 	if err != nil {
 		log.Fatal(err)
@@ -60,12 +58,17 @@ func (dm *DataModel) AddUser(name, pw string, userLevel int, appointment []data.
 // Call by reference or call by value?
 func (dm *DataModel) AddAppointment(id int, ap data.Appointment) *data.User {
 	user := dm.GetUserById(id)
-	user.Appointments = append(user.Appointments, ap)
+	//user.Appointments = append(user.Appointments, ap)
+	user.Appointments[ap.Id] = ap
 	return user
 }
 
-func (dm *DataModel) DeleteAppointment(id int) data.User {
-	return data.NewUser("abc", "abc", 1, 1)
+func (dm *DataModel) DeleteAppointment(apId, uId int) *data.User {
+	user := dm.GetUserById(uId)
+	delete(user.Appointments, apId)
+	//res := data.NewUser("abc", "abc", 1, 1)
+
+	return user
 }
 
 func (dm *DataModel) ComparePW(clear, hash string) bool {
