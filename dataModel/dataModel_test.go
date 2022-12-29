@@ -132,8 +132,6 @@ func TestDataModel_DeleteAppointment(t *testing.T) {
 	ap3 := data.NewAppointment("test2", "hello 123", tNow, tThen, user.Id, false, 0, false, "")
 
 	user = dataModel.AddAppointment(dataModel.AddAppointment(dataModel.AddAppointment(user.Id, ap1).Id, ap2).Id, ap3)
-	//user = dataModel.AddAppointment(user.Id, ap2)
-	//user = dataModel.AddAppointment(user.Id, ap3)
 
 	lenAp := len(user.Appointments)
 	user = dataModel.DeleteAppointment(ap1.Id, user.Id)
@@ -142,8 +140,29 @@ func TestDataModel_DeleteAppointment(t *testing.T) {
 
 	assert.EqualValues(t, lenAp-1, len(user.Appointments))
 	assert.False(t, ok)
+}
 
-	//check id's of appointments in user struct
+func TestDataModel_EditAppointment(t *testing.T) {
+	dataPath := "../data/test"
+	dataModel := NewDM(dataPath)
+
+	defer after()
+	user := dataModel.AddUser("test", "abc", 1)
+
+	tNow := time.Now()
+	tThen := tNow.Add(time.Hour * time.Duration(1))
+
+	title := "test"
+	ap1 := data.NewAppointment(title, "hello 123", tNow, tThen, user.Id, false, 0, false, "")
+	user = dataModel.AddAppointment(user.Id, ap1)
+
+	assert.EqualValues(t, title, user.Appointments[ap1.Id].Title)
+
+	title = "test123"
+	ap1.Title = title
+	user = dataModel.EditAppointment(user.Id, ap1)
+
+	assert.EqualValues(t, title, user.Appointments[ap1.Id].Title)
 }
 
 func TestDataModel_ComparePW(t *testing.T) {

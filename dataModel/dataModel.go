@@ -66,7 +66,12 @@ func (dm *DataModel) AddAppointment(id int, ap data.Appointment) *data.User {
 func (dm *DataModel) DeleteAppointment(apId, uId int) *data.User {
 	user := dm.GetUserById(uId)
 	delete(user.Appointments, apId)
-	//res := data.NewUser("abc", "abc", 1, 1)
+	return user
+}
+
+func (dm *DataModel) EditAppointment(uId int, ap data.Appointment) *data.User {
+	user := dm.GetUserById(uId)
+	user.Appointments[ap.Id] = ap
 
 	return user
 }
