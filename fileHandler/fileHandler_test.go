@@ -17,7 +17,7 @@ func fileWriteRead(user data.User, fH *FileHandler) data.User {
 	}
 	fH.SyncToFile(write, user.Id)
 
-	fString := fH.ReadFromFile(1)
+	fString := fH.ReadFromFile(user.Id)
 
 	var rUser data.User
 	json.Unmarshal([]byte(fString), &rUser)
