@@ -1,9 +1,9 @@
 package calendarView
 
 import (
-	"go_cal/calendarAppointments"
 	error2 "go_cal/error"
 	"go_cal/templates"
+	"go_cal/terminHandling"
 	"net/http"
 	"strconv"
 	"time"
@@ -23,7 +23,7 @@ var Cal = Calendar{
 }
 
 // https://brandur.org/fragments/go-days-in-month
-func (cal Calendar) GetDaysOfMonth() []int {
+func (cal *Calendar) GetDaysOfMonth() []int {
 	days := time.Date(cal.Year, cal.Month+1, 0, 0, 0, 0, 0, time.UTC).Day()
 	dayRange := make([]int, days)
 	for i := range dayRange {
@@ -32,12 +32,10 @@ func (cal Calendar) GetDaysOfMonth() []int {
 	return dayRange
 }
 
-func (cal Calendar) GetDaysBeforeMonthBegin() []int {
+func (cal *Calendar) GetDaysBeforeMonthBegin() []int {
 	weekday := time.Date(cal.Year, cal.Month, 1, 0, 0, 0, 0, time.UTC).Weekday()
-	if weekday == 6 {
-		return make([]int, 5)
-	} else if weekday == 0 {
-		return make([]int, 0)
+	if weekday == 0 {
+		return make([]int, 6)
 	} else {
 		return make([]int, weekday-1)
 	}
@@ -69,6 +67,27 @@ func (cal *Calendar) CurrentMonth() {
 func (cal *Calendar) ChooseMonth(year int, month time.Month) {
 	cal.Month = month
 	cal.Year = year
+}
+
+func (cal *Calendar) GetAppointmentsForMonth() []int {
+	tl := terminHandling.TView.TList
+	appointmentsPerDay := make([]int, 32)
+	for i := range (tl).Termine {
+		if (tl).Termine[i].Begin.Year() == cal.Year && (tl).Termine[i].Begin.Month() == cal.Month {
+			appointmentsPerDay[(tl).Termine[i].Begin.Day()]++
+		}
+		if (tl).Termine[i].Repeating != terminHandling.None {
+			start := (tl).Termine[i].Begin
+			// testweise nur für weekly
+			for start.Before(time.Date(cal.Year, cal.Month+1, 1, 0, 0, 0, 0, time.Local)) {
+				start = start.AddDate(0, 0, 7)
+				if start.Year() == cal.Year && start.Month() == cal.Month {
+					appointmentsPerDay[start.Day()]++
+				}
+			}
+		}
+	}
+	return appointmentsPerDay
 }
 
 func UpdateCalendarHandler(w http.ResponseWriter, r *http.Request) {
@@ -103,7 +122,7 @@ func UpdateCalendarHandler(w http.ResponseWriter, r *http.Request) {
 			Cal.ChooseMonth(year, time.Month(month))
 		}
 	}
-	calendarAppointments.GetAppointmentsForMonth(Cal.Month, Cal.Year)
-	templates.TempInit.Execute(w, Cal)
+	Cal.GetAppointmentsForMonth()
+	templates.TempInit.Execute(w, &Cal)
 	return
 }
