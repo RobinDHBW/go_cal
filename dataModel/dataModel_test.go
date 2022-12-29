@@ -104,11 +104,13 @@ func TestDataModel_AddAppointment(t *testing.T) {
 	defer after()
 
 	tNow := time.Now()
+	tThen := tNow.Add(time.Hour * time.Duration(1))
 	user := dataModel.AddUser("test", "abc", 1, nil)
-	user = dataModel.AddAppointment(user.Id, data.NewAppointment("test", "hello123", tNow, user.Id, false, 0, false, ""))
+	user = dataModel.AddAppointment(user.Id, data.NewAppointment("test", "hello123", tNow, tThen, user.Id, false, 0, false, ""))
 
 	assert.EqualValues(t, "test", user.Appointments[0].Title)
-	assert.EqualValues(t, tNow, user.Appointments[0].DateTime)
+	assert.EqualValues(t, tNow, user.Appointments[0].DateTimeStart)
+	assert.EqualValues(t, tThen, user.Appointments[0].DateTimeEnd)
 	assert.EqualValues(t, user.Id, user.Appointments[0].Userid)
 	assert.EqualValues(t, false, user.Appointments[0].Share.Public)
 	assert.EqualValues(t, false, user.Appointments[0].Timeseries.Repeat)
