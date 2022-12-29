@@ -16,7 +16,7 @@ func TerminEditHandler(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
-		templates.TempError.Execute(w, error2.CreateError(error2.Default2, "/editTermin"))
+		templates.TempError.Execute(w, error2.CreateError(error2.Default2, r.Host+"/editTermin"))
 		return
 	}
 
@@ -25,7 +25,7 @@ func TerminEditHandler(w http.ResponseWriter, r *http.Request) {
 		index, err := strconv.Atoi(r.Form.Get("editTermin"))
 		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
-			templates.TempError.Execute(w, error2.CreateError(error2.InvalidInput, "/editTermin"))
+			templates.TempError.Execute(w, error2.CreateError(error2.InvalidInput, r.Host+"/editTermin"))
 			return
 		}
 		fmt.Println(index)
@@ -93,18 +93,18 @@ func (tl *TerminList) EditTerminFromInput(w http.ResponseWriter, r *http.Request
 	begin, err := time.Parse("2006-01-02T15:04", r.Form.Get("dateBegin"))
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
-		templates.TempError.Execute(w, error2.CreateError(error2.InvalidInput, "/listTermin"))
+		templates.TempError.Execute(w, error2.CreateError(error2.InvalidInput, r.Host+"/listTermin"))
 		return false
 	}
 	end, err := time.Parse("2006-01-02T15:04", r.Form.Get("dateEnd"))
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
-		templates.TempError.Execute(w, error2.CreateError(error2.InvalidInput, "/listTermin"))
+		templates.TempError.Execute(w, error2.CreateError(error2.InvalidInput, r.Host+"/listTermin"))
 		return false
 	}
 	if end.Before(begin) {
 		w.WriteHeader(http.StatusBadRequest)
-		templates.TempError.Execute(w, error2.CreateError(error2.EndBeforeBegin, "/listTermin"))
+		templates.TempError.Execute(w, error2.CreateError(error2.EndBeforeBegin, r.Host+"/listTermin"))
 		return false
 	}
 
@@ -112,7 +112,7 @@ func (tl *TerminList) EditTerminFromInput(w http.ResponseWriter, r *http.Request
 	title := r.Form.Get("title")
 	if len(title) == 0 {
 		w.WriteHeader(http.StatusBadRequest)
-		templates.TempError.Execute(w, error2.CreateError(error2.TitleIsEmpty, "/listTermin"))
+		templates.TempError.Execute(w, error2.CreateError(error2.TitleIsEmpty, r.Host+"/listTermin"))
 		return false
 	}
 	content := r.Form.Get("content")

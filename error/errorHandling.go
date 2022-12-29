@@ -22,8 +22,8 @@ type DisplayedError struct {
 func CreateError(errorType ErrorType, prevLink string) (error DisplayedError) {
 	error = DisplayedError{
 		Text: string(errorType),
-		// TODO: http + host austauschen
-		Link: "http://localhost:8080" + prevLink,
+		// TODO: http austauschen
+		Link: "http://" + prevLink,
 	}
 	return error
 }

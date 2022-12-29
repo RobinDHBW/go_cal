@@ -59,7 +59,7 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 				// Response header 400 setzen
 				w.WriteHeader(http.StatusBadRequest)
 				// Fehlermeldung für Nutzer anzeigen
-				templates.TempError.Execute(w, error2.CreateError(error2.EmptyField, "/"))
+				templates.TempError.Execute(w, error2.CreateError(error2.EmptyField, r.Host+"/"))
 				return
 			}
 			// user authentifizieren
@@ -82,7 +82,7 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 				// Response header 401 setzen
 				w.WriteHeader(http.StatusUnauthorized)
 				// Fehlermeldung für Nutzer anzeigen
-				templates.TempError.Execute(w, error2.CreateError(error2.WrongCredentials, "/"))
+				templates.TempError.Execute(w, error2.CreateError(error2.WrongCredentials, r.Host+"/"))
 				return
 			}
 		}
@@ -110,7 +110,7 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 			// Response header 400 setzen
 			w.WriteHeader(http.StatusBadRequest)
 			// Fehlermeldung für Nutzer anzeigen
-			templates.TempError.Execute(w, error2.CreateError(error2.EmptyField, "/register"))
+			templates.TempError.Execute(w, error2.CreateError(error2.EmptyField, r.Host+"/register"))
 			return
 		}
 		// exisitiert der Nutzername schon?
@@ -120,7 +120,7 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 			// Response header 400 setzen
 			w.WriteHeader(http.StatusBadRequest)
 			// Fehlermeldung für Nutzer anzeigen
-			templates.TempError.Execute(w, error2.CreateError(error2.DuplicateUserName, "/register"))
+			templates.TempError.Execute(w, error2.CreateError(error2.DuplicateUserName, r.Host+"/register"))
 			return
 			// Nutzername exisitert noch nicht --> register möglich
 		} else {
@@ -204,7 +204,7 @@ func Wrapper(handler http.HandlerFunc) http.HandlerFunc {
 			// Response header 401 setzen
 			w.WriteHeader(http.StatusUnauthorized)
 			// Fehlermeldung für Nutzer anzeigen
-			templates.TempError.Execute(w, error2.CreateError(error2.Authentification, "/"))
+			templates.TempError.Execute(w, error2.CreateError(error2.Authentification, r.Host+"/"))
 			return
 		}
 	}

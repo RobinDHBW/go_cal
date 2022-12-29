@@ -11,7 +11,7 @@ func TerminCreateHandler(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
-		templates.TempError.Execute(w, error2.CreateError(error2.Default2, "/createTermin"))
+		templates.TempError.Execute(w, error2.CreateError(error2.Default2, r.Host+"/createTermin"))
 		return
 	}
 
