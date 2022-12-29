@@ -315,9 +315,9 @@ func validateInput(username string, password []byte) (successful bool) {
 	}
 	// wenn unerlaubte Zeichen verwendet werden
 	const invalidCharactersUsername string = "[\\\\/:*?\"<>|{}`´']"
-	const invalidCharactersPassword string = "[<>{}`´']"
+	//const invalidCharactersPassword string = "[<>{}`´']"
 	matchUsername, _ := regexp.MatchString(invalidCharactersUsername, username)
-	matchPassword, _ := regexp.MatchString(invalidCharactersPassword, string(password))
+	matchPassword, _ := regexp.MatchString(invalidCharactersUsername, string(password))
 	if matchUsername || matchPassword {
 		return false
 	}
