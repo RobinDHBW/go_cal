@@ -13,7 +13,7 @@ import (
 func encryptPW(password string) string {
 	hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.MinCost)
 	if err != nil {
-		log.Fatalln(err)
+		log.Fatal(err)
 	}
 	return string(hash)
 }
