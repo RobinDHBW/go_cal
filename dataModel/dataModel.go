@@ -16,6 +16,16 @@ func encryptPW(password string) string {
 	return string(hash)
 }
 
+func DataSync(user *data.User, dm *DataModel) {
+	//@TODO make parallel
+	write, err := json.Marshal(user)
+	if err != nil {
+		log.Fatal(err)
+	}
+	dm.UserMap[user.Id] = *user
+	dm.fH.SyncToFile(write, user.Id)
+}
+
 type DataModel struct {
 	UserMap map[int]data.User
 	fH      fileHandler.FileHandler
@@ -45,13 +55,7 @@ func (dm *DataModel) GetUserById(id int) *data.User {
 func (dm *DataModel) AddUser(name, pw string, userLevel int) *data.User {
 	user := data.NewUser(name, encryptPW(pw), len(dm.UserMap)+1, userLevel)
 
-	write, err := json.Marshal(user)
-	if err != nil {
-		log.Fatal(err)
-	}
-	//@TODO make parallel
-	dm.UserMap[user.Id] = user
-	dm.fH.SyncToFile(write, user.Id)
+	DataSync(&user, dm)
 	return &user
 }
 
@@ -60,12 +64,16 @@ func (dm *DataModel) AddAppointment(id int, ap data.Appointment) *data.User {
 	user := dm.GetUserById(id)
 	//user.Appointments = append(user.Appointments, ap)
 	user.Appointments[ap.Id] = ap
+
+	DataSync(user, dm)
 	return user
 }
 
 func (dm *DataModel) DeleteAppointment(apId, uId int) *data.User {
 	user := dm.GetUserById(uId)
 	delete(user.Appointments, apId)
+
+	DataSync(user, dm)
 	return user
 }
 
@@ -73,6 +81,7 @@ func (dm *DataModel) EditAppointment(uId int, ap data.Appointment) *data.User {
 	user := dm.GetUserById(uId)
 	user.Appointments[ap.Id] = ap
 
+	DataSync(user, dm)
 	return user
 }
 
