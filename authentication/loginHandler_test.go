@@ -206,6 +206,70 @@ func TestLoginHandlerWithValidCookie(t *testing.T) {
 //	assert.Nil(t, bcrypt.CompareHashAndPassword(pw, []byte("test123")))
 //}
 
+func TestValidateInput(t *testing.T) {
+	assert.True(t, validateInput("test", []byte("test123")))
+
+	assert.False(t, validateInput("", []byte("")))
+
+	assert.False(t, validateInput("/test", []byte("test123")))
+	assert.False(t, validateInput("te/st", []byte("test123")))
+	assert.False(t, validateInput("test/", []byte("test123")))
+
+	assert.False(t, validateInput("\\test", []byte("test123")))
+	assert.False(t, validateInput("te\\st", []byte("test123")))
+	assert.False(t, validateInput("test\\", []byte("test123")))
+
+	assert.False(t, validateInput(":test", []byte("test123")))
+	assert.False(t, validateInput("te:st", []byte("test123")))
+	assert.False(t, validateInput("test:", []byte("test123")))
+
+	assert.False(t, validateInput("*test", []byte("test123")))
+	assert.False(t, validateInput("te*st", []byte("test123")))
+	assert.False(t, validateInput("test*", []byte("test123")))
+
+	assert.False(t, validateInput("?test", []byte("test123")))
+	assert.False(t, validateInput("te?st", []byte("test123")))
+	assert.False(t, validateInput("test?", []byte("test123")))
+
+	assert.False(t, validateInput("\"test", []byte("test123")))
+	assert.False(t, validateInput("te\"st", []byte("test123")))
+	assert.False(t, validateInput("test\"", []byte("test123")))
+
+	assert.False(t, validateInput("<test", []byte("test123")))
+	assert.False(t, validateInput("te<st", []byte("test123")))
+	assert.False(t, validateInput("test<", []byte("test123")))
+
+	assert.False(t, validateInput(">test", []byte("test123")))
+	assert.False(t, validateInput("te>st", []byte("test123")))
+	assert.False(t, validateInput("test>", []byte("test123")))
+
+	assert.False(t, validateInput("|test", []byte("test123")))
+	assert.False(t, validateInput("te|st", []byte("test123")))
+	assert.False(t, validateInput("test|", []byte("test123")))
+
+	assert.False(t, validateInput("{test", []byte("test123")))
+	assert.False(t, validateInput("te{st", []byte("test123")))
+	assert.False(t, validateInput("test{", []byte("test123")))
+
+	assert.False(t, validateInput("}test", []byte("test123")))
+	assert.False(t, validateInput("te}st", []byte("test123")))
+	assert.False(t, validateInput("test}", []byte("test123")))
+
+	assert.False(t, validateInput("`test", []byte("test123")))
+	assert.False(t, validateInput("te`st", []byte("test123")))
+	assert.False(t, validateInput("test`", []byte("test123")))
+
+	assert.False(t, validateInput("´test", []byte("test123")))
+	assert.False(t, validateInput("te´st", []byte("test123")))
+	assert.False(t, validateInput("test´", []byte("test123")))
+
+	assert.False(t, validateInput("'test", []byte("test123")))
+	assert.False(t, validateInput("te'st", []byte("test123")))
+	assert.False(t, validateInput("test'", []byte("test123")))
+
+	assert.False(t, validateInput("'t?e*s\\t", []byte("test123")))
+}
+
 func deleteAllUsers() {
 	for k := range users {
 		delete(users, k)

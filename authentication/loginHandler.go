@@ -11,6 +11,7 @@ import (
 	"math/rand"
 	"net/http"
 	"os"
+	"regexp"
 	"time"
 )
 
@@ -52,6 +53,15 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 			// Eingabefelder (username und password) auslesen
 			password := []byte(r.PostFormValue("passwd"))
 			username := r.PostFormValue("uname")
+			// Eingabevalidierung
+			valid := validateInput(username, password)
+			if !valid {
+				// Response header 400 setzen
+				w.WriteHeader(http.StatusBadRequest)
+				// Fehlermeldung für Nutzer anzeigen
+				templates.TempError.Execute(w, error2.CreateError(error2.EmptyField, "/"))
+				return
+			}
 			// user authentifizieren
 			successful := AuthenticateUser(username, password)
 			// user erfolgreich authentifiziert
@@ -91,21 +101,31 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
 	// wenn Register-Button gedrückt und POST ausgeführt wurde
 	if r.PostForm.Has("register") && r.Method == http.MethodPost {
+		// Eingabefelder (username und password) auslesen
+		password := []byte(r.PostFormValue("passwd"))
+		username := r.PostFormValue("uname")
+		// Eingabevalidierung
+		valid := validateInput(username, password)
+		if !valid {
+			// Response header 400 setzen
+			w.WriteHeader(http.StatusBadRequest)
+			// Fehlermeldung für Nutzer anzeigen
+			templates.TempError.Execute(w, error2.CreateError(error2.EmptyField, "/register"))
+			return
+		}
 		// exisitiert der Nutzername schon?
-		duplicate := isDuplicateUsername(r.PostFormValue("uname"))
+		duplicate := isDuplicateUsername(username)
 		// wenn Nutzername schon exisitert
 		if duplicate {
-			// Response header 401 setzen
-			w.WriteHeader(http.StatusUnauthorized)
+			// Response header 400 setzen
+			w.WriteHeader(http.StatusBadRequest)
 			// Fehlermeldung für Nutzer anzeigen
 			templates.TempError.Execute(w, error2.CreateError(error2.DuplicateUserName, "/register"))
 			return
 			// Nutzername exisitert noch nicht --> register möglich
 		} else {
 			// Passwort hashen
-			hashedPassword, _ := bcrypt.GenerateFromPassword([]byte(r.PostFormValue("passwd")), bcrypt.DefaultCost)
-			// username auslesen
-			username := r.PostFormValue("uname")
+			hashedPassword, _ := bcrypt.GenerateFromPassword(password, bcrypt.DefaultCost)
 			user := Credentials{
 				Username: username,
 				Password: hashedPassword,
@@ -285,4 +305,21 @@ func createSession(username string) (sessionToken string, expires time.Time) {
 		expires: expires,
 	}
 	return sessionToken, expires
+}
+
+// Überprüft Nutzereingaben beim Login und Registrieren
+func validateInput(username string, password []byte) (successful bool) {
+	// wenn Felder leer
+	if len(username) == 0 || len(password) == 0 {
+		return false
+	}
+	// wenn unerlaubte Zeichen verwendet werden
+	const invalidCharactersUsername string = "[\\\\/:*?\"<>|{}`´']"
+	const invalidCharactersPassword string = "[<>{}`´']"
+	matchUsername, _ := regexp.MatchString(invalidCharactersUsername, username)
+	matchPassword, _ := regexp.MatchString(invalidCharactersPassword, string(password))
+	if matchUsername || matchPassword {
+		return false
+	}
+	return true
 }
