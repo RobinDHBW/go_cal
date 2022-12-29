@@ -76,7 +76,7 @@ func UpdateCalendarHandler(w http.ResponseWriter, r *http.Request) {
 		err := r.ParseForm()
 		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
-			templates.TempError.Execute(w, error2.CreateError(error2.InvalidInput, "/updateCalendar"))
+			templates.TempError.Execute(w, error2.CreateError(error2.InvalidInput, r.Host+"/updateCalendar"))
 			return
 		}
 
@@ -91,13 +91,13 @@ func UpdateCalendarHandler(w http.ResponseWriter, r *http.Request) {
 			year, err := strconv.Atoi(r.Form.Get("chooseYear"))
 			if err != nil {
 				w.WriteHeader(http.StatusBadRequest)
-				templates.TempError.Execute(w, error2.CreateError(error2.InvalidInput, "/updateCalendar"))
+				templates.TempError.Execute(w, error2.CreateError(error2.InvalidInput, r.Host+"/updateCalendar"))
 				return
 			}
 			month, err := strconv.Atoi(r.Form.Get("chooseMonth"))
 			if err != nil {
 				w.WriteHeader(http.StatusBadRequest)
-				templates.TempError.Execute(w, error2.CreateError(error2.InvalidInput, "/updateCalendar"))
+				templates.TempError.Execute(w, error2.CreateError(error2.InvalidInput, r.Host+"/updateCalendar"))
 				return
 			}
 			Cal.ChooseMonth(year, time.Month(month))
