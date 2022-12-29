@@ -10,7 +10,8 @@ import (
 	"time"
 )
 
-var uList = []data.User{data.NewUser("test1", "test", 1, 3), data.NewUser("test2", "test", 2, 2), data.NewUser("test3", "test", 3, 0)}
+// var uList = []data.User{data.NewUser("test1", "test", 1, 3), data.NewUser("test2", "test", 2, 2), data.NewUser("test3", "test", 3, 0)}
+var uMap = map[int]data.User{1: data.NewUser("test1", "test", 1, 3), 2: data.NewUser("test2", "test", 2, 2), 3: data.NewUser("test3", "test", 3, 0)}
 
 func fileWriteRead(user data.User, fH *fileHandler.FileHandler) data.User {
 	write, err := json.Marshal(user)
@@ -42,7 +43,7 @@ func TestNewDM(t *testing.T) {
 	dataPath := "../data/test"
 
 	fH := fileHandler.NewFH("../data/test")
-	for _, uD := range uList {
+	for _, uD := range uMap {
 		fileWriteRead(uD, &fH)
 	}
 	dataModel := NewDM(dataPath)
@@ -50,14 +51,14 @@ func TestNewDM(t *testing.T) {
 	defer after()
 
 	//Check if dataPath correct and UserList correct
-	assert.EqualValues(t, uList, dataModel.UserList)
+	assert.EqualValues(t, uMap, dataModel.UserMap)
 }
 
 func TestDataModel_GetUserById(t *testing.T) {
 	dataPath := "../data/test"
 
 	fH := fileHandler.NewFH("../data/test")
-	for _, uD := range uList {
+	for _, uD := range uMap {
 		fileWriteRead(uD, &fH)
 	}
 	dataModel := NewDM(dataPath)
