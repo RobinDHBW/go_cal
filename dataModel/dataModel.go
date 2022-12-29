@@ -6,6 +6,7 @@ import (
 	"go_cal/fileHandler"
 	"golang.org/x/crypto/bcrypt"
 	"log"
+	"time"
 )
 
 func encryptPW(password string) string {
@@ -83,6 +84,18 @@ func (dm *DataModel) EditAppointment(uId int, ap data.Appointment) *data.User {
 
 	DataSync(user, dm)
 	return user
+}
+
+func (dm *DataModel) GetAppointmentByTimeFrame(uId int, tFrom, tTO time.Time) (*data.User, *map[int]data.Appointment) {
+	user := dm.GetUserById(uId)
+	res := make(map[int]data.Appointment)
+	for key, val := range user.Appointments {
+		if val.DateTimeStart.Equal(tFrom) || val.DateTimeStart.After(tFrom) || val.DateTimeStart.Equal(tTO) || val.DateTimeStart.Before(tTO) || val.DateTimeEnd.Equal(tFrom) || val.DateTimeEnd.After(tFrom) || val.DateTimeEnd.Equal(tTO) || val.DateTimeEnd.Before(tTO) {
+			res[key] = val
+		}
+	}
+
+	return user, &res
 }
 
 func (dm *DataModel) ComparePW(clear, hash string) bool {
