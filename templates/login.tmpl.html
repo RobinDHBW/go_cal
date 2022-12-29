@@ -3,17 +3,18 @@
 <head>
     <title>Login</title>
     <link href="templates/static/login.css" type="text/css" rel="stylesheet">
+    <link rel="icon" href="data:,">
 </head>
 <body>
 
 <h1>Login</h1>
 <div>
-    <form id="loginForm" method="post" action="/login">
+    <form id="loginForm" method="post">
         <div>
             <label for="uname">Username</label>
         </div>
         <div>
-            <input name="uname" id="uname" type="text" placeholder="enter username..." required/>
+            <input name="uname" id="uname" type="text" placeholder="enter username..." required autofocus/>
         </div>
         <br>
         <div>

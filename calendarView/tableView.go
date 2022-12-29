@@ -1,6 +1,8 @@
 package calendarView
 
 import (
+	"go_cal/calendarAppointments"
+	error2 "go_cal/error"
 	"go_cal/templates"
 	"net/http"
 	"strconv"
@@ -70,19 +72,38 @@ func (cal *Calendar) ChooseMonth(year int, month time.Month) {
 }
 
 func UpdateCalendarHandler(w http.ResponseWriter, r *http.Request) {
-	r.ParseForm()
-	switch {
-	case r.Form.Has("next"):
-		Cal.NextMonth()
-	case r.Form.Has("prev"):
-		Cal.PrevMonth()
-	case r.Form.Has("today"):
-		Cal.CurrentMonth()
-	case r.Form.Has("choose"):
-		year, _ := strconv.Atoi(r.Form.Get("chooseYear"))
-		month, _ := strconv.Atoi(r.Form.Get("chooseMonth"))
-		Cal.ChooseMonth(year, time.Month(month))
-	}
+	if r.Method == http.MethodPost {
+		err := r.ParseForm()
+		if err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			templates.TempError.Execute(w, error2.CreateError(error2.InvalidInput, "/updateCalendar"))
+			return
+		}
 
+		switch {
+		case r.Form.Has("next"):
+			Cal.NextMonth()
+		case r.Form.Has("prev"):
+			Cal.PrevMonth()
+		case r.Form.Has("today"):
+			Cal.CurrentMonth()
+		case r.Form.Has("choose"):
+			year, err := strconv.Atoi(r.Form.Get("chooseYear"))
+			if err != nil {
+				w.WriteHeader(http.StatusBadRequest)
+				templates.TempError.Execute(w, error2.CreateError(error2.InvalidInput, "/updateCalendar"))
+				return
+			}
+			month, err := strconv.Atoi(r.Form.Get("chooseMonth"))
+			if err != nil {
+				w.WriteHeader(http.StatusBadRequest)
+				templates.TempError.Execute(w, error2.CreateError(error2.InvalidInput, "/updateCalendar"))
+				return
+			}
+			Cal.ChooseMonth(year, time.Month(month))
+		}
+	}
+	calendarAppointments.GetAppointmentsForMonth(Cal.Month, Cal.Year)
 	templates.TempInit.Execute(w, Cal)
+	return
 }
