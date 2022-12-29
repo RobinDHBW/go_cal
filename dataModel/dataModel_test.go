@@ -174,8 +174,10 @@ func TestDataModel_GetAppointmentByTimeFrame(t *testing.T) {
 
 	t1 := time.Date(2022, 12, 24, 10, 00, 00, 00, time.UTC)
 	t1End := time.Date(2022, 12, 24, 11, 00, 00, 00, time.UTC)
+
 	t2 := time.Date(2022, 12, 24, 11, 00, 00, 00, time.UTC)
 	t2End := time.Date(2022, 12, 24, 12, 00, 00, 00, time.UTC)
+	
 	t3 := time.Date(2022, 12, 24, 12, 00, 00, 00, time.UTC)
 	t3End := time.Date(2022, 12, 24, 13, 00, 00, 00, time.UTC)
 
@@ -188,8 +190,8 @@ func TestDataModel_GetAppointmentByTimeFrame(t *testing.T) {
 	_, check := dataModel.GetAppointmentByTimeFrame(user.Id, time.Date(2022, 12, 24, 9, 59, 00, 00, time.UTC), time.Date(2022, 12, 24, 13, 01, 00, 00, time.UTC))
 	assert.EqualValues(t, len(user.Appointments), len(*check))
 
-	_, check = dataModel.GetAppointmentByTimeFrame(user.Id, time.Date(2022, 12, 24, 10, 00, 00, 00, time.UTC), time.Date(2022, 12, 24, 11, 00, 00, 00, time.UTC))
-	assert.EqualValues(t, len(user.Appointments)-1, len(*check))
+	_, check2 := dataModel.GetAppointmentByTimeFrame(user.Id, time.Date(2022, 12, 24, 10, 00, 00, 00, time.UTC), time.Date(2022, 12, 24, 11, 00, 00, 00, time.UTC))
+	assert.EqualValues(t, len(user.Appointments)-1, len(*check2))
 
 }
 

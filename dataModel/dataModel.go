@@ -27,6 +27,10 @@ func DataSync(user *data.User, dm *DataModel) {
 	dm.fH.SyncToFile(write, user.Id)
 }
 
+func CheckDate(toCheck, from, to time.Time) bool {
+	return from.Equal(toCheck) || !from.After(toCheck) || to.Equal(toCheck) || !to.Before(toCheck)
+}
+
 type DataModel struct {
 	UserMap map[int]data.User
 	fH      fileHandler.FileHandler
@@ -86,11 +90,12 @@ func (dm *DataModel) EditAppointment(uId int, ap data.Appointment) *data.User {
 	return user
 }
 
-func (dm *DataModel) GetAppointmentByTimeFrame(uId int, tFrom, tTO time.Time) (*data.User, *map[int]data.Appointment) {
+func (dm *DataModel) GetAppointmentByTimeFrame(uId int, tFrom, tTo time.Time) (*data.User, *map[int]data.Appointment) {
 	user := dm.GetUserById(uId)
 	res := make(map[int]data.Appointment)
 	for key, val := range user.Appointments {
-		if val.DateTimeStart.Equal(tFrom) || val.DateTimeStart.After(tFrom) || val.DateTimeStart.Equal(tTO) || val.DateTimeStart.Before(tTO) || val.DateTimeEnd.Equal(tFrom) || val.DateTimeEnd.After(tFrom) || val.DateTimeEnd.Equal(tTO) || val.DateTimeEnd.Before(tTO) {
+
+		if CheckDate(val.DateTimeStart, tFrom, tTo) && CheckDate(val.DateTimeEnd, tFrom, tTo) {
 			res[key] = val
 		}
 	}
