@@ -5,7 +5,7 @@ import (
 	"time"
 )
 
-func (s *Server) LogoutHandler(w http.ResponseWriter, r *http.Request) {
+func LogoutHandler(w http.ResponseWriter, r *http.Request) {
 	replyChannel := make(chan *session)
 	cookie, err := r.Cookie("session_token")
 	if err == http.ErrNoCookie {
@@ -14,7 +14,7 @@ func (s *Server) LogoutHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	sessionToken := cookie.Value
 
-	s.Cmds <- Command{ty: remove, sessionToken: sessionToken, replyChannel: replyChannel}
+	Serv.Cmds <- Command{ty: remove, sessionToken: sessionToken, replyChannel: replyChannel}
 	<-replyChannel
 	// user session aus sessions-map entfernen
 	//delete(sessions, sessionToken)
