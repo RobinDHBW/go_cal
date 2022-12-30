@@ -1,6 +1,7 @@
 package calendarView
 
 import (
+	"encoding/json"
 	error2 "go_cal/error"
 	"go_cal/templates"
 	"go_cal/terminHandling"
@@ -9,21 +10,17 @@ import (
 	"time"
 )
 
-type Calendar struct {
-	Month   time.Month
-	Year    int
-	Current time.Time
-}
-
-// has to be removed
-var Cal = Calendar{
-	Month:   time.Now().Month(),
-	Year:    time.Now().Year(),
-	Current: time.Now(),
+type FrontendView struct {
+	Month         time.Month
+	Year          int
+	Current       time.Time
+	TerminPerSite int
+	TerminSite    int
+	MinDate       time.Time
 }
 
 // https://brandur.org/fragments/go-days-in-month
-func (cal *Calendar) GetDaysOfMonth() []int {
+func (cal *FrontendView) GetDaysOfMonth() []int {
 	days := time.Date(cal.Year, cal.Month+1, 0, 0, 0, 0, 0, time.UTC).Day()
 	dayRange := make([]int, days)
 	for i := range dayRange {
@@ -32,7 +29,7 @@ func (cal *Calendar) GetDaysOfMonth() []int {
 	return dayRange
 }
 
-func (cal *Calendar) GetDaysBeforeMonthBegin() []int {
+func (cal *FrontendView) GetDaysBeforeMonthBegin() []int {
 	weekday := time.Date(cal.Year, cal.Month, 1, 0, 0, 0, 0, time.UTC).Weekday()
 	if weekday == 0 {
 		return make([]int, 6)
@@ -41,7 +38,7 @@ func (cal *Calendar) GetDaysBeforeMonthBegin() []int {
 	}
 }
 
-func (cal *Calendar) NextMonth() {
+func (cal *FrontendView) NextMonth() {
 	if cal.Month == 12 {
 		cal.Month = 1
 		cal.Year++
@@ -50,7 +47,7 @@ func (cal *Calendar) NextMonth() {
 	}
 }
 
-func (cal *Calendar) PrevMonth() {
+func (cal *FrontendView) PrevMonth() {
 	if cal.Month == 1 {
 		cal.Month = 12
 		cal.Year--
@@ -59,17 +56,17 @@ func (cal *Calendar) PrevMonth() {
 	}
 }
 
-func (cal *Calendar) CurrentMonth() {
+func (cal *FrontendView) CurrentMonth() {
 	cal.Month = cal.Current.Month()
 	cal.Year = cal.Current.Year()
 }
 
-func (cal *Calendar) ChooseMonth(year int, month time.Month) {
+func (cal *FrontendView) ChooseMonth(year int, month time.Month) {
 	cal.Month = month
 	cal.Year = year
 }
 
-func (cal *Calendar) GetAppointmentsForMonth() []int {
+func (cal *FrontendView) GetAppointmentsForMonth() []int {
 	tl := terminHandling.TView.TList
 	appointmentsPerDay := make([]int, 32)
 	for i := range (tl).Termine {
@@ -90,7 +87,29 @@ func (cal *Calendar) GetAppointmentsForMonth() []int {
 	return appointmentsPerDay
 }
 
+func GetFrontendParameters(w http.ResponseWriter, r *http.Request) FrontendView {
+	cookie, _ := r.Cookie("fe_parameter")
+	fv := cookie.Value
+	var feParams FrontendView
+	err := json.Unmarshal([]byte(fv), &feParams)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		templates.TempError.Execute(w, error2.CreateError(error2.InvalidInput, r.Host+"/updateCalendar"))
+		return FrontendView{}
+	}
+	return feParams
+}
+
+func ChangeFeCookie(w http.ResponseWriter, view FrontendView) {
+	fvToJSON, _ := json.Marshal(view)
+	http.SetCookie(w, &http.Cookie{
+		Name:  "fe_parameter",
+		Value: string(fvToJSON),
+	})
+}
+
 func UpdateCalendarHandler(w http.ResponseWriter, r *http.Request) {
+	feParams := FrontendView{}
 	if r.Method == http.MethodPost {
 		err := r.ParseForm()
 		if err != nil {
@@ -98,14 +117,15 @@ func UpdateCalendarHandler(w http.ResponseWriter, r *http.Request) {
 			templates.TempError.Execute(w, error2.CreateError(error2.InvalidInput, r.Host+"/updateCalendar"))
 			return
 		}
+		feParams = GetFrontendParameters(w, r)
 
 		switch {
 		case r.Form.Has("next"):
-			Cal.NextMonth()
+			feParams.NextMonth()
 		case r.Form.Has("prev"):
-			Cal.PrevMonth()
+			feParams.PrevMonth()
 		case r.Form.Has("today"):
-			Cal.CurrentMonth()
+			feParams.CurrentMonth()
 		case r.Form.Has("choose"):
 			year, err := strconv.Atoi(r.Form.Get("chooseYear"))
 			if err != nil {
@@ -119,10 +139,10 @@ func UpdateCalendarHandler(w http.ResponseWriter, r *http.Request) {
 				templates.TempError.Execute(w, error2.CreateError(error2.InvalidInput, r.Host+"/updateCalendar"))
 				return
 			}
-			Cal.ChooseMonth(year, time.Month(month))
+			feParams.ChooseMonth(year, time.Month(month))
 		}
+		ChangeFeCookie(w, feParams)
 	}
-	Cal.GetAppointmentsForMonth()
-	templates.TempInit.Execute(w, &Cal)
+	templates.TempInit.Execute(w, &feParams)
 	return
 }
