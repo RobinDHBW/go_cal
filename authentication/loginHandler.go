@@ -5,17 +5,16 @@ package authentication
 // https://github.com/eliben/code-for-blog/blob/master/2019/gohttpconcurrency/channel-manager-server.go
 
 import (
-	"encoding/json"
-	"go_cal/calendarView"
+	"go_cal/data"
 	"go_cal/dataModel"
 	error2 "go_cal/error"
+	"go_cal/frontendHandling"
 	"go_cal/templates"
 	"math/rand"
 	"net/http"
 	"regexp"
 	"time"
 )
-
 
 type Server struct {
 	Cmds chan<- Command
@@ -42,8 +41,6 @@ type Command struct {
 	session      *session
 	replyChannel chan *session
 }
-
-var data = dataModel.NewDM("./files")
 
 var Serv *Server
 
@@ -116,7 +113,11 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 					Value:   sessionToken,
 					Expires: expires,
 				})
-				createFeParameterCookie(w)
+				cookieValue := frontendHandling.ChangeFeCookie(frontendHandling.FrontendView{})
+				http.SetCookie(w, &http.Cookie{
+					Name:  "fe_parameter",
+					Value: cookieValue,
+				})
 				// redirect auf Kalender
 				http.Redirect(w, r, "/updateCalendar", http.StatusFound)
 				return
@@ -157,7 +158,7 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		// neuen User erstellen
-		_, err := data.AddUser(username, password, 1)
+		_, err := dataModel.Dm.AddUser(username, password, 1)
 		// Nutzername existiert schon, Erstellung war nicht erfolgreich
 		if err != nil {
 			// Response header 400 setzen
@@ -175,7 +176,11 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 				Value:   sessionToken,
 				Expires: expires,
 			})
-			createFeParameterCookie(w)
+			cookieValue := frontendHandling.ChangeFeCookie(frontendHandling.FrontendView{})
+			http.SetCookie(w, &http.Cookie{
+				Name:  "fe_parameter",
+				Value: cookieValue,
+			})
 			// redirect auf Kalender
 			http.Redirect(w, r, "/updateCalendar", http.StatusFound)
 			return
@@ -262,8 +267,8 @@ func createUUID(n int) string {
 //}
 
 func AuthenticateUser(username, unHashedPassword string) (successful bool) {
-	user := data.GetUserByName(username)
-	if user != nil && data.ComparePW(unHashedPassword, user.Password) {
+	user := dataModel.Dm.GetUserByName(username)
+	if user != nil && dataModel.Dm.ComparePW(unHashedPassword, user.Password) {
 		return true
 	} else {
 		return false
@@ -339,26 +344,14 @@ func validateInput(username, password string) (successful bool) {
 	return true
 }
 
+func GetUserBySessionToken(r *http.Request) *data.User {
+	cookie, _ := r.Cookie("session_token")
+	sessionToken := cookie.Value
 
-func createFeParameterCookie(w http.ResponseWriter) {
-	fv := calendarView.FrontendView{
-		Month:         time.Now().Month(),
-		Year:          time.Now().Year(),
-		Current:       time.Now(),
-		TerminPerSite: 7,
-		TerminSite:    1,
-		MinDate:       time.Now(),
-	}
-	fvToJSON, _ := json.Marshal(fv)
-	http.SetCookie(w, &http.Cookie{
-		Name:  "fe_parameter",
-		Value: string(fvToJSON),
-	})
-}
-
-func GetUsernameBySessionToken(sessionToken string) (username string) {
 	replyChannel := make(chan *session)
 	Serv.Cmds <- Command{ty: read, sessionToken: sessionToken, replyChannel: replyChannel}
 	session := <-replyChannel
-	return session.uname
+
+	username := session.uname
+	return dataModel.Dm.GetUserByName(username)
 }

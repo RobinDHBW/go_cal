@@ -2,15 +2,14 @@ package main
 
 import (
 	"go_cal/authentication"
-	"go_cal/calendarView"
+	"go_cal/calendar"
 	"go_cal/templates"
 	"go_cal/terminHandling"
 	"log"
 	"net/http"
-	"time"
 )
 
-var globalTemp = 0
+//var globalTemp = 0
 
 func mainHandler(w http.ResponseWriter, r *http.Request) {
 
@@ -23,14 +22,14 @@ func main() {
 	//if err != nil {
 	//	fmt.Println(err)
 	//}
-	if globalTemp == 0 { // nur zum Testen
-		terminHandling.TView.TList.CreateTermin("T1", "1 content", time.Now().AddDate(0, 0, -1), time.Now(), terminHandling.None)
-		terminHandling.TView.TList.CreateTermin("T2", "2 content", time.Now(), time.Now(), terminHandling.None)
-		terminHandling.TView.TList.CreateTermin("T3", "3 content", time.Now().AddDate(0, 0, -2), time.Now(), terminHandling.None)
-	}
-	globalTemp = 1
+	//if globalTemp == 0 { // nur zum Testen
+	//	terminHandling.TView.TList.CreateTermin("T1", "1 content", time.Now().AddDate(0, 0, -1), time.Now(), terminHandling.None)
+	//	terminHandling.TView.TList.CreateTermin("T2", "2 content", time.Now(), time.Now(), terminHandling.None)
+	//	terminHandling.TView.TList.CreateTermin("T3", "3 content", time.Now().AddDate(0, 0, -2), time.Now(), terminHandling.None)
+	//}
+	//globalTemp = 1
 
-	http.HandleFunc("/updateCalendar", authentication.Wrapper(calendarView.UpdateCalendarHandler))
+	http.HandleFunc("/updateCalendar", authentication.Wrapper(calendar.UpdateCalendarHandler))
 	http.HandleFunc("/register", authentication.RegisterHandler)
 	http.HandleFunc("/logout", authentication.LogoutHandler)
 	http.HandleFunc("/", authentication.LoginHandler)

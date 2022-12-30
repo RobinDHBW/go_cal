@@ -1,8 +1,11 @@
 package terminHandling
 
 import (
-	"fmt"
+	"go_cal/authentication"
+	"go_cal/data"
+	"go_cal/dataModel"
 	error2 "go_cal/error"
+	"go_cal/frontendHandling"
 	"go_cal/templates"
 	"net/http"
 	"strconv"
@@ -19,7 +22,13 @@ func TerminEditHandler(w http.ResponseWriter, r *http.Request) {
 		templates.TempError.Execute(w, error2.CreateError(error2.Default2, r.Host+"/editTermin"))
 		return
 	}
-
+	user := authentication.GetUserBySessionToken(r)
+	feParams, err := frontendHandling.GetFrontendParameters(r)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		templates.TempError.Execute(w, error2.CreateError(error2.InvalidInput, r.Host+"/editTermin"))
+		return
+	}
 	switch {
 	case r.Form.Has("editTermin"):
 		index, err := strconv.Atoi(r.Form.Get("editTermin"))
@@ -28,68 +37,83 @@ func TerminEditHandler(w http.ResponseWriter, r *http.Request) {
 			templates.TempError.Execute(w, error2.CreateError(error2.InvalidInput, r.Host+"/editTermin"))
 			return
 		}
-		fmt.Println(index)
-		TView.TList.GetTerminFromEditIndex(index)
-		templates.TempTerminEdit.Execute(w, TView.TList.Termine[currentTerminIndex])
+		//fmt.Println(index)
+		u := *user
+		GetTerminFromEditIndex(u, feParams, index)
+		templates.TempTerminEdit.Execute(w, user.Appointments[currentTerminIndex])
 
 	case r.Form.Has("editTerminSubmit"):
-		if TView.TList.EditTerminFromInput(w, r, true) {
-			templates.TempTerminList.Execute(w, TView)
+		if EditTerminFromInput(w, r, true, user) {
+			templates.TempTerminList.Execute(w, struct {
+				frontendHandling.FrontendView
+				data.User
+			}{feParams,
+				*user})
 
 		}
 
 	case r.Form.Has("deleteTerminSubmit"):
-		TView.TList.DeleteTermin()
-		templates.TempTerminList.Execute(w, TView)
+		DeleteTermin(user)
+		templates.TempTerminList.Execute(w, struct {
+			frontendHandling.FrontendView
+			data.User
+		}{feParams,
+			*user})
 
 	default:
-		templates.TempTerminList.Execute(w, TView)
+		templates.TempTerminList.Execute(w, struct {
+			frontendHandling.FrontendView
+			data.User
+		}{feParams,
+			*user})
 	}
 }
 
-// ToDO: Problem, dass repeating termin anderes Datum hat => Termine nicht gleich
-func (tl *TerminList) GetTerminFromEditIndex(index int) {
-	t := TView.GetTerminList()[index]
-	for i := range (*tl).Termine {
-		if t.Title == (*tl).Termine[i].Title && t.Content == (*tl).Termine[i].Content && t.Repeating == (*tl).Termine[i].Repeating {
+func GetTerminFromEditIndex(user data.User, fv frontendHandling.FrontendView, index int) int {
+	t := GetTerminList(user, fv)[index]
+	for i := range user.Appointments {
+		if user.Appointments[i].Id == t.Id {
 			currentTerminIndex = i
-			return
+			return i
 		}
 	}
+	return -1
 }
 
-func (t *Termin) editTermin(title string, content string, begin time.Time, end time.Time, repeat RepeatingMode) {
-	t.Title = title
-	t.Content = content
-	t.Begin = begin
-	t.End = end
-	t.Repeating = repeat
+func editTermin(app *data.Appointment, title string, content string, begin time.Time, end time.Time, repeat int) {
+	app.Title = title
+	app.Description = content
+	app.DateTimeStart = begin
+	app.DateTimeEnd = end
+	app.Timeseries.Intervall = repeat
+	app.Timeseries.Repeat = repeat > 0
 }
 
-func (tl *TerminList) DeleteTermin() {
-	(*tl).Termine[currentTerminIndex] = (*tl).Termine[len((*tl).Termine)-1]
-	currentTerminIndex = -1
-	(*tl).Termine = (*tl).Termine[:len((*tl).Termine)-1]
+func DeleteTermin(user *data.User) {
+	dataModel.Dm.DeleteAppointment(user.Appointments[currentTerminIndex].Id, user.Id)
+	//(*tl).Termine[currentTerminIndex] = (*tl).Termine[len((*tl).Termine)-1]
+	//currentTerminIndex = -1
+	//(*tl).Termine = (*tl).Termine[:len((*tl).Termine)-1]
 }
 
-func GetRepeatingMode(mode string) RepeatingMode {
+func GetRepeatingMode(mode string) int {
 	switch mode {
 	case "none":
-		return None
+		return 0
 	case "day":
-		return Day
+		return 1
 	case "week":
-		return Week
+		return 7
 	case "month":
-		return Month
+		return 30
 	case "year":
-		return Year
+		return 365
 	default:
-		return None
+		return 0
 	}
 }
 
-func (tl *TerminList) EditTerminFromInput(w http.ResponseWriter, r *http.Request, edit bool) bool {
+func EditTerminFromInput(w http.ResponseWriter, r *http.Request, edit bool, user *data.User) bool {
 	begin, err := time.Parse("2006-01-02T15:04", r.Form.Get("dateBegin"))
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
@@ -117,9 +141,13 @@ func (tl *TerminList) EditTerminFromInput(w http.ResponseWriter, r *http.Request
 	}
 	content := r.Form.Get("content")
 	if edit {
-		tl.Termine[currentTerminIndex].editTermin(title, content, begin, end, repeat)
+		app := user.Appointments[currentTerminIndex]
+		//TODO checken ob das so geht
+		editTermin(&app, title, content, begin, end, repeat)
+		dataModel.Dm.EditAppointment(user.Id, app)
 	} else {
-		tl.CreateTermin(title, content, begin, end, repeat)
+		appointment := data.NewAppointment(title, content, begin, end, user.Id, repeat > 0, repeat, false, "")
+		dataModel.Dm.AddAppointment(user.Id, appointment)
 	}
 	return true
 }

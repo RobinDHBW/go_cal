@@ -11,6 +11,8 @@ import (
 	"time"
 )
 
+var Dm = NewDM("./files")
+
 func encryptPW(password string) string {
 	hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.MinCost)
 	if err != nil {
