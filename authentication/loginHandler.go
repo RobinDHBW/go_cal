@@ -5,6 +5,8 @@ package authentication
 // https://github.com/eliben/code-for-blog/blob/master/2019/gohttpconcurrency/channel-manager-server.go
 
 import (
+	"encoding/json"
+	"go_cal/calendarView"
 	"go_cal/dataModel"
 	error2 "go_cal/error"
 	"go_cal/templates"
@@ -13,6 +15,7 @@ import (
 	"regexp"
 	"time"
 )
+
 
 type Server struct {
 	Cmds chan<- Command
@@ -113,6 +116,7 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 					Value:   sessionToken,
 					Expires: expires,
 				})
+				createFeParameterCookie(w)
 				// redirect auf Kalender
 				http.Redirect(w, r, "/updateCalendar", http.StatusFound)
 				return
@@ -171,6 +175,7 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 				Value:   sessionToken,
 				Expires: expires,
 			})
+			createFeParameterCookie(w)
 			// redirect auf Kalender
 			http.Redirect(w, r, "/updateCalendar", http.StatusFound)
 			return
@@ -332,6 +337,23 @@ func validateInput(username, password string) (successful bool) {
 		return false
 	}
 	return true
+}
+
+
+func createFeParameterCookie(w http.ResponseWriter) {
+	fv := calendarView.FrontendView{
+		Month:         time.Now().Month(),
+		Year:          time.Now().Year(),
+		Current:       time.Now(),
+		TerminPerSite: 7,
+		TerminSite:    1,
+		MinDate:       time.Now(),
+	}
+	fvToJSON, _ := json.Marshal(fv)
+	http.SetCookie(w, &http.Cookie{
+		Name:  "fe_parameter",
+		Value: string(fvToJSON),
+	})
 }
 
 func GetUsernameBySessionToken(sessionToken string) (username string) {

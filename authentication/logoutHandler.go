@@ -25,5 +25,9 @@ func LogoutHandler(w http.ResponseWriter, r *http.Request) {
 		Value:   "",
 		Expires: time.Now(),
 	})
+	http.SetCookie(w, &http.Cookie{
+		Name:  "fe_parameter",
+		Value: "",
+	})
 	http.Redirect(w, r, "/", http.StatusFound)
 }

@@ -138,3 +138,8 @@ func (dm *DataModel) ComparePW(clear, hash string) bool {
 
 	return true
 }
+
+func (dm *DataModel) GetAppointmentsForUser(uId int) map[int]data.Appointment {
+	user := dm.GetUserById(uId)
+	return user.Appointments
+}
