@@ -17,7 +17,7 @@ func TestLogoutHandler(t *testing.T) {
 	hashedPassword, _ := bcrypt.GenerateFromPassword([]byte("test123"), bcrypt.DefaultCost)
 	users["testUser"] = hashedPassword
 	// create session
-	sessionToken, _ := createSession("testUser")
+	sessionToken, _ := CreateSession("testUser")
 
 	// TODO: http und localhost
 	request, _ := http.NewRequest(http.MethodPost, "http://localhost:8080/logout", nil)

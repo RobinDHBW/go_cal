@@ -6,6 +6,7 @@ import (
 	"go_cal/dataModel"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"strconv"
 	"strings"
 	"testing"
@@ -163,13 +164,13 @@ func TestFrontendView_GetAppointmentsForMonth(t *testing.T) {
 	// Einzelner Termin: 7 Dez 2022
 	app1 := data.NewAppointment("titel1", "beschreibung1",
 		time.Date(2022, 12, 7, 12, 0, 0, 0, time.Local),
-		time.Date(2022, 13, 7, 14, 0, 0, 0, time.Local),
-		1, false, 0, false, "")
+		time.Date(2022, 12, 7, 14, 0, 0, 0, time.Local),
+		user.Id, false, 0, false, "")
 	// Wöchentlicher Termin: ab 12 Dez 2022
 	app2 := data.NewAppointment("titel2", "beschreibung2",
 		time.Date(2022, 12, 12, 15, 0, 0, 0, time.Local),
-		time.Date(2022, 13, 12, 17, 0, 0, 0, time.Local),
-		1, true, 7, false, "")
+		time.Date(2022, 12, 12, 17, 0, 0, 0, time.Local),
+		user.Id, true, 7, false, "")
 	dataModel.Dm.AddAppointment(user.Id, app1)
 	dataModel.Dm.AddAppointment(user.Id, app2)
 	exp := make([]int, 32)
@@ -183,8 +184,8 @@ func TestFrontendView_GetAppointmentsForMonth(t *testing.T) {
 	// Monatlicher Termin: ab 11 Nov 2022
 	app3 := data.NewAppointment("titel3", "beschreibung3",
 		time.Date(2022, 11, 11, 15, 0, 0, 0, time.Local),
-		time.Date(2022, 12, 11, 17, 0, 0, 0, time.Local),
-		1, true, 30, false, "")
+		time.Date(2022, 11, 11, 17, 0, 0, 0, time.Local),
+		user.Id, true, 30, false, "")
 	exp[11] = 1
 	dataModel.Dm.AddAppointment(user.Id, app3)
 	apps = fv.GetAppointmentsForMonth(*user)
@@ -194,7 +195,7 @@ func TestFrontendView_GetAppointmentsForMonth(t *testing.T) {
 	app4 := data.NewAppointment("titel4", "beschreibung4",
 		time.Date(2021, 12, 12, 15, 0, 0, 0, time.Local),
 		time.Date(2021, 12, 12, 17, 0, 0, 0, time.Local),
-		1, true, 365, false, "")
+		user.Id, true, 365, false, "")
 	exp[12]++
 	dataModel.Dm.AddAppointment(user.Id, app4)
 	apps = fv.GetAppointmentsForMonth(*user)
@@ -204,7 +205,7 @@ func TestFrontendView_GetAppointmentsForMonth(t *testing.T) {
 	app5 := data.NewAppointment("titel5", "beschreibung5",
 		time.Date(2022, 12, 17, 15, 0, 0, 0, time.Local),
 		time.Date(2022, 12, 17, 17, 0, 0, 0, time.Local),
-		1, true, 1, false, "")
+		user.Id, true, 1, false, "")
 	for i := range exp[17:] {
 		exp[17+i]++
 	}
@@ -240,6 +241,8 @@ func TestFrontendView_GetAppointmentsForMonth(t *testing.T) {
 	exp[30]++
 	apps = fv.GetAppointmentsForMonth(*user)
 	assert.Equal(t, apps, exp, "test prev month: Slices not equal")
+	// remove created file
+	_ = os.Remove("../files/" + strconv.FormatInt(int64(user.Id), 10) + ".json")
 }
 
 func TestGetFrontendParameters(t *testing.T) {

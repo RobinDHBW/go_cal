@@ -91,28 +91,26 @@ func TerminHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-//func (tl *TerminList) CreateTermin(title string, content string, begin time.Time, end time.Time, repeat RepeatingMode) {
-//	termin := Termin{
-//		Title:     title,
-//		Content:   content,
-//		Begin:     begin,
-//		End:       end,
-//		Repeating: repeat,
-//	}
-//	tl.Termine = append(tl.Termine, termin)
-//}
-
-func GetTerminList(user data.User, fv frontendHandling.FrontendView) []data.Appointment {
-	sort.SliceStable(user.Appointments, func(i, j int) bool {
-		return user.Appointments[i].DateTimeStart.Before(user.Appointments[j].DateTimeStart)
+// GetTerminList
+// calculates list of appointments that are later than selected date
+// in case of repeating appointments, first appearance of appointment after selected date is chosen
+// returns slice containing list of appointments
+func GetTerminList(appointments map[int]data.Appointment, fv frontendHandling.FrontendView) []data.Appointment {
+	// Create Slice to sort by date
+	appSlice := make([]data.Appointment, 0, len(appointments))
+	for _, i := range appointments {
+		appSlice = append(appSlice, i)
+	}
+	sort.SliceStable(appSlice, func(i, j int) bool {
+		return appSlice[i].DateTimeStart.Before(appSlice[j].DateTimeStart)
 	})
 
 	datefilteredTL := make([]data.Appointment, 0, 1)
-	for i := range user.Appointments {
-		if fv.MinDate.Before(user.Appointments[i].DateTimeStart) || fv.MinDate.Equal(user.Appointments[i].DateTimeStart) {
-			datefilteredTL = append(datefilteredTL, user.Appointments[i])
-		} else if user.Appointments[i].Timeseries.Repeat {
-			t := GetFirstTerminOfRepeatingInDate(user.Appointments[i], fv)
+	for i := range appSlice {
+		if fv.MinDate.Before(appSlice[i].DateTimeStart) || fv.MinDate.Equal(appSlice[i].DateTimeStart) {
+			datefilteredTL = append(datefilteredTL, appSlice[i])
+		} else if appSlice[i].Timeseries.Repeat {
+			t := GetFirstTerminOfRepeatingInDate(appSlice[i], fv)
 			datefilteredTL = append(datefilteredTL, t)
 		}
 	}
@@ -130,6 +128,9 @@ func GetTerminList(user data.User, fv frontendHandling.FrontendView) []data.Appo
 	return datefilteredTL[fv.TerminPerSite*(fv.TerminSite-1) : fv.TerminSite*fv.TerminPerSite]
 }
 
+// GetFirstTerminOfRepeatingInDate
+// calculates for given repeating appointment first appearance after selected date from FrontendView
+// returns new appointment with start and end time after selected date
 func GetFirstTerminOfRepeatingInDate(app data.Appointment, view frontendHandling.FrontendView) data.Appointment {
 	switch app.Timeseries.Intervall {
 	case 1:

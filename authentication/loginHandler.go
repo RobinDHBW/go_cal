@@ -106,7 +106,7 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 			// user erfolgreich authentifiziert
 			if successful {
 				// neue session erstellen
-				sessionToken, expires := createSession(username)
+				sessionToken, expires := CreateSession(username)
 				// Cookie in response setzen
 				http.SetCookie(w, &http.Cookie{
 					Name:    "session_token",
@@ -174,7 +174,7 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 			// Nutzername existiert noch nicht, Erstellung war erfolgreich
 		} else {
 			// neue session erstellen
-			sessionToken, expires := createSession(username)
+			sessionToken, expires := CreateSession(username)
 			// Cookie in response setzen
 			http.SetCookie(w, &http.Cookie{
 				Name:    "session_token",
@@ -321,7 +321,7 @@ func checkCookie(r *http.Request) (successful bool) {
 	return true
 }
 
-func createSession(username string) (sessionToken string, expires time.Time) {
+func CreateSession(username string) (sessionToken string, expires time.Time) {
 	// Sessiontoken generieren
 	sessionToken = createUUID(25)
 	// Session läuft nach x Minuten ab

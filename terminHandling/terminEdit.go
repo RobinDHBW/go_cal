@@ -76,7 +76,7 @@ func TerminEditHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func GetTerminFromEditIndex(user data.User, fv frontendHandling.FrontendView, index int) int {
-	t := GetTerminList(user, fv)[index]
+	t := GetTerminList(user.Appointments, fv)[index]
 	for i := range user.Appointments {
 		if user.Appointments[i].Id == t.Id {
 			currentTerminIndex = i
@@ -84,15 +84,6 @@ func GetTerminFromEditIndex(user data.User, fv frontendHandling.FrontendView, in
 		}
 	}
 	return -1
-}
-
-func editTermin(app *data.Appointment, title string, content string, begin time.Time, end time.Time, repeat int) {
-	app.Title = title
-	app.Description = content
-	app.DateTimeStart = begin
-	app.DateTimeEnd = end
-	app.Timeseries.Intervall = repeat
-	app.Timeseries.Repeat = repeat > 0
 }
 
 func DeleteTermin(user *data.User) {
@@ -148,8 +139,12 @@ func EditTerminFromInput(w http.ResponseWriter, r *http.Request, edit bool, user
 	content := r.Form.Get("content")
 	if edit {
 		app := user.Appointments[currentTerminIndex]
-		//TODO checken ob das so geht
-		editTermin(&app, title, content, begin, end, repeat)
+		app.Title = title
+		app.Description = content
+		app.DateTimeStart = begin
+		app.DateTimeEnd = end
+		app.Timeseries.Intervall = repeat
+		app.Timeseries.Repeat = repeat > 0
 		dataModel.Dm.EditAppointment(user.Id, app)
 	} else {
 		appointment := data.NewAppointment(title, content, begin, end, user.Id, repeat > 0, repeat, false, "")
