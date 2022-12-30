@@ -2,8 +2,10 @@ package authentication
 
 import (
 	"github.com/stretchr/testify/assert"
+	"go_cal/calendarView"
 	"go_cal/dataModel"
 	"go_cal/templates"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -195,4 +197,42 @@ func TestValidateInput(t *testing.T) {
 	assert.True(t, validateInput("test_1", "test123"))
 	assert.False(t, validateInput("", ""))
 	assert.False(t, validateInput("test?", "test123"))
+}
+
+func TestWrapperValidCookie(t *testing.T) {
+	InitServer()
+	// create Session
+	sessionToken, expires := createSession("testUser")
+	request, _ := http.NewRequest(http.MethodGet, "http://localhost:8080/updateCalendar", nil)
+	request.AddCookie(&http.Cookie{
+		Name:  "session_token",
+		Value: sessionToken,
+	})
+	response := httptest.NewRecorder()
+	time.Sleep(3 + time.Second)
+	Wrapper(calendarView.UpdateCalendarHandler).ServeHTTP(response, request)
+	cookies := response.Result().Cookies()[0]
+	assert.Equal(t, http.StatusOK, response.Result().StatusCode)
+	assert.Equal(t, "testUser", GetUsernameBySessionToken(cookies.Value))
+	assert.Equal(t, "session_token", cookies.Name)
+	assert.Less(t, expires, cookies.Expires)
+	body, _ := io.ReadAll(response.Result().Body)
+	assert.Contains(t, string(body), "Calendar")
+}
+
+func TestWrapperInvalidCookie(t *testing.T) {
+	InitServer()
+	templates.Init()
+	// create Session
+	createSession("testUser")
+	request, _ := http.NewRequest(http.MethodGet, "http://localhost:8080/updateCalendar", nil)
+	request.AddCookie(&http.Cookie{
+		Name:  "session_token",
+		Value: "wrong_value",
+	})
+	response := httptest.NewRecorder()
+	Wrapper(calendarView.UpdateCalendarHandler).ServeHTTP(response, request)
+	assert.Equal(t, http.StatusUnauthorized, response.Result().StatusCode)
+	body, _ := io.ReadAll(response.Result().Body)
+	assert.Contains(t, string(body), "Error")
 }

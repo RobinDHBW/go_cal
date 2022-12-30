@@ -243,29 +243,6 @@ func createUUID(n int) string {
 	return string(b)
 }
 
-//func LoadUsersFromFiles() error {
-//	// open folder
-//	folder, err := os.Open("./files")
-//	if err != nil {
-//		return err
-//	}
-//	// read all files inside directory
-//	files, err := folder.Readdir(0)
-//	if err != nil {
-//		return err
-//	}
-//	for _, file := range files {
-//		var user Credentials
-//		data, _ := os.ReadFile("./files/" + file.Name())
-//		err := json.Unmarshal(data, &user)
-//		if err != nil {
-//			return err
-//		}
-//		users[user.Username] = user.Password
-//	}
-//	return nil
-//}
-
 func AuthenticateUser(username, unHashedPassword string) (successful bool) {
 	user := dataModel.Dm.GetUserByName(username)
 	if user != nil && dataModel.Dm.ComparePW(unHashedPassword, user.Password) {
