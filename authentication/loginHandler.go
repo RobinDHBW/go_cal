@@ -16,7 +16,6 @@ import (
 	"time"
 )
 
-
 type Server struct {
 	Cmds chan<- Command
 }
@@ -43,9 +42,15 @@ type Command struct {
 	replyChannel chan *session
 }
 
-var data = dataModel.NewDM("./files")
+//var data dataModel.DataModel
 
 var Serv *Server
+
+func InitServer() {
+	Serv = &Server{
+		Cmds: StartSessionManager(),
+	}
+}
 
 // prüft ob Session abgelaufen ist
 func (s session) isExpired() bool {
@@ -157,7 +162,7 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		// neuen User erstellen
-		_, err := data.AddUser(username, password, 1)
+		_, err := dataModel.Dm.AddUser(username, password, 1)
 		// Nutzername existiert schon, Erstellung war nicht erfolgreich
 		if err != nil {
 			// Response header 400 setzen
@@ -262,8 +267,8 @@ func createUUID(n int) string {
 //}
 
 func AuthenticateUser(username, unHashedPassword string) (successful bool) {
-	user := data.GetUserByName(username)
-	if user != nil && data.ComparePW(unHashedPassword, user.Password) {
+	user := dataModel.Dm.GetUserByName(username)
+	if user != nil && dataModel.Dm.ComparePW(unHashedPassword, user.Password) {
 		return true
 	} else {
 		return false
@@ -271,8 +276,8 @@ func AuthenticateUser(username, unHashedPassword string) (successful bool) {
 }
 
 func checkCookie(r *http.Request) (successful bool) {
+	// Anwortchannel erstellen
 	replyChannel := make(chan *session)
-
 	// Cookie auslesen
 	cookie, err := r.Cookie("session_token")
 	// kein Cookie
@@ -281,25 +286,14 @@ func checkCookie(r *http.Request) (successful bool) {
 	}
 	// Sessiontoken auslesen
 	sessionToken := cookie.Value
+	// read-Command schicken
 	Serv.Cmds <- Command{ty: read, sessionToken: sessionToken, replyChannel: replyChannel}
+	// session aus Antwortchannel lesen
 	session := <-replyChannel
-
-	//if session == nil {
-	//	return false
-	//}
-
-	//// session auslesen
-	//session, ok := sessions[sessionToken]
-	//// keine Session zu Sessiontoken gefunden
-	//if !ok {
-	//	return false
-	//}
-
 	// SessionToken is abgelaufen
 	if session.isExpired() {
 		// Session löschen
 		Serv.Cmds <- Command{ty: remove, sessionToken: sessionToken, replyChannel: replyChannel}
-		//delete(sessions, sessionToken)
 		<-replyChannel
 		return false
 	}
@@ -307,18 +301,16 @@ func checkCookie(r *http.Request) (successful bool) {
 }
 
 func createSession(username string) (sessionToken string, expires time.Time) {
+	// Anwortchannel erstellen
+	replyChannel := make(chan *session)
 	// Sessiontoken generieren
 	sessionToken = createUUID(25)
 	// Session läuft nach x Minuten ab
 	// TODO Zeit anpassen
 	expires = time.Now().Add(1 * time.Minute)
 	// Session anhand des Sessiontokens speichern
-	replyChannel := make(chan *session)
 	Serv.Cmds <- Command{ty: write, sessionToken: sessionToken, session: &session{uname: username, expires: expires}, replyChannel: replyChannel}
-	//sessions[sessionToken] = &session{
-	//	uname:   username,
-	//	expires: expires,
-	//}
+	// session aus Antwortchannel lesen
 	session := <-replyChannel
 	return sessionToken, session.expires
 }
@@ -338,7 +330,6 @@ func validateInput(username, password string) (successful bool) {
 	}
 	return true
 }
-
 
 func createFeParameterCookie(w http.ResponseWriter) {
 	fv := calendarView.FrontendView{

@@ -11,6 +11,12 @@ import (
 	"time"
 )
 
+var Dm DataModel
+
+func InitDataModel(path string) {
+	Dm = NewDM(path)
+}
+
 func encryptPW(password string) string {
 	hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.MinCost)
 	if err != nil {

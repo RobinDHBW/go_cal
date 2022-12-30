@@ -2,7 +2,7 @@ package authentication
 
 import (
 	"github.com/stretchr/testify/assert"
-	"golang.org/x/crypto/bcrypt"
+	"go_cal/dataModel"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -10,15 +10,13 @@ import (
 )
 
 func TestLogoutHandler(t *testing.T) {
-	deleteAllUsers()
-	deleteAllSessions()
-
+	defer after()
 	// create user
-	hashedPassword, _ := bcrypt.GenerateFromPassword([]byte("test123"), bcrypt.DefaultCost)
-	users["testUser"] = hashedPassword
+	dm := dataModel.NewDM("../data/test")
+	_, err := dm.AddUser("testUser", "test", 1)
+	assert.Nil(t, err)
 	// create session
 	sessionToken, _ := createSession("testUser")
-
 	// TODO: http und localhost
 	request, _ := http.NewRequest(http.MethodPost, "http://localhost:8080/logout", nil)
 	request.AddCookie(&http.Cookie{
@@ -27,8 +25,6 @@ func TestLogoutHandler(t *testing.T) {
 	})
 	response := httptest.NewRecorder()
 	http.HandlerFunc(LogoutHandler).ServeHTTP(response, request)
-
-	assert.Empty(t, sessions)
 
 	assert.Equal(t, http.StatusFound, response.Result().StatusCode)
 	locationHeader, err := response.Result().Location()
