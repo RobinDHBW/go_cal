@@ -71,13 +71,36 @@ func TestDataModel_GetUserById(t *testing.T) {
 	assert.EqualValues(t, uID, user.Id)
 }
 
+func TestDataModel_GetUserByName(t *testing.T) {
+	dataPath := "../data/test"
+	dataModel := NewDM(dataPath)
+
+	defer after()
+
+	user, err := dataModel.AddUser("test", "abc", 1)
+	if err != nil {
+		t.FailNow()
+	}
+
+	user = dataModel.GetUserByName("test")
+	assert.EqualValues(t, "test", user.UserName)
+
+	user = dataModel.GetUserByName("test1")
+	assert.Nil(t, user)
+	user = dataModel.GetUserByName("te")
+	assert.Nil(t, user)
+}
+
 func TestDataModel_AddUser(t *testing.T) {
 	dataPath := "../data/test"
 	dataModel := NewDM(dataPath)
 
 	defer after()
 
-	user := dataModel.AddUser("test", "abc", 1)
+	user, err := dataModel.AddUser("test", "abc", 1)
+
+	assert.Nil(t, err)
+
 	userFile := dataModel.fH.ReadFromFile(user.Id)
 	var user2 data.User
 
@@ -96,6 +119,9 @@ func TestDataModel_AddUser(t *testing.T) {
 	assert.EqualValues(t, 0, len(user2.Appointments))
 	assert.EqualValues(t, true, dataModel.ComparePW("abc", user2.Password))
 
+	user, err = dataModel.AddUser("test", "abc", 1)
+	assert.Error(t, err)
+
 }
 
 func TestDataModel_AddAppointment(t *testing.T) {
@@ -106,7 +132,10 @@ func TestDataModel_AddAppointment(t *testing.T) {
 
 	tNow := time.Now()
 	tThen := tNow.Add(time.Hour * time.Duration(1))
-	user := dataModel.AddUser("test", "abc", 1)
+	user, err := dataModel.AddUser("test", "abc", 1)
+	if err != nil {
+		t.FailNow()
+	}
 	user = dataModel.AddAppointment(user.Id, data.NewAppointment("test", "hello123", tNow, tThen, user.Id, false, 0, false, ""))
 
 	assert.EqualValues(t, "test", user.Appointments[0].Title)
@@ -122,7 +151,10 @@ func TestDataModel_DeleteAppointment(t *testing.T) {
 	dataModel := NewDM(dataPath)
 
 	defer after()
-	user := dataModel.AddUser("test", "abc", 1)
+	user, err := dataModel.AddUser("test", "abc", 1)
+	if err != nil {
+		t.FailNow()
+	}
 
 	tNow := time.Now()
 	tThen := tNow.Add(time.Hour * time.Duration(1))
@@ -147,7 +179,10 @@ func TestDataModel_EditAppointment(t *testing.T) {
 	dataModel := NewDM(dataPath)
 
 	defer after()
-	user := dataModel.AddUser("test", "abc", 1)
+	user, err := dataModel.AddUser("test", "abc", 1)
+	if err != nil {
+		t.FailNow()
+	}
 
 	tNow := time.Now()
 	tThen := tNow.Add(time.Hour * time.Duration(1))
@@ -170,7 +205,10 @@ func TestDataModel_GetAppointmentByTimeFrame(t *testing.T) {
 	dataModel := NewDM(dataPath)
 
 	defer after()
-	user := dataModel.AddUser("test", "abc", 1)
+	user, err := dataModel.AddUser("test", "abc", 1)
+	if err != nil {
+		t.FailNow()
+	}
 
 	t1 := time.Date(2022, 12, 24, 10, 00, 00, 00, time.UTC)
 	t1End := time.Date(2022, 12, 24, 11, 00, 00, 00, time.UTC)
@@ -200,7 +238,10 @@ func TestDataModel_GetAppointmentsBySearchString(t *testing.T) {
 	dataModel := NewDM(dataPath)
 
 	defer after()
-	user := dataModel.AddUser("test", "abc", 1)
+	user, err := dataModel.AddUser("test", "abc", 1)
+	if err != nil {
+		t.FailNow()
+	}
 
 	t1 := time.Date(2022, 12, 24, 10, 00, 00, 00, time.UTC)
 	t1End := time.Date(2022, 12, 24, 11, 00, 00, 00, time.UTC)
@@ -228,7 +269,10 @@ func TestDataModel_ComparePW(t *testing.T) {
 
 	defer after()
 
-	user := dataModel.AddUser("test", "abc", 1)
+	user, err := dataModel.AddUser("test", "abc", 1)
+	if err != nil {
+		t.FailNow()
+	}
 	assert.EqualValues(t, true, dataModel.ComparePW("abc", user.Password))
 	assert.EqualValues(t, false, dataModel.ComparePW("123", user.Password))
 }

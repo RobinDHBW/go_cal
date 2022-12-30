@@ -2,6 +2,7 @@ package dataModel
 
 import (
 	"encoding/json"
+	"errors"
 	"go_cal/data"
 	"go_cal/fileHandler"
 	"golang.org/x/crypto/bcrypt"
@@ -58,11 +59,25 @@ func (dm *DataModel) GetUserById(id int) *data.User {
 	return nil
 }
 
-func (dm *DataModel) AddUser(name, pw string, userLevel int) *data.User {
+func (dm *DataModel) GetUserByName(search string) *data.User {
+	for _, val := range dm.UserMap {
+		if val.UserName == search {
+			return &val
+		}
+	}
+	return nil
+}
+
+func (dm *DataModel) AddUser(name, pw string, userLevel int) (*data.User, error) {
+	for _, val := range dm.UserMap {
+		if val.UserName == name {
+			return nil, errors.New("Username already exists")
+		}
+	}
 	user := data.NewUser(name, encryptPW(pw), len(dm.UserMap)+1, userLevel)
 
 	DataSync(&user, dm)
-	return &user
+	return &user, nil
 }
 
 // Call by reference or call by value?
