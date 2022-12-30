@@ -14,24 +14,13 @@ import (
 	"time"
 )
 
-//// TODO: has to be removed, use datamodel
-//// map with username and corresponding hashed password
-//var users = map[string][]byte{}
-//
-//// TODO: has to be removed, use datamodel
-//// Credentials struct for a user
-//type Credentials struct {
-//	Username string `json:"username"`
-//	Password []byte `json:"password"`
-//}
-
 // session consist of n user and an expiry time
 type session struct {
 	uname   string
 	expires time.Time
 }
 
-var data = dataModel.NewDM("../files")
+var data = dataModel.NewDM("./files")
 
 //// map with SessionTokens and corresponding sessions
 //var sessions = map[string]*session{}
@@ -270,7 +259,7 @@ func createUUID(n int) string {
 //}
 
 func AuthenticateUser(username, unHashedPassword string) (successful bool) {
-	user := data.GetUserById(1)
+	user := data.GetUserByName(username)
 	if user != nil && data.ComparePW(unHashedPassword, user.Password) {
 		return true
 	} else {
@@ -316,8 +305,12 @@ func checkCookie(r *http.Request, s *Server) (successful bool) {
 
 func isDuplicateUsername(username string) (isDuplicate bool) {
 	// existiert der username schon?
-	_, ok := users[username]
-	return ok
+	user := data.GetUserByName(username)
+	if user != nil {
+		return true
+	} else {
+		return false
+	}
 }
 
 func createSession(username string, s *Server) (sessionToken string, expires time.Time) {
@@ -344,11 +337,10 @@ func validateInput(username, password string) (successful bool) {
 		return false
 	}
 	// wenn unerlaubte Zeichen verwendet werden
-	const invalidCharactersUsername string = "[\\\\/:*?\"<>|{}`´']"
-	//const invalidCharactersPassword string = "[<>{}`´']"
-	matchUsername, _ := regexp.MatchString(invalidCharactersUsername, username)
-	matchPassword, _ := regexp.MatchString(invalidCharactersUsername, password)
-	if matchUsername || matchPassword {
+	const validCharacters string = "^[a-zA-Z0-9_]*$"
+	matchUsername, _ := regexp.MatchString(validCharacters, username)
+	matchPassword, _ := regexp.MatchString(validCharacters, password)
+	if !matchUsername || !matchPassword {
 		return false
 	}
 	return true
