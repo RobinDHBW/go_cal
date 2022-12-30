@@ -13,12 +13,9 @@ func LogoutHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	sessionToken := cookie.Value
-
+	// Session entfernen
 	Serv.Cmds <- Command{ty: remove, sessionToken: sessionToken, replyChannel: replyChannel}
 	<-replyChannel
-	// user session aus sessions-map entfernen
-	//delete(sessions, sessionToken)
-
 	// Info für den Client
 	http.SetCookie(w, &http.Cookie{
 		Name:    "session_token",
