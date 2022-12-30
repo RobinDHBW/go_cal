@@ -7,11 +7,22 @@ import (
 	"go_cal/fileHandler"
 	"golang.org/x/crypto/bcrypt"
 	"log"
+	"os"
+	"path/filepath"
 	"strings"
 	"time"
 )
 
-var Dm = NewDM("./files")
+var Dm DataModel
+
+func InitDataModel() {
+	dir, _ := os.Getwd()
+	if filepath.Base(dir) == "go_cal" || filepath.Base(dir) == "Go-Kalender" {
+		Dm = NewDM("./files")
+	} else {
+		Dm = NewDM("../files")
+	}
+}
 
 func encryptPW(password string) string {
 	hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.MinCost)

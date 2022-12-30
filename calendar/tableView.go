@@ -21,7 +21,12 @@ func UpdateCalendarHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	feParams, err = frontendHandling.GetFrontendParameters(r)
 	if err != nil {
-		cookieValue := frontendHandling.ChangeFeCookie(frontendHandling.FrontendView{})
+		cookieValue, err := frontendHandling.GetFeCookieString(frontendHandling.FrontendView{})
+		if err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			templates.TempError.Execute(w, error2.CreateError(error2.InvalidInput, r.Host+"/"))
+			return
+		}
 		http.SetCookie(w, &http.Cookie{
 			Name:  "fe_parameter",
 			Value: cookieValue,
@@ -51,11 +56,27 @@ func UpdateCalendarHandler(w http.ResponseWriter, r *http.Request) {
 				templates.TempError.Execute(w, error2.CreateError(error2.InvalidInput, r.Host+"/updateCalendar"))
 				return
 			}
-			feParams.ChooseMonth(year, time.Month(month))
+			err = feParams.ChooseMonth(year, time.Month(month))
+			if err != nil {
+				w.WriteHeader(http.StatusBadRequest)
+				templates.TempError.Execute(w, error2.CreateError(error2.InvalidInput, r.Host+"/updateCalendar"))
+				return
+			}
 		}
 	}
-	cookieValue := frontendHandling.ChangeFeCookie(feParams)
-	user := authentication.GetUserBySessionToken(r)
+	cookieValue, err := frontendHandling.GetFeCookieString(feParams)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		templates.TempError.Execute(w, error2.CreateError(error2.InvalidInput, r.Host+"/"))
+		return
+	}
+	user, err := authentication.GetUserBySessionToken(r)
+	if err != nil || user == nil {
+		w.WriteHeader(http.StatusUnauthorized)
+		// Fehlermeldung für Nutzer anzeigen
+		templates.TempError.Execute(w, error2.CreateError(error2.Authentification, r.Host+"/"))
+		return
+	}
 
 	http.SetCookie(w, &http.Cookie{
 		Name:  "fe_parameter",

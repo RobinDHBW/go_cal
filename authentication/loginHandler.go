@@ -113,7 +113,12 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 					Value:   sessionToken,
 					Expires: expires,
 				})
-				cookieValue := frontendHandling.ChangeFeCookie(frontendHandling.FrontendView{})
+				cookieValue, err := frontendHandling.GetFeCookieString(frontendHandling.FrontendView{})
+				if err != nil {
+					w.WriteHeader(http.StatusBadRequest)
+					templates.TempError.Execute(w, error2.CreateError(error2.InvalidInput, r.Host+"/"))
+					return
+				}
 				http.SetCookie(w, &http.Cookie{
 					Name:  "fe_parameter",
 					Value: cookieValue,
@@ -176,7 +181,12 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 				Value:   sessionToken,
 				Expires: expires,
 			})
-			cookieValue := frontendHandling.ChangeFeCookie(frontendHandling.FrontendView{})
+			cookieValue, err := frontendHandling.GetFeCookieString(frontendHandling.FrontendView{})
+			if err != nil {
+				w.WriteHeader(http.StatusBadRequest)
+				templates.TempError.Execute(w, error2.CreateError(error2.InvalidInput, r.Host+"/"))
+				return
+			}
 			http.SetCookie(w, &http.Cookie{
 				Name:  "fe_parameter",
 				Value: cookieValue,
@@ -344,8 +354,11 @@ func validateInput(username, password string) (successful bool) {
 	return true
 }
 
-func GetUserBySessionToken(r *http.Request) *data.User {
-	cookie, _ := r.Cookie("session_token")
+func GetUserBySessionToken(r *http.Request) (*data.User, error) {
+	cookie, err := r.Cookie("session_token")
+	if err != nil {
+		return nil, err
+	}
 	sessionToken := cookie.Value
 
 	replyChannel := make(chan *session)
@@ -353,5 +366,6 @@ func GetUserBySessionToken(r *http.Request) *data.User {
 	session := <-replyChannel
 
 	username := session.uname
-	return dataModel.Dm.GetUserByName(username)
+	user := dataModel.Dm.GetUserByName(username)
+	return user, nil
 }

@@ -19,7 +19,14 @@ func TerminHandler(w http.ResponseWriter, r *http.Request) {
 		templates.TempError.Execute(w, error2.CreateError(error2.InvalidInput, r.Host+"/listTermin"))
 		return
 	}
-	user := authentication.GetUserBySessionToken(r)
+	user, err := authentication.GetUserBySessionToken(r)
+	if err != nil || user == nil {
+		w.WriteHeader(http.StatusUnauthorized)
+		// Fehlermeldung für Nutzer anzeigen
+		templates.TempError.Execute(w, error2.CreateError(error2.Authentification, r.Host+"/"))
+		return
+	}
+
 	feParams, _ := frontendHandling.GetFrontendParameters(r)
 	switch {
 	case r.Form.Has("calendarBack"):
@@ -59,7 +66,12 @@ func TerminHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		feParams.MinDate = inputDate
 
-		cookieValue := frontendHandling.ChangeFeCookie(feParams)
+		cookieValue, err := frontendHandling.GetFeCookieString(feParams)
+		if err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			templates.TempError.Execute(w, error2.CreateError(error2.InvalidInput, r.Host+"/"))
+			return
+		}
 		http.SetCookie(w, &http.Cookie{
 			Name:  "fe_parameter",
 			Value: cookieValue,

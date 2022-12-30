@@ -3,6 +3,7 @@ package main
 import (
 	"go_cal/authentication"
 	"go_cal/calendar"
+	"go_cal/dataModel"
 	"go_cal/templates"
 	"go_cal/terminHandling"
 	"log"
@@ -16,6 +17,7 @@ func mainHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
+	dataModel.InitDataModel()
 	authentication.Serv = &authentication.Server{Cmds: authentication.StartSessionManager()}
 	templates.Init()
 	//err := authentication.LoadUsersFromFiles()

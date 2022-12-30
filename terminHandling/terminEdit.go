@@ -22,7 +22,13 @@ func TerminEditHandler(w http.ResponseWriter, r *http.Request) {
 		templates.TempError.Execute(w, error2.CreateError(error2.Default2, r.Host+"/editTermin"))
 		return
 	}
-	user := authentication.GetUserBySessionToken(r)
+	user, err := authentication.GetUserBySessionToken(r)
+	if err != nil || user == nil {
+		w.WriteHeader(http.StatusUnauthorized)
+		// Fehlermeldung für Nutzer anzeigen
+		templates.TempError.Execute(w, error2.CreateError(error2.Authentification, r.Host+"/"))
+		return
+	}
 	feParams, err := frontendHandling.GetFrontendParameters(r)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
