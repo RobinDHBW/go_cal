@@ -14,19 +14,14 @@ import (
 	"time"
 )
 
+type Server struct {
+	Cmds chan<- Command
+}
+
 // session consist of n user and an expiry time
 type session struct {
 	uname   string
 	expires time.Time
-}
-
-var data = dataModel.NewDM("./files")
-
-//// map with SessionTokens and corresponding sessions
-//var sessions = map[string]*session{}
-
-type Server struct {
-	Cmds chan<- Command
 }
 
 type CommandType string
@@ -44,6 +39,10 @@ type Command struct {
 	session      *session
 	replyChannel chan *session
 }
+
+var data = dataModel.NewDM("./files")
+
+var Serv *Server
 
 // prüft ob Session abgelaufen ist
 func (s session) isExpired() bool {
@@ -80,9 +79,9 @@ func StartSessionManager() chan<- Command {
 	return cmds
 }
 
-func (s *Server) LoginHandler(w http.ResponseWriter, r *http.Request) {
+func LoginHandler(w http.ResponseWriter, r *http.Request) {
 	// Cookie überprüfen
-	isCookieValid := checkCookie(r, s)
+	isCookieValid := checkCookie(r)
 
 	// kein gültiger Cookie im Request --> login-procedure
 	if !isCookieValid {
@@ -107,7 +106,7 @@ func (s *Server) LoginHandler(w http.ResponseWriter, r *http.Request) {
 			// user erfolgreich authentifiziert
 			if successful {
 				// neue session erstellen
-				sessionToken, expires := createSession(username, s)
+				sessionToken, expires := createSession(username)
 				// Cookie in response setzen
 				http.SetCookie(w, &http.Cookie{
 					Name:    "session_token",
@@ -136,7 +135,7 @@ func (s *Server) LoginHandler(w http.ResponseWriter, r *http.Request) {
 	templates.TempLogin.Execute(w, nil)
 }
 
-func (s *Server) RegisterHandler(w http.ResponseWriter, r *http.Request) {
+func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 	// übermitteltes Formular parsen
 	r.ParseForm()
 	// wenn Register-Button gedrückt und POST ausgeführt wurde
@@ -153,20 +152,19 @@ func (s *Server) RegisterHandler(w http.ResponseWriter, r *http.Request) {
 			templates.TempError.Execute(w, error2.CreateError(error2.EmptyField, r.Host+"/register"))
 			return
 		}
-		// exisitiert der Nutzername schon?
-		duplicate := isDuplicateUsername(username)
-		// wenn Nutzername schon exisitert
-		if duplicate {
+		// neuen User erstellen
+		_, err := data.AddUser(username, password, 1)
+		// Nutzername existiert schon, Erstellung war nicht erfolgreich
+		if err != nil {
 			// Response header 400 setzen
 			w.WriteHeader(http.StatusBadRequest)
 			// Fehlermeldung für Nutzer anzeigen
 			templates.TempError.Execute(w, error2.CreateError(error2.DuplicateUserName, r.Host+"/register"))
 			return
-			// Nutzername exisitert noch nicht --> register möglich
+			// Nutzername existiert noch nicht, Erstellung war erfolgreich
 		} else {
-			data.AddUser(username, password, 1)
 			// neue session erstellen
-			sessionToken, expires := createSession(username, s)
+			sessionToken, expires := createSession(username)
 			// Cookie in response setzen
 			http.SetCookie(w, &http.Cookie{
 				Name:    "session_token",
@@ -183,14 +181,14 @@ func (s *Server) RegisterHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 // Wrapper für Authentifizierung mit Cookie
-func (s *Server) Wrapper(handler http.HandlerFunc) http.HandlerFunc {
+func Wrapper(handler http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// Cookie aus Request überprüfen
-		isCookieValid := checkCookie(r, s)
+		isCookieValid := checkCookie(r)
 		// wenn Cookie valid
 		if isCookieValid {
 			// Cookie verlängern
-			sessionToken, expires := refreshCookie(r, s)
+			sessionToken, expires := refreshCookie(r)
 			// Cookie setzen
 			http.SetCookie(w, &http.Cookie{
 				Name:    "session_token",
@@ -210,13 +208,13 @@ func (s *Server) Wrapper(handler http.HandlerFunc) http.HandlerFunc {
 	}
 }
 
-func refreshCookie(r *http.Request, s *Server) (sessionToken string, expires time.Time) {
+func refreshCookie(r *http.Request) (sessionToken string, expires time.Time) {
 	replyChannel := make(chan *session)
 	// Cookie auslesen
 	cookie, _ := r.Cookie("session_token")
 	// Sessiontoken auslesen
 	sessionToken = cookie.Value
-	s.Cmds <- Command{ty: update, sessionToken: sessionToken, replyChannel: replyChannel}
+	Serv.Cmds <- Command{ty: update, sessionToken: sessionToken, replyChannel: replyChannel}
 	session := <-replyChannel
 	// session auslesen
 	//session, _ := sessions[sessionToken]
@@ -267,7 +265,7 @@ func AuthenticateUser(username, unHashedPassword string) (successful bool) {
 	}
 }
 
-func checkCookie(r *http.Request, s *Server) (successful bool) {
+func checkCookie(r *http.Request) (successful bool) {
 	replyChannel := make(chan *session)
 
 	// Cookie auslesen
@@ -278,7 +276,7 @@ func checkCookie(r *http.Request, s *Server) (successful bool) {
 	}
 	// Sessiontoken auslesen
 	sessionToken := cookie.Value
-	s.Cmds <- Command{ty: read, sessionToken: sessionToken, replyChannel: replyChannel}
+	Serv.Cmds <- Command{ty: read, sessionToken: sessionToken, replyChannel: replyChannel}
 	session := <-replyChannel
 
 	//if session == nil {
@@ -295,7 +293,7 @@ func checkCookie(r *http.Request, s *Server) (successful bool) {
 	// SessionToken is abgelaufen
 	if session.isExpired() {
 		// Session löschen
-		s.Cmds <- Command{ty: remove, sessionToken: sessionToken, replyChannel: replyChannel}
+		Serv.Cmds <- Command{ty: remove, sessionToken: sessionToken, replyChannel: replyChannel}
 		//delete(sessions, sessionToken)
 		<-replyChannel
 		return false
@@ -303,17 +301,7 @@ func checkCookie(r *http.Request, s *Server) (successful bool) {
 	return true
 }
 
-func isDuplicateUsername(username string) (isDuplicate bool) {
-	// existiert der username schon?
-	user := data.GetUserByName(username)
-	if user != nil {
-		return true
-	} else {
-		return false
-	}
-}
-
-func createSession(username string, s *Server) (sessionToken string, expires time.Time) {
+func createSession(username string) (sessionToken string, expires time.Time) {
 	// Sessiontoken generieren
 	sessionToken = createUUID(25)
 	// Session läuft nach x Minuten ab
@@ -321,7 +309,7 @@ func createSession(username string, s *Server) (sessionToken string, expires tim
 	expires = time.Now().Add(1 * time.Minute)
 	// Session anhand des Sessiontokens speichern
 	replyChannel := make(chan *session)
-	s.Cmds <- Command{ty: write, sessionToken: sessionToken, session: &session{uname: username, expires: expires}, replyChannel: replyChannel}
+	Serv.Cmds <- Command{ty: write, sessionToken: sessionToken, session: &session{uname: username, expires: expires}, replyChannel: replyChannel}
 	//sessions[sessionToken] = &session{
 	//	uname:   username,
 	//	expires: expires,
@@ -344,4 +332,11 @@ func validateInput(username, password string) (successful bool) {
 		return false
 	}
 	return true
+}
+
+func GetUsernameBySessionToken(sessionToken string) (username string) {
+	replyChannel := make(chan *session)
+	Serv.Cmds <- Command{ty: read, sessionToken: sessionToken, replyChannel: replyChannel}
+	session := <-replyChannel
+	return session.uname
 }

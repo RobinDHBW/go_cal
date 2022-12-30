@@ -25,15 +25,6 @@ func TestUnsuccessfulAuthentification(t *testing.T) {
 	assert.False(t, AuthenticateUser("testUser", []byte("test")))
 }
 
-func TestDuplicateUsername(t *testing.T) {
-	hashedPassword, _ := bcrypt.GenerateFromPassword([]byte("test123"), bcrypt.DefaultCost)
-	users["testUser"] = hashedPassword
-	// duplicate username
-	assert.True(t, isDuplicateUsername("testUser"))
-	// no duplicate username
-	assert.False(t, isDuplicateUsername("test"))
-}
-
 func TestCheckCookieSuccessful(t *testing.T) {
 	username := "testUser"
 	sessionToken := "cookie123"
