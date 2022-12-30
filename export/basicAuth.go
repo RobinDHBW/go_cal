@@ -1,8 +1,11 @@
 package export
 
-import "net/http"
+import (
+	"go_cal/authentication"
+	"net/http"
+)
 
-// an Vorlseung orientiert
+// an Vorlesung orientiert
 
 type Authenticator interface {
 	Authenticate(user, password string) bool
@@ -14,14 +17,15 @@ func (af AuthenticatorFunc) Authenticate(user, password string) bool {
 	return af(user, password)
 }
 
-func checkUserValid(username, password string) bool {
-	return true
+func CheckUserValid(username, password string) bool {
+	successful := authentication.AuthenticateUser(username, password)
+	return successful
 }
 
 func Wrapper(authenticator Authenticator, handler http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		user, pswd, ok := r.BasicAuth()
-		if ok && checkUserValid(user, pswd) {
+		user, passwd, ok := r.BasicAuth()
+		if ok && authenticator.Authenticate(user, passwd) {
 			handler(w, r)
 		} else {
 			w.Header().Set("WWW-Authenticate",
