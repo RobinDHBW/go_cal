@@ -17,7 +17,7 @@ func mainHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-	server := authentication.Server{Cmds: authentication.StartSessionManager()}
+	authentication.Serv = &authentication.Server{Cmds: authentication.StartSessionManager()}
 	templates.Init()
 	//err := authentication.LoadUsersFromFiles()
 	//if err != nil {
@@ -30,10 +30,10 @@ func main() {
 	}
 	globalTemp = 1
 
-	http.HandleFunc("/updateCalendar", server.Wrapper(calendarView.UpdateCalendarHandler))
-	http.HandleFunc("/register", server.RegisterHandler)
-	http.HandleFunc("/logout", server.LogoutHandler)
-	http.HandleFunc("/", server.LoginHandler)
+	http.HandleFunc("/updateCalendar", authentication.Wrapper(calendarView.UpdateCalendarHandler))
+	http.HandleFunc("/register", authentication.RegisterHandler)
+	http.HandleFunc("/logout", authentication.LogoutHandler)
+	http.HandleFunc("/", authentication.LoginHandler)
 	http.HandleFunc("/listTermin", terminHandling.TerminHandler)
 	http.HandleFunc("/createTermin", terminHandling.TerminCreateHandler)
 	http.HandleFunc("/editTermin", terminHandling.TerminEditHandler)
