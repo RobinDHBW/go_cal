@@ -5,28 +5,25 @@ package authentication
 // https://github.com/eliben/code-for-blog/blob/master/2019/gohttpconcurrency/channel-manager-server.go
 
 import (
-	"encoding/json"
-	"fmt"
+	"go_cal/dataModel"
 	error2 "go_cal/error"
 	"go_cal/templates"
-	"golang.org/x/crypto/bcrypt"
 	"math/rand"
 	"net/http"
-	"os"
 	"regexp"
 	"time"
 )
 
-// TODO: has to be removed, use datamodel
-// map with username and corresponding hashed password
-var users = map[string][]byte{}
-
-// TODO: has to be removed, use datamodel
-// Credentials struct for a user
-type Credentials struct {
-	Username string `json:"username"`
-	Password []byte `json:"password"`
-}
+//// TODO: has to be removed, use datamodel
+//// map with username and corresponding hashed password
+//var users = map[string][]byte{}
+//
+//// TODO: has to be removed, use datamodel
+//// Credentials struct for a user
+//type Credentials struct {
+//	Username string `json:"username"`
+//	Password []byte `json:"password"`
+//}
 
 // session consist of n user and an expiry time
 type session struct {
@@ -34,13 +31,10 @@ type session struct {
 	expires time.Time
 }
 
+var data = dataModel.NewDM("../files")
+
 //// map with SessionTokens and corresponding sessions
 //var sessions = map[string]*session{}
-
-// prüft ob Session abgelaufen ist
-func (s session) isExpired() bool {
-	return s.expires.Before(time.Now())
-}
 
 type Server struct {
 	Cmds chan<- Command
@@ -60,6 +54,11 @@ type Command struct {
 	sessionToken string
 	session      *session
 	replyChannel chan *session
+}
+
+// prüft ob Session abgelaufen ist
+func (s session) isExpired() bool {
+	return s.expires.Before(time.Now())
 }
 
 func StartSessionManager() chan<- Command {
@@ -103,7 +102,7 @@ func (s *Server) LoginHandler(w http.ResponseWriter, r *http.Request) {
 		// wenn Login-Button gedrückt und POST ausgeführt wurde
 		if r.PostForm.Has("login") && r.Method == http.MethodPost {
 			// Eingabefelder (username und password) auslesen
-			password := []byte(r.PostFormValue("passwd"))
+			password := r.PostFormValue("passwd")
 			username := r.PostFormValue("uname")
 			// Eingabevalidierung
 			valid := validateInput(username, password)
@@ -154,7 +153,7 @@ func (s *Server) RegisterHandler(w http.ResponseWriter, r *http.Request) {
 	// wenn Register-Button gedrückt und POST ausgeführt wurde
 	if r.PostForm.Has("register") && r.Method == http.MethodPost {
 		// Eingabefelder (username und password) auslesen
-		password := []byte(r.PostFormValue("passwd"))
+		password := r.PostFormValue("passwd")
 		username := r.PostFormValue("uname")
 		// Eingabevalidierung
 		valid := validateInput(username, password)
@@ -176,45 +175,7 @@ func (s *Server) RegisterHandler(w http.ResponseWriter, r *http.Request) {
 			return
 			// Nutzername exisitert noch nicht --> register möglich
 		} else {
-			// Passwort hashen
-			hashedPassword, _ := bcrypt.GenerateFromPassword(password, bcrypt.DefaultCost)
-			user := Credentials{
-				Username: username,
-				Password: hashedPassword,
-			}
-
-			// ab hier Speicherprozess
-			folder, err := os.Open("./files")
-			if err != nil {
-				fmt.Println(err)
-				return
-			}
-
-			_, err = folder.Readdir(0)
-			if err != nil {
-				fmt.Println(err)
-				return
-			}
-
-			text, _ := json.Marshal(user)
-
-			file, err := os.Create("./files/" + user.Username + ".json")
-			if err != nil {
-				fmt.Println(err)
-				return
-			}
-
-			_, err = file.Write(text)
-			if err != nil {
-				fmt.Println(err)
-				return
-			}
-
-			err = file.Close()
-			if err != nil {
-				fmt.Println(err)
-				return
-			}
+			data.AddUser(username, password, 1)
 			// neue session erstellen
 			sessionToken, expires := createSession(username, s)
 			// Cookie in response setzen
@@ -223,8 +184,6 @@ func (s *Server) RegisterHandler(w http.ResponseWriter, r *http.Request) {
 				Value:   sessionToken,
 				Expires: expires,
 			})
-			// sync file to variables
-			LoadUsersFromFiles()
 			// redirect auf Kalender
 			http.Redirect(w, r, "/updateCalendar", http.StatusFound)
 			return
@@ -287,35 +246,35 @@ func createUUID(n int) string {
 	return string(b)
 }
 
-func LoadUsersFromFiles() error {
-	// open folder
-	folder, err := os.Open("./files")
-	if err != nil {
-		return err
-	}
-	// read all files inside directory
-	files, err := folder.Readdir(0)
-	if err != nil {
-		return err
-	}
-	for _, file := range files {
-		var user Credentials
-		data, _ := os.ReadFile("./files/" + file.Name())
-		err := json.Unmarshal(data, &user)
-		if err != nil {
-			return err
-		}
-		users[user.Username] = user.Password
-	}
-	return nil
-}
+//func LoadUsersFromFiles() error {
+//	// open folder
+//	folder, err := os.Open("./files")
+//	if err != nil {
+//		return err
+//	}
+//	// read all files inside directory
+//	files, err := folder.Readdir(0)
+//	if err != nil {
+//		return err
+//	}
+//	for _, file := range files {
+//		var user Credentials
+//		data, _ := os.ReadFile("./files/" + file.Name())
+//		err := json.Unmarshal(data, &user)
+//		if err != nil {
+//			return err
+//		}
+//		users[user.Username] = user.Password
+//	}
+//	return nil
+//}
 
-func AuthenticateUser(username string, unHashedPassword []byte) (successful bool) {
-	expectedPasswordHash, ok := users[username]
-	if !ok || bcrypt.CompareHashAndPassword(expectedPasswordHash, unHashedPassword) != nil {
-		return false
-	} else {
+func AuthenticateUser(username, unHashedPassword string) (successful bool) {
+	user := data.GetUserById(1)
+	if user != nil && data.ComparePW(unHashedPassword, user.Password) {
 		return true
+	} else {
+		return false
 	}
 }
 
@@ -379,7 +338,7 @@ func createSession(username string, s *Server) (sessionToken string, expires tim
 }
 
 // Überprüft Nutzereingaben beim Login und Registrieren
-func validateInput(username string, password []byte) (successful bool) {
+func validateInput(username, password string) (successful bool) {
 	// wenn Felder leer
 	if len(username) == 0 || len(password) == 0 {
 		return false
@@ -388,7 +347,7 @@ func validateInput(username string, password []byte) (successful bool) {
 	const invalidCharactersUsername string = "[\\\\/:*?\"<>|{}`´']"
 	//const invalidCharactersPassword string = "[<>{}`´']"
 	matchUsername, _ := regexp.MatchString(invalidCharactersUsername, username)
-	matchPassword, _ := regexp.MatchString(invalidCharactersUsername, string(password))
+	matchPassword, _ := regexp.MatchString(invalidCharactersUsername, password)
 	if matchUsername || matchPassword {
 		return false
 	}
