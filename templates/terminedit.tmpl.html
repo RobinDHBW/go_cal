@@ -28,21 +28,21 @@
             <input style="font-size: 16px" id="title" name="title" type="text" value="{{.Title}}"/>
                     <br>
                     Zeitpunkt:
-            <input style="font-size: 16px" name="dateBegin" id="dateBegin" type="datetime-local" value='{{.Begin.Format "2006-01-02 15:04"}}'/>
+            <input style="font-size: 16px" name="dateBegin" id="dateBegin" type="datetime-local" value='{{.DateTimeStart.Format "2006-01-02 15:04"}}'/>
             bis
-            <input style="font-size: 16px" name="dateEnd" id="dateEnd" type="datetime-local" value='{{.End.Format "2006-01-02 15:04"}}'/>
+            <input style="font-size: 16px" name="dateEnd" id="dateEnd" type="datetime-local" value='{{.DateTimeEnd.Format "2006-01-02 15:04"}}'/>
                     <br>
-            <textarea style="font-size: 16px" id="content" name="content" type="text" value="{{.Content}}">{{.Content}}</textarea>
+            <textarea style="font-size: 16px" id="content" name="content" type="text" value="{{.Description}}">{{.Description}}</textarea>
             <br>
             Wiederholung: <select name="chooseRepeat" id="chooseRepeat">
-                            <option value="none" {{if eq .Repeating "keine"}} selected {{end}}>keine</option>
-                            <option value="day" {{if eq .Repeating "täglich"}} selected {{end}}>täglich</option>
-                            <option value="week" {{if eq .Repeating "wöchentlich"}} selected {{end}}>wöchentlich</option>
-                            <option value="month" {{if eq .Repeating "monatlich"}} selected {{end}}>monatlich</option>
-                            <option value="year" {{if eq .Repeating "jährlich"}} selected {{end}}>jährlich</option>
+                            <option value="none" {{if eq .GetDescriptionFromInterval "keine"}} selected {{end}}>keine</option>
+                            <option value="day" {{if eq .GetDescriptionFromInterval "täglich"}} selected {{end}}>täglich</option>
+                            <option value="week" {{if eq .GetDescriptionFromInterval "wöchentlich"}} selected {{end}}>wöchentlich</option>
+                            <option value="month" {{if eq .GetDescriptionFromInterval "monatlich"}} selected {{end}}>monatlich</option>
+                            <option value="year" {{if eq .GetDescriptionFromInterval "jährlich"}} selected {{end}}>jährlich</option>
                         </select>
-            <button style="font-size: 16px" name="editTerminSubmit" id="editTerminSubmit" type="submit">Änderungen bestätigen</button>
-            <button style="font-size: 16px" name="deleteTerminSubmit" id="deleteTerminSubmit" type="submit">Termin löschen</button>
+            <button style="font-size: 16px" name="editTerminSubmit" id="editTerminSubmit" type="submit" value="{{.Id}}">Änderungen bestätigen</button>
+            <button style="font-size: 16px" name="deleteTerminSubmit" id="deleteTerminSubmit" type="submit" value="{{.Id}}">Termin löschen</button>
 
                     <hr>
                 </span>

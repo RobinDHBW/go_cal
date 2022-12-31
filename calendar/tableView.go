@@ -12,7 +12,7 @@ import (
 )
 
 func UpdateCalendarHandler(w http.ResponseWriter, r *http.Request) {
-	feParams := frontendHandling.FrontendView{}
+	feParams := &frontendHandling.FrontendView{}
 	err := r.ParseForm()
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
@@ -64,7 +64,7 @@ func UpdateCalendarHandler(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 	}
-	cookieValue, err := frontendHandling.GetFeCookieString(feParams)
+	cookieValue, err := frontendHandling.GetFeCookieString(*feParams)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		templates.TempError.Execute(w, error2.CreateError(error2.InvalidInput, r.Host+"/"))
@@ -84,8 +84,8 @@ func UpdateCalendarHandler(w http.ResponseWriter, r *http.Request) {
 	})
 	templates.TempInit.Execute(w, struct {
 		*frontendHandling.FrontendView
-		data.User
-	}{&feParams,
-		*user})
+		*data.User
+	}{feParams,
+		user})
 	return
 }

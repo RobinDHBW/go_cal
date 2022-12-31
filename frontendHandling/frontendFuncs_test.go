@@ -13,6 +13,12 @@ import (
 	"time"
 )
 
+var App1 data.Appointment
+var App2 data.Appointment
+var App3 data.Appointment
+var App4 data.Appointment
+var App5 data.Appointment
+
 func TestFrontendView_GetDaysOfMonth(t *testing.T) {
 	fv := FrontendView{
 		Month: 2,
@@ -295,4 +301,95 @@ func TestGetFeCookieString(t *testing.T) {
 	expStr := "{'Month':10,'Year':2022,'TerminPerSite':10,'TerminSite':2,'MinDate':'2022-09-12T10:00:00Z'}"
 	assert.Equal(t, str, expStr, "strings should be equal")
 	assert.Nil(t, err, "Error should be nil")
+}
+
+func TestGetTerminList(t *testing.T) {
+	dataModel.InitDataModel()
+	user, _ := dataModel.Dm.AddUser("Testuser", "test", 0)
+	addAppointments(user.Id)
+	// Termine ab 11.12.2022
+	fv := FrontendView{
+		Month:         12,
+		Year:          2022,
+		TerminSite:    1,
+		TerminPerSite: 5,
+		MinDate:       time.Date(2022, 11, 11, 11, 11, 1, 1, time.Local),
+	}
+	Apps := fv.GetTerminList(user.Appointments)
+	// Richtige Reihenfolge der Termine
+	exp := make([]data.Appointment, 0, 1)
+	exp = append(exp, App3)
+	exp = append(exp, App1)
+	exp = append(exp, App2)
+	expApp4 := App4
+	expApp4.DateTimeStart = expApp4.DateTimeStart.AddDate(1, 0, 0)
+	expApp4.DateTimeEnd = expApp4.DateTimeEnd.AddDate(1, 0, 0)
+	exp = append(exp, expApp4)
+	exp = append(exp, App5)
+	assert.Equal(t, Apps, exp, "test 1 equal")
+
+	// Termine ab 20.12.2022
+	fv = FrontendView{
+		Month:         12,
+		Year:          2022,
+		TerminSite:    1,
+		TerminPerSite: 5,
+		MinDate:       time.Date(2022, 12, 20, 11, 11, 1, 1, time.Local),
+	}
+	Apps = fv.GetTerminList(user.Appointments)
+	// Richtige Reihenfolge der Termine
+	exp = make([]data.Appointment, 0, 1)
+	expApp5 := App5
+	expApp5.DateTimeStart = expApp5.DateTimeStart.AddDate(0, 0, 3)
+	expApp5.DateTimeEnd = expApp5.DateTimeEnd.AddDate(0, 0, 3)
+	exp = append(exp, expApp5)
+	expApp2 := App2
+	expApp2.DateTimeStart = expApp2.DateTimeStart.AddDate(0, 0, 14)
+	expApp2.DateTimeEnd = expApp2.DateTimeEnd.AddDate(0, 0, 14)
+	exp = append(exp, expApp2)
+	expApp3 := App3
+	expApp3.DateTimeStart = expApp3.DateTimeStart.AddDate(0, 2, 0)
+	expApp3.DateTimeEnd = expApp3.DateTimeEnd.AddDate(0, 2, 0)
+	exp = append(exp, expApp3)
+	expApp4 = App4
+	expApp4.DateTimeStart = expApp4.DateTimeStart.AddDate(2, 0, 0)
+	expApp4.DateTimeEnd = expApp4.DateTimeEnd.AddDate(2, 0, 0)
+	exp = append(exp, expApp4)
+	assert.Equal(t, Apps, exp, "test 2 equal")
+
+	_ = os.Remove("../files/" + strconv.FormatInt(int64(user.Id), 10) + ".json")
+}
+
+func addAppointments(id int) {
+	// Einzelner Termin: 7 Dez 2022
+	App1 = data.NewAppointment("titel1", "beschreibung1",
+		time.Date(2022, 12, 7, 12, 0, 0, 0, time.Local),
+		time.Date(2022, 12, 7, 14, 0, 0, 0, time.Local),
+		id, false, 0, false, "")
+	// Wöchentlicher Termin: ab 12 Dez 2022
+	App2 = data.NewAppointment("titel2", "beschreibung2",
+		time.Date(2022, 12, 12, 14, 0, 0, 0, time.Local),
+		time.Date(2022, 12, 12, 17, 0, 0, 0, time.Local),
+		id, true, 7, false, "")
+	// Monatlicher Termin: ab 11 Nov 2022
+	App3 = data.NewAppointment("titel3", "beschreibung3",
+		time.Date(2022, 11, 11, 15, 0, 0, 0, time.Local),
+		time.Date(2022, 11, 11, 17, 0, 0, 0, time.Local),
+		id, true, 30, false, "")
+	// Jährlicher Termin ab 12 Dez 2021
+	App4 = data.NewAppointment("titel4", "beschreibung4",
+		time.Date(2021, 12, 12, 15, 0, 0, 0, time.Local),
+		time.Date(2021, 12, 12, 17, 0, 0, 0, time.Local),
+		id, true, 365, false, "")
+	// Täglicher Termin ab 17 Dez 2022
+	App5 = data.NewAppointment("titel5", "beschreibung5",
+		time.Date(2022, 12, 17, 15, 0, 0, 0, time.Local),
+		time.Date(2022, 12, 17, 17, 0, 0, 0, time.Local),
+		id, true, 1, false, "")
+	dataModel.Dm.AddAppointment(id, App1)
+	dataModel.Dm.AddAppointment(id, App2)
+	dataModel.Dm.AddAppointment(id, App3)
+	dataModel.Dm.AddAppointment(id, App4)
+	dataModel.Dm.AddAppointment(id, App5)
+
 }

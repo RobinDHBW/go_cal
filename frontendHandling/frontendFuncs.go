@@ -5,6 +5,7 @@ import (
 	"errors"
 	"go_cal/data"
 	"net/http"
+	"sort"
 	"strings"
 	"time"
 )
@@ -136,19 +137,19 @@ func (cal *FrontendView) GetAppointmentsForMonth(user data.User) []int {
 
 // GetFrontendParameters
 // returns FrontendView struct out of Cookie
-func GetFrontendParameters(r *http.Request) (FrontendView, error) {
+func GetFrontendParameters(r *http.Request) (*FrontendView, error) {
 	cookie, err := r.Cookie("fe_parameter")
 	if err != nil {
-		return FrontendView{}, err
+		return &FrontendView{}, err
 	}
 	fv := cookie.Value
 	fv = strings.ReplaceAll(fv, "'", "\"")
 	var feParams FrontendView
 	err = json.Unmarshal([]byte(fv), &feParams)
 	if err != nil {
-		return FrontendView{}, err
+		return &FrontendView{}, err
 	}
-	return feParams, nil
+	return &feParams, nil
 }
 
 // GetFeCookieString
@@ -171,4 +172,70 @@ func GetFeCookieString(view FrontendView) (string, error) {
 	fvToString := string(fvToJSON)
 	fvToString = strings.ReplaceAll(fvToString, "\"", "'")
 	return fvToString, nil
+}
+
+// GetTerminList
+// calculates list of appointments that are later than selected date
+// in case of repeating appointments, first appearance of appointment after selected date is chosen
+// returns slice containing list of appointments
+func (fv *FrontendView) GetTerminList(appointments map[int]data.Appointment) []data.Appointment {
+	// Create Slice to sort by date
+	appSlice := make([]data.Appointment, 0, len(appointments))
+	for _, i := range appointments {
+		appSlice = append(appSlice, i)
+	}
+	sort.SliceStable(appSlice, func(i, j int) bool {
+		return appSlice[i].DateTimeStart.Before(appSlice[j].DateTimeStart)
+	})
+
+	datefilteredTL := make([]data.Appointment, 0, 1)
+	for i := range appSlice {
+		if fv.MinDate.Before(appSlice[i].DateTimeStart) || fv.MinDate.Equal(appSlice[i].DateTimeStart) {
+			datefilteredTL = append(datefilteredTL, appSlice[i])
+		} else if appSlice[i].Timeseries.Repeat {
+			t := GetFirstTerminOfRepeatingInDate(appSlice[i], *fv)
+			datefilteredTL = append(datefilteredTL, t)
+		}
+	}
+
+	sort.SliceStable(datefilteredTL, func(i, j int) bool {
+		return datefilteredTL[i].DateTimeStart.Before(datefilteredTL[j].DateTimeStart)
+	})
+
+	if fv.TerminPerSite*(fv.TerminSite-1) > len(datefilteredTL) {
+		return nil
+	}
+	if fv.TerminSite*fv.TerminPerSite > len(datefilteredTL) {
+		return datefilteredTL[fv.TerminPerSite*(fv.TerminSite-1):]
+	}
+	return datefilteredTL[fv.TerminPerSite*(fv.TerminSite-1) : fv.TerminSite*fv.TerminPerSite]
+}
+
+// GetFirstTerminOfRepeatingInDate
+// calculates for given repeating appointment first appearance after selected date from FrontendView
+// returns new appointment with start and end time after selected date
+func GetFirstTerminOfRepeatingInDate(app data.Appointment, view FrontendView) data.Appointment {
+	switch app.Timeseries.Intervall {
+	case 1:
+		for app.DateTimeStart.Before(view.MinDate) {
+			app.DateTimeStart = app.DateTimeStart.AddDate(0, 0, 1)
+			app.DateTimeEnd = app.DateTimeEnd.AddDate(0, 0, 1)
+		}
+	case 7:
+		for app.DateTimeStart.Before(view.MinDate) {
+			app.DateTimeStart = app.DateTimeStart.AddDate(0, 0, 7)
+			app.DateTimeEnd = app.DateTimeEnd.AddDate(0, 0, 7)
+		}
+	case 30:
+		for app.DateTimeStart.Before(view.MinDate) {
+			app.DateTimeStart = app.DateTimeStart.AddDate(0, 1, 0)
+			app.DateTimeEnd = app.DateTimeEnd.AddDate(0, 1, 0)
+		}
+	case 365:
+		for app.DateTimeStart.Before(view.MinDate) {
+			app.DateTimeStart = app.DateTimeStart.AddDate(1, 0, 0)
+			app.DateTimeEnd = app.DateTimeEnd.AddDate(1, 0, 0)
+		}
+	}
+	return app
 }

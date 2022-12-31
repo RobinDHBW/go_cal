@@ -34,24 +34,30 @@ func TerminCreateHandler(w http.ResponseWriter, r *http.Request) {
 	switch {
 	case r.Form.Has("createTermin"):
 		templates.TempCreateTermin.Execute(w, struct {
-			frontendHandling.FrontendView
-			data.User
+			*frontendHandling.FrontendView
+			*data.User
 		}{feParams,
-			*user})
+			user})
 	case r.Form.Has("createTerminSubmit"):
-		if EditTerminFromInput(w, r, false, user) {
+		err := EditTerminFromInput(r, false, user, -1)
+		errEmpty := error2.DisplayedError{}
+		if err == errEmpty {
 			templates.TempTerminList.Execute(w, struct {
-				frontendHandling.FrontendView
-				data.User
+				*frontendHandling.FrontendView
+				*data.User
 			}{feParams,
-				*user})
+				user})
+		} else {
+			w.WriteHeader(http.StatusBadRequest)
+			templates.TempError.Execute(w, err)
+			return
 		}
 
 	default:
 		templates.TempTerminList.Execute(w, struct {
-			frontendHandling.FrontendView
-			data.User
+			*frontendHandling.FrontendView
+			*data.User
 		}{feParams,
-			*user})
+			user})
 	}
 }

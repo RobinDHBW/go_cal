@@ -18,13 +18,13 @@
                         <button style="font-size: 16px" name="calendarBack" id="calendarBack" type="submit">Zurück zum Kalendar</button>
                         <br>
                         <label class="inputlabel" for="dateChoose">Datum wählen</label>
-                        <input style="font-size: 16px" name="dateChoose" id="dateChoose" type="date" value='{{.MinDate.Format "2006-01-02"}}'/>
+                        <input style="font-size: 16px" name="dateChoose" id="dateChoose" type="date" value='{{.FrontendView.MinDate.Format "2006-01-02"}}'/>
                         <br>
                         <label class="inputlabel" for="numberPerSite">Anzahl Termine pro Seite</label>
-                        <input style="font-size: 16px" name="numberPerSite" id="numberPerSite" type="number" min="1" step="1" value="{{.TerminPerSite}}"/><br>
+                        <input style="font-size: 16px" name="numberPerSite" id="numberPerSite" type="number" min="1" step="1" value="{{.FrontendView.TerminPerSite}}"/><br>
 
                         <label class="inputlabel" for="siteChoose">Seitenzahl wählen</label>
-                        <input style="font-size: 16px" id="siteChoose" name="siteChoose" type="number" min="1" step="1" value="{{.TerminSite}}"/>
+                        <input style="font-size: 16px" id="siteChoose" name="siteChoose" type="number" min="1" step="1" value="{{.FrontendView.TerminSite}}"/>
 
                         <button style="font-size: 16px" name="submitTermin" id="submitTermin" type="submit">Submit</button>
                     </form>
@@ -36,13 +36,13 @@
 
     </div>
     <div class="terminlist">
-            {{range $index, $v := .GetTerminList}}
+            {{range $index, $v := .FrontendView.GetTerminList .User.Appointments}}
                 <span class="termin">
                     {{.Title}}
                     <br>
-                    Zeitpunkt: {{.Begin.Format "02.01.2006 15:04"}} bis {{.End.Format "02.01.2006 15:04"}} (Wiederholung: {{.Repeating}})
+                    Zeitpunkt: {{.DateTimeStart.Format "02.01.2006 15:04"}} bis {{.DateTimeEnd.Format "02.01.2006 15:04"}} (Wiederholung: {{.GetDescriptionFromInterval}})
                     <br>
-                    {{.Content}}
+                    {{.Description}}
                     <form id="terminChangeForm" method="post" action="/editTermin">
                         <button style="font-size: 16px" name="editTermin" type="submit" value="{{$index}}">Termin bearbeiten/löschen</button>
 
