@@ -24,9 +24,12 @@ func main() {
 	http.HandleFunc("/register", authentication.RegisterHandler)
 	http.HandleFunc("/logout", authentication.LogoutHandler)
 	http.HandleFunc("/", authentication.LoginHandler)
+	// TODO Wrapper aufrufen
 	http.HandleFunc("/listTermin", terminHandling.TerminHandler)
 	http.HandleFunc("/createTermin", terminHandling.TerminCreateHandler)
 	http.HandleFunc("/editTermin", terminHandling.TerminEditHandler)
+	http.HandleFunc("/shareTermin", terminHandling.TerminShareHandler)
+	http.HandleFunc("/terminVoting", terminHandling.TerminVotingHandler)
 	//http.HandleFunc("/download", export.Wrapper(export.AuthenticatorFunc(export.CheckUserValid), terminHandling.DownloadHandler))
 	http.Handle("/templates/static/", http.StripPrefix("/templates/static", http.FileServer(http.Dir("templates/static"))))
 

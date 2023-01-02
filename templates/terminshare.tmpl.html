@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Share Termin</title>
+    <link href="templates/static/terminlist.css" type="text/css" rel="stylesheet">
+    <link rel="icon" href="data:,">
+</head>
+<body>
+
+{{template "header"}}
+<div class="calendar-container">
+    <div class="month">
+        <form id="backToCalendar" method="post" action="/listTermin">
+            <ul>
+                <li>
+                    Terminfindung<br><br>
+                    <button style="font-size: 16px" name="terminlistBack" id="terminlistBack" type="submit">Zurück zur Terminliste</button>
+                </li>
+            </ul>
+        </form>
+        <br>
+        <form id="shareCreateForm" method="post" action="/shareTermin">
+            <button style="font-size: 16px" name="shareCreate" id="shareCreate" type="submit">Terminfindung erstellen</button>
+        </form>
+    </div>
+
+    <div class="terminlist">
+        {{range $index, $v := .}}
+        <span class="termin">
+                    {{$index}}
+                    <br>
+                    <form id="terminEditShareForm" method="post" action="/shareTermin">
+                        <button style="font-size: 16px" name="editShareTermin" type="submit" value="{{$index}}">Terminfindung anzeigen</button>
+                    </form>
+                    <hr>
+                </span>
+        {{else}}
+        <span class="termin">
+            Keine Terminfindungen vorhanden
+            <hr>
+        </span>
+        {{end}}
+
+    </div>
+</div>
+
+</body>
+</html>

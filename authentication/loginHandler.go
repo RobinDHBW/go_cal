@@ -251,6 +251,7 @@ func refreshCookie(r *http.Request) (sessionToken string, expires time.Time) {
 }
 
 func createUUID(n int) string {
+	rand.Seed(time.Now().UnixNano())
 	const letterBytes = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 	b := make([]byte, n)
 	for i := range b {

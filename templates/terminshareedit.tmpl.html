@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Terminlist</title>
+    <link href="templates/static/terminlist.css" type="text/css" rel="stylesheet">
+    <link rel="icon" href="data:,">
+</head>
+<body>
+
+{{template "header"}}
+<div class="calendar-container">
+    <div class="month">
+        <form id="backToCalendar" method="post" action="/shareTermin">
+            <ul>
+                <li>
+                    <button style="font-size: 16px" name="terminlistShareBack" id="terminlistShareBack" type="submit">
+                        Zurück zur Terminfindungsliste
+                    </button>
+                </li>
+            </ul>
+        </form>
+    </div>
+    <div class="terminlist">
+        <b>Titel: {{(index . 0).Title}}</b>
+        <br>
+        Bisherige Terminvorschläge: <br>
+        {{range $index, $v := .}}
+            Zeitpunkt:
+            {{.DateTimeStart.Format "01.02.2006 15:04"}}
+            bis
+            {{.DateTimeEnd.Format "01.02.2006 15:04"}}
+            <br>
+            Wiederholung:
+            {{.GetDescriptionFromInterval}}
+        <br><br>
+        {{end}}
+    </div>
+    <hr>
+    <div class="terminlist">
+        Bisherige eingeladene User: <br>
+        {{$share:=(index . 0).Share}}
+        {{range $index, $v := $share.Tokens}}
+        {{$share.GetUsernameFromUrl .}}
+        <br>
+        {{else}}
+        Keine User eingeladen.
+        {{end}}
+        <hr>
+    </div>
+
+    <br><br>
+    <div class="terminlist">
+        <b>Terminvorschläge erstellen</b>
+        <form id="terminShareEditForm" method="post" action="/shareTermin">
+
+        <span class="termin">
+            Zeitpunkt:
+            <input style="font-size: 16px" name="dateBegin" id="dateBegin" type="datetime-local"/>
+            bis
+            <input style="font-size: 16px" name="dateEnd" id="dateEnd" type="datetime-local"/>
+            <br>
+            Wiederholung:
+            <select name="chooseRepeat" id="chooseRepeat">
+                <option value="none">keine</option>
+                <option value="day">täglich</option>
+                <option value="week">wöchentlich</option>
+                <option value="month">monatlich</option>
+                <option value="year">jährlich</option>
+            </select>
+            <br>
+            <button style="font-size: 16px" name="editShareTerminSubmit" id="editShareTerminSubmit" type="submit" value="{{(index . 0).Title}}">Änderungen bestätigen</button>
+            <hr>
+        </span>
+        </form>
+    </div>
+    <div class="terminlist">
+        <b>User einladen</b>
+        <form id="inviteUserForm" method="post" action="/shareTermin">
+        <span class="termin">
+            Username:
+            <input style="font-size: 16px" name="username" id="username" type="text"/>
+            <br>
+            <button style="font-size: 16px" name="inviteUserSubmit" id="inviteUserSubmit" type="submit" value="{{(index . 0).Title}}">User einladen</button>
+            <hr>
+        </span>
+        </form>
+
+    </div>
+</div>
+
+</body>
+</html>

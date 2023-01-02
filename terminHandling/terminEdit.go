@@ -154,7 +154,7 @@ func EditTerminFromInput(r *http.Request, edit bool, user *data.User, id int) er
 		app.Timeseries.Repeat = repeat > 0
 		dataModel.Dm.EditAppointment(user.Id, app)
 	} else {
-		appointment := data.NewAppointment(title, content, begin, end, user.Id, repeat > 0, repeat, false, "")
+		appointment := data.NewAppointment(title, content, begin, end, user.Id, repeat > 0, repeat, false)
 		dataModel.Dm.AddAppointment(user.Id, appointment)
 	}
 	return error2.DisplayedError{}

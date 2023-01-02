@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Terminlist</title>
+    <link href="templates/static/terminlist.css" type="text/css" rel="stylesheet">
+</head>
+<body>
+
+{{template "header"}}
+<div class="calendar-container">
+    <div class="month">
+        <form id="backToShareList" method="post" action="/shareTermin">
+            <ul>
+                <li>
+                    Terminfindung erstellen<br><br>
+                    <button style="font-size: 16px" name="terminlistShareBack" id="terminlistShareBack" type="submit">
+                        Zurück zur Terminfindungsliste
+                    </button>
+                </li>
+            </ul>
+        </form>
+    </div>
+    <div class="terminlist">
+        <form id="terminShareCreateForm" method="post" action="/shareTermin">
+            <span class="termin">
+                <input style="font-size: 16px" id="title" name="title" type="text" placeholder="Titel ..."/>
+                <br>
+                Zeitpunkt:
+                <input style="font-size: 16px" name="dateBegin" id="dateBegin" type="datetime-local"/>
+                bis
+                <input style="font-size: 16px" name="dateEnd" id="dateEnd" type="datetime-local"/>
+                <br>
+                Wiederholung:
+                <select name="chooseRepeat" id="chooseRepeat">
+                    <option value="none" selected>keine</option>
+                    <option value="day">täglich</option>
+                    <option value="week">wöchentlich</option>
+                    <option value="month">monatlich</option>
+                    <option value="year">jährlich</option>
+                </select>
+                <button style="font-size: 16px" name="terminShareCreateSubmit" id="terminShareCreateSubmit" type="submit">Erstellen</button>
+            </span>
+        </form>
+    </div>
+</div>
+
+</body>
+</html>
