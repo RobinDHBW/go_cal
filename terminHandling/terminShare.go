@@ -100,8 +100,8 @@ func createSharedTermin(r *http.Request, user *data.User, title string) error2.D
 
 	repeat := GetRepeatingMode(r.Form.Get("chooseRepeat"))
 
-	ap := data.NewAppointment(title, "", begin, end, user.Id, repeat > 0, repeat, true)
-	dataModel.Dm.AddSharedAppointment(user.Id, title, ap)
+	//ap := data.NewAppointment(title, "", begin, end, user.Id, repeat > 0, repeat, true)
+	dataModel.Dm.AddSharedAppointment(user.Id, title, "here", begin, end, repeat > 0, repeat, true)
 	return error2.DisplayedError{}
 }
 

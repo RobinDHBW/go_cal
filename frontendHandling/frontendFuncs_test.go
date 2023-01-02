@@ -13,11 +13,11 @@ import (
 	"time"
 )
 
-var App1 data.Appointment
-var App2 data.Appointment
-var App3 data.Appointment
-var App4 data.Appointment
-var App5 data.Appointment
+//var App1 data.Appointment
+//var App2 data.Appointment
+//var App3 data.Appointment
+//var App4 data.Appointment
+//var App5 data.Appointment
 
 func TestFrontendView_GetDaysOfMonth(t *testing.T) {
 	fv := FrontendView{
@@ -169,17 +169,11 @@ func TestFrontendView_GetAppointmentsForMonth(t *testing.T) {
 	}
 	user, _ := dataModel.Dm.AddUser("Testuser", "pw", 0)
 	// Einzelner Termin: 7 Dez 2022
-	app1 := data.NewAppointment("titel1", "beschreibung1",
-		time.Date(2022, 12, 7, 12, 0, 0, 0, time.Local),
-		time.Date(2022, 12, 7, 14, 0, 0, 0, time.Local),
-		user.Id, false, 0, false, "")
+	dataModel.Dm.AddAppointment(user.Id, "titel1", "beschreibung1", "here", time.Date(2022, 12, 7, 12, 0, 0, 0, time.Local),
+		time.Date(2022, 12, 7, 14, 0, 0, 0, time.Local), false, 0, false)
 	// Wöchentlicher Termin: ab 12 Dez 2022
-	app2 := data.NewAppointment("titel2", "beschreibung2",
-		time.Date(2022, 12, 12, 15, 0, 0, 0, time.Local),
-		time.Date(2022, 12, 12, 17, 0, 0, 0, time.Local),
-		user.Id, true, 7, false, "")
-	dataModel.Dm.AddAppointment(user.Id, app1)
-	dataModel.Dm.AddAppointment(user.Id, app2)
+	dataModel.Dm.AddAppointment(user.Id, "titel2", "beschreibung2", "here", time.Date(2022, 12, 12, 15, 0, 0, 0, time.Local),
+		time.Date(2022, 12, 12, 17, 0, 0, 0, time.Local), true, 7, false)
 	exp := make([]int, 32)
 	exp[7] = 1
 	exp[12] = 1
@@ -189,34 +183,25 @@ func TestFrontendView_GetAppointmentsForMonth(t *testing.T) {
 	assert.Equal(t, apps, exp, "test single appointment and weekly repeat: Slices not equal")
 
 	// Monatlicher Termin: ab 11 Nov 2022
-	app3 := data.NewAppointment("titel3", "beschreibung3",
-		time.Date(2022, 11, 11, 15, 0, 0, 0, time.Local),
-		time.Date(2022, 11, 11, 17, 0, 0, 0, time.Local),
-		user.Id, true, 30, false, "")
+	dataModel.Dm.AddAppointment(user.Id, "titel3", "beschreibung3", "here", time.Date(2022, 11, 11, 15, 0, 0, 0, time.Local),
+		time.Date(2022, 11, 11, 17, 0, 0, 0, time.Local), true, 30, false)
 	exp[11] = 1
-	dataModel.Dm.AddAppointment(user.Id, app3)
 	apps = fv.GetAppointmentsForMonth(*user)
 	assert.Equal(t, apps, exp, "test monthly repeat: Slices not equal")
 
 	// Jährlicher Termin: ab 12 Dez 2021
-	app4 := data.NewAppointment("titel4", "beschreibung4",
-		time.Date(2021, 12, 12, 15, 0, 0, 0, time.Local),
-		time.Date(2021, 12, 12, 17, 0, 0, 0, time.Local),
-		user.Id, true, 365, false, "")
+	dataModel.Dm.AddAppointment(user.Id, "titel4", "beschreibung4", "here", time.Date(2021, 12, 12, 15, 0, 0, 0, time.Local),
+		time.Date(2021, 12, 12, 17, 0, 0, 0, time.Local), true, 365, false)
 	exp[12]++
-	dataModel.Dm.AddAppointment(user.Id, app4)
 	apps = fv.GetAppointmentsForMonth(*user)
 	assert.Equal(t, apps, exp, "test yearly repeat: Slices not equal")
 
 	// Täglicher Termin: ab 17 Dez 2022
-	app5 := data.NewAppointment("titel5", "beschreibung5",
-		time.Date(2022, 12, 17, 15, 0, 0, 0, time.Local),
-		time.Date(2022, 12, 17, 17, 0, 0, 0, time.Local),
-		user.Id, true, 1, false, "")
+	dataModel.Dm.AddAppointment(user.Id, "titel5", "beschreibung5", "here", time.Date(2022, 12, 17, 15, 0, 0, 0, time.Local),
+		time.Date(2022, 12, 17, 17, 0, 0, 0, time.Local), true, 1, false)
 	for i := range exp[17:] {
 		exp[17+i]++
 	}
-	dataModel.Dm.AddAppointment(user.Id, app5)
 	apps = fv.GetAppointmentsForMonth(*user)
 	assert.Equal(t, apps, exp, "test yearly repeat: Slices not equal")
 
@@ -306,7 +291,7 @@ func TestGetTerminList(t *testing.T) {
 	defer after()
 	dataModel.InitDataModel("../data/test")
 	user, _ := dataModel.Dm.AddUser("Testuser", "test", 0)
-	addAppointments(user.Id)
+	ap1, ap2, ap3, ap4, ap5 := addAppointments(user.Id)
 	// Termine ab 11.12.2022
 	fv := FrontendView{
 		Month:         12,
@@ -318,14 +303,14 @@ func TestGetTerminList(t *testing.T) {
 	Apps := fv.GetTerminList(user.Appointments)
 	// Richtige Reihenfolge der Termine
 	exp := make([]data.Appointment, 0, 1)
-	exp = append(exp, App3)
-	exp = append(exp, App1)
-	exp = append(exp, App2)
-	expApp4 := App4
+	exp = append(exp, *ap3)
+	exp = append(exp, *ap1)
+	exp = append(exp, *ap2)
+	expApp4 := *ap4
 	expApp4.DateTimeStart = expApp4.DateTimeStart.AddDate(1, 0, 0)
 	expApp4.DateTimeEnd = expApp4.DateTimeEnd.AddDate(1, 0, 0)
 	exp = append(exp, expApp4)
-	exp = append(exp, App5)
+	exp = append(exp, *ap5)
 	assert.Equal(t, Apps, exp, "test 1 equal")
 
 	// Termine ab 20.12.2022
@@ -339,56 +324,42 @@ func TestGetTerminList(t *testing.T) {
 	Apps = fv.GetTerminList(user.Appointments)
 	// Richtige Reihenfolge der Termine
 	exp = make([]data.Appointment, 0, 1)
-	expApp5 := App5
+	expApp5 := *ap5
 	expApp5.DateTimeStart = expApp5.DateTimeStart.AddDate(0, 0, 3)
 	expApp5.DateTimeEnd = expApp5.DateTimeEnd.AddDate(0, 0, 3)
 	exp = append(exp, expApp5)
-	expApp2 := App2
+	expApp2 := *ap2
 	expApp2.DateTimeStart = expApp2.DateTimeStart.AddDate(0, 0, 14)
 	expApp2.DateTimeEnd = expApp2.DateTimeEnd.AddDate(0, 0, 14)
 	exp = append(exp, expApp2)
-	expApp3 := App3
+	expApp3 := *ap3
 	expApp3.DateTimeStart = expApp3.DateTimeStart.AddDate(0, 2, 0)
 	expApp3.DateTimeEnd = expApp3.DateTimeEnd.AddDate(0, 2, 0)
 	exp = append(exp, expApp3)
-	expApp4 = App4
+	expApp4 = *ap4
 	expApp4.DateTimeStart = expApp4.DateTimeStart.AddDate(2, 0, 0)
 	expApp4.DateTimeEnd = expApp4.DateTimeEnd.AddDate(2, 0, 0)
 	exp = append(exp, expApp4)
 	assert.Equal(t, Apps, exp, "test 2 equal")
 }
 
-func addAppointments(id int) {
+func addAppointments(id int) (ap1, ap2, ap3, ap4, ap5 *data.Appointment) {
 	// Einzelner Termin: 7 Dez 2022
-	App1 = data.NewAppointment("titel1", "beschreibung1",
-		time.Date(2022, 12, 7, 12, 0, 0, 0, time.Local),
-		time.Date(2022, 12, 7, 14, 0, 0, 0, time.Local),
-		id, false, 0, false, "")
+	_, ap1 = dataModel.Dm.AddAppointment(id, "titel1", "beschreibung1", "here", time.Date(2022, 12, 7, 12, 0, 0, 0, time.Local),
+		time.Date(2022, 12, 7, 14, 0, 0, 0, time.Local), false, 0, false)
 	// Wöchentlicher Termin: ab 12 Dez 2022
-	App2 = data.NewAppointment("titel2", "beschreibung2",
-		time.Date(2022, 12, 12, 14, 0, 0, 0, time.Local),
-		time.Date(2022, 12, 12, 17, 0, 0, 0, time.Local),
-		id, true, 7, false, "")
+	_, ap2 = dataModel.Dm.AddAppointment(id, "titel2", "beschreibung2", "here", time.Date(2022, 12, 12, 14, 0, 0, 0, time.Local),
+		time.Date(2022, 12, 12, 17, 0, 0, 0, time.Local), true, 7, false)
 	// Monatlicher Termin: ab 11 Nov 2022
-	App3 = data.NewAppointment("titel3", "beschreibung3",
-		time.Date(2022, 11, 11, 15, 0, 0, 0, time.Local),
-		time.Date(2022, 11, 11, 17, 0, 0, 0, time.Local),
-		id, true, 30, false, "")
+	_, ap3 = dataModel.Dm.AddAppointment(id, "titel3", "beschreibung3", "here", time.Date(2022, 11, 11, 15, 0, 0, 0, time.Local),
+		time.Date(2022, 11, 11, 17, 0, 0, 0, time.Local), true, 30, false)
 	// Jährlicher Termin ab 12 Dez 2021
-	App4 = data.NewAppointment("titel4", "beschreibung4",
-		time.Date(2021, 12, 12, 15, 0, 0, 0, time.Local),
-		time.Date(2021, 12, 12, 17, 0, 0, 0, time.Local),
-		id, true, 365, false, "")
+	_, ap4 = dataModel.Dm.AddAppointment(id, "titel4", "beschreibung4", "here", time.Date(2021, 12, 12, 15, 0, 0, 0, time.Local),
+		time.Date(2021, 12, 12, 17, 0, 0, 0, time.Local), true, 365, false)
 	// Täglicher Termin ab 17 Dez 2022
-	App5 = data.NewAppointment("titel5", "beschreibung5",
-		time.Date(2022, 12, 17, 15, 0, 0, 0, time.Local),
-		time.Date(2022, 12, 17, 17, 0, 0, 0, time.Local),
-		id, true, 1, false, "")
-	dataModel.Dm.AddAppointment(id, App1)
-	dataModel.Dm.AddAppointment(id, App2)
-	dataModel.Dm.AddAppointment(id, App3)
-	dataModel.Dm.AddAppointment(id, App4)
-	dataModel.Dm.AddAppointment(id, App5)
+	_, ap5 = dataModel.Dm.AddAppointment(id, "titel5", "beschreibung5", "here", time.Date(2022, 12, 17, 15, 0, 0, 0, time.Local),
+		time.Date(2022, 12, 17, 17, 0, 0, 0, time.Local), true, 1, false)
+	return
 }
 
 func after() {

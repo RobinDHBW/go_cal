@@ -110,6 +110,7 @@ func TestDataModel_AddUser(t *testing.T) {
 	//test if file on disk has same attributes
 
 	assert.EqualValues(t, "test", user.UserName)
+	assert.EqualValues(t, "test", user.UserName)
 	assert.EqualValues(t, 1, user.UserLevel)
 	assert.EqualValues(t, 0, len(user.Appointments))
 	assert.EqualValues(t, true, dataModel.ComparePW("abc", user.Password))
@@ -136,7 +137,7 @@ func TestDataModel_AddAppointment(t *testing.T) {
 	if err != nil {
 		t.FailNow()
 	}
-	user, ap := dataModel.AddAppointment(user.Id, "test", "hello123", "here", tNow, tThen, user.Id, false, 0, false, "")
+	user, ap := dataModel.AddAppointment(user.Id, "test", "hello123", "here", tNow, tThen, false, 0, false)
 
 	assert.EqualValues(t, "test", ap.Title)
 	assert.EqualValues(t, tNow, ap.DateTimeStart)
@@ -159,9 +160,9 @@ func TestDataModel_DeleteAppointment(t *testing.T) {
 	tNow := time.Now()
 	tThen := tNow.Add(time.Hour * time.Duration(1))
 
-	user, ap := dataModel.AddAppointment(user.Id, "test", "hello 123", "here", tNow, tThen, user.Id, false, 0, false, "")
-	user, ap = dataModel.AddAppointment(user.Id, "test1", "hello 123", "here", tNow, tThen, user.Id, false, 0, false, "")
-	user, ap = dataModel.AddAppointment(user.Id, "test2", "hello 123", "here", tNow, tThen, user.Id, false, 0, false, "")
+	user, ap := dataModel.AddAppointment(user.Id, "test", "hello 123", "here", tNow, tThen, false, 0, false)
+	user, ap = dataModel.AddAppointment(user.Id, "test1", "hello 123", "here", tNow, tThen, false, 0, false)
+	user, ap = dataModel.AddAppointment(user.Id, "test2", "hello 123", "here", tNow, tThen, false, 0, false)
 
 	lenAp := len(user.Appointments)
 	user = dataModel.DeleteAppointment(ap.Id, user.Id)
@@ -187,7 +188,7 @@ func TestDataModel_EditAppointment(t *testing.T) {
 
 	title := "test"
 	//ap1 := data.NewAppointment()
-	user, ap := dataModel.AddAppointment(user.Id, title, "hello 123", "here", tNow, tThen, user.Id, false, 0, false, "")
+	user, ap := dataModel.AddAppointment(user.Id, title, "hello 123", "here", tNow, tThen, false, 0, false)
 
 	assert.EqualValues(t, title, ap.Title)
 
@@ -217,9 +218,9 @@ func TestDataModel_GetAppointmentByTimeFrame(t *testing.T) {
 	t3 := time.Date(2022, 12, 24, 12, 00, 00, 00, time.UTC)
 	t3End := time.Date(2022, 12, 24, 13, 00, 00, 00, time.UTC)
 
-	user, _ = dataModel.AddAppointment(user.Id, "test", "hello 123", "here", t1, t1End, user.Id, false, 0, false, "")
-	user, _ = dataModel.AddAppointment(user.Id, "test1", "hello 123", "here", t2, t2End, user.Id, false, 0, false, "")
-	user, _ = dataModel.AddAppointment(user.Id, "test2", "hello 123", "Here", t3, t3End, user.Id, false, 0, false, "")
+	user, _ = dataModel.AddAppointment(user.Id, "test", "hello 123", "here", t1, t1End, false, 0, false)
+	user, _ = dataModel.AddAppointment(user.Id, "test1", "hello 123", "here", t2, t2End, false, 0, false)
+	user, _ = dataModel.AddAppointment(user.Id, "test2", "hello 123", "Here", t3, t3End, false, 0, false)
 
 	//user = dataModel.AddAppointment(dataModel.AddAppointment(dataModel.AddAppointment(user.Id, ap1).Id, ap2).Id, ap3)
 
@@ -244,9 +245,9 @@ func TestDataModel_GetAppointmentsBySearchString(t *testing.T) {
 	t1 := time.Date(2022, 12, 24, 10, 00, 00, 00, time.UTC)
 	t1End := time.Date(2022, 12, 24, 11, 00, 00, 00, time.UTC)
 
-	user, _ = dataModel.AddAppointment(user.Id, "test", "search for", "here", t1, t1End, user.Id, false, 0, false, "")
-	user, _ = dataModel.AddAppointment(user.Id, "test1", "catch me if you can", "here", t1, t1End, user.Id, false, 0, false, "")
-	user, _ = dataModel.AddAppointment(user.Id, "test2", "qwertzuiopasdfghjklyxcvbnm123456789", "Here", t1, t1End, user.Id, false, 0, false, "")
+	user, _ = dataModel.AddAppointment(user.Id, "test", "search for", "here", t1, t1End, false, 0, false)
+	user, _ = dataModel.AddAppointment(user.Id, "test1", "catch me if you can", "here", t1, t1End, false, 0, false)
+	user, _ = dataModel.AddAppointment(user.Id, "test2", "qwertzuiopasdfghjklyxcvbnm123456789", "Here", t1, t1End, false, 0, false)
 
 	//user = dataModel.AddAppointment(dataModel.AddAppointment(dataModel.AddAppointment(user.Id, ap1).Id, ap2).Id, ap3)
 

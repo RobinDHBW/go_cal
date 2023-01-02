@@ -4,6 +4,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"go_cal/authentication"
 	"go_cal/dataModel"
+	"go_cal/templates"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -13,7 +14,8 @@ import (
 // TODo: funktioniert noch nicht
 func TestUpdateCalendarHandler(t *testing.T) {
 	defer after()
-	authentication.Serv = &authentication.Server{Cmds: authentication.StartSessionManager()}
+	authentication.InitServer()
+	templates.Init()
 	dataModel.InitDataModel("../data/test")
 	_, err := dataModel.Dm.AddUser("Testuser", "test", 0)
 	assert.Nil(t, err)

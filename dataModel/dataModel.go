@@ -92,19 +92,22 @@ func (dm *DataModel) AddUser(name, pw string, userLevel int) (*data.User, error)
 	return &user, nil
 }
 
-func (dm *DataModel) AddAppointment(userID int, title, description, location string, dateTimeStart, dateTimeEnd time.Time, userId int, repeat bool, intervall int, public bool, url string) (*data.User, *data.Appointment) {
+func (dm *DataModel) AddAppointment(userId int, title, description, location string, dateTimeStart, dateTimeEnd time.Time, repeat bool, intervall int, public bool) (*data.User, *data.Appointment) {
 	apID++
-	ap := data.NewAppointment(title, description, location, dateTimeStart, dateTimeEnd, apID, userId, repeat, intervall, public, url)
+	ap := data.NewAppointment(title, description, location, dateTimeStart, dateTimeEnd, apID, userId, repeat, intervall, public)
 
-	user := dm.GetUserById(userID)
+	user := dm.GetUserById(userId)
 	user.Appointments[ap.Id] = ap
 
 	DataSync(user, dm)
 	return user, &ap
 }
 
-func (dm *DataModel) AddSharedAppointment(id int, title string, ap data.Appointment) *data.User {
-	user := dm.GetUserById(id)
+func (dm *DataModel) AddSharedAppointment(userId int, title, location string, dateTimeStart, dateTimeEnd time.Time, repeat bool, intervall int, public bool) *data.User {
+	apID++
+	ap := data.NewAppointment(title, "", location, dateTimeStart, dateTimeEnd, apID, userId, repeat, intervall, public)
+
+	user := dm.GetUserById(userId)
 	user.SharedAppointments[title] = append(user.SharedAppointments[title], ap)
 
 	DataSync(user, dm)
