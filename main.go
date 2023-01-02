@@ -10,26 +10,15 @@ import (
 	"net/http"
 )
 
-//var globalTemp = 0
-
 func mainHandler(w http.ResponseWriter, r *http.Request) {
 
 }
 
 func main() {
-	dataModel.InitDataModel()
-	authentication.Serv = &authentication.Server{Cmds: authentication.StartSessionManager()}
+	dataModel.InitDataModel("./files")
+	authentication.InitServer()
+	//authentication.Serv = &authentication.Server{Cmds: authentication.StartSessionManager()}
 	templates.Init()
-	//err := authentication.LoadUsersFromFiles()
-	//if err != nil {
-	//	fmt.Println(err)
-	//}
-	//if globalTemp == 0 { // nur zum Testen
-	//	terminHandling.TView.TList.CreateTermin("T1", "1 content", time.Now().AddDate(0, 0, -1), time.Now(), terminHandling.None)
-	//	terminHandling.TView.TList.CreateTermin("T2", "2 content", time.Now(), time.Now(), terminHandling.None)
-	//	terminHandling.TView.TList.CreateTermin("T3", "3 content", time.Now().AddDate(0, 0, -2), time.Now(), terminHandling.None)
-	//}
-	//globalTemp = 1
 
 	http.HandleFunc("/updateCalendar", authentication.Wrapper(calendar.UpdateCalendarHandler))
 	http.HandleFunc("/register", authentication.RegisterHandler)

@@ -15,13 +15,8 @@ import (
 
 var Dm DataModel
 
-func InitDataModel() {
-	dir, _ := os.Getwd()
-	if filepath.Base(dir) == "go_cal" || filepath.Base(dir) == "Go-Kalender" {
-		Dm = NewDM("./files")
-	} else {
-		Dm = NewDM("../files")
-	}
+func InitDataModel(path string) {
+	Dm = NewDM(path)
 }
 
 func encryptPW(password string) string {

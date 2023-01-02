@@ -44,6 +44,12 @@ type Command struct {
 
 var Serv *Server
 
+func InitServer() {
+	Serv = &Server{
+		Cmds: StartSessionManager(),
+	}
+}
+
 // prüft ob Session abgelaufen ist
 func (s session) isExpired() bool {
 	return s.expires.Before(time.Now())
@@ -253,29 +259,6 @@ func createUUID(n int) string {
 	return string(b)
 }
 
-//func LoadUsersFromFiles() error {
-//	// open folder
-//	folder, err := os.Open("./files")
-//	if err != nil {
-//		return err
-//	}
-//	// read all files inside directory
-//	files, err := folder.Readdir(0)
-//	if err != nil {
-//		return err
-//	}
-//	for _, file := range files {
-//		var user Credentials
-//		data, _ := os.ReadFile("./files/" + file.Name())
-//		err := json.Unmarshal(data, &user)
-//		if err != nil {
-//			return err
-//		}
-//		users[user.Username] = user.Password
-//	}
-//	return nil
-//}
-
 func AuthenticateUser(username, unHashedPassword string) (successful bool) {
 	user := dataModel.Dm.GetUserByName(username)
 	if user != nil && dataModel.Dm.ComparePW(unHashedPassword, user.Password) {
@@ -286,8 +269,8 @@ func AuthenticateUser(username, unHashedPassword string) (successful bool) {
 }
 
 func checkCookie(r *http.Request) (successful bool) {
+	// Anwortchannel erstellen
 	replyChannel := make(chan *session)
-
 	// Cookie auslesen
 	cookie, err := r.Cookie("session_token")
 	// kein Cookie
@@ -296,25 +279,14 @@ func checkCookie(r *http.Request) (successful bool) {
 	}
 	// Sessiontoken auslesen
 	sessionToken := cookie.Value
+	// read-Command schicken
 	Serv.Cmds <- Command{ty: read, sessionToken: sessionToken, replyChannel: replyChannel}
+	// session aus Antwortchannel lesen
 	session := <-replyChannel
-
-	//if session == nil {
-	//	return false
-	//}
-
-	//// session auslesen
-	//session, ok := sessions[sessionToken]
-	//// keine Session zu Sessiontoken gefunden
-	//if !ok {
-	//	return false
-	//}
-
 	// SessionToken is abgelaufen
 	if session.isExpired() {
 		// Session löschen
 		Serv.Cmds <- Command{ty: remove, sessionToken: sessionToken, replyChannel: replyChannel}
-		//delete(sessions, sessionToken)
 		<-replyChannel
 		return false
 	}
@@ -322,18 +294,16 @@ func checkCookie(r *http.Request) (successful bool) {
 }
 
 func CreateSession(username string) (sessionToken string, expires time.Time) {
+	// Anwortchannel erstellen
+	replyChannel := make(chan *session)
 	// Sessiontoken generieren
 	sessionToken = createUUID(25)
 	// Session läuft nach x Minuten ab
 	// TODO Zeit anpassen
 	expires = time.Now().Add(1 * time.Minute)
 	// Session anhand des Sessiontokens speichern
-	replyChannel := make(chan *session)
 	Serv.Cmds <- Command{ty: write, sessionToken: sessionToken, session: &session{uname: username, expires: expires}, replyChannel: replyChannel}
-	//sessions[sessionToken] = &session{
-	//	uname:   username,
-	//	expires: expires,
-	//}
+	// session aus Antwortchannel lesen
 	session := <-replyChannel
 	return sessionToken, session.expires
 }
@@ -358,6 +328,7 @@ func GetUserBySessionToken(r *http.Request) (*data.User, error) {
 	cookie, err := r.Cookie("session_token")
 	if err != nil {
 		return nil, err
+
 	}
 	sessionToken := cookie.Value
 
