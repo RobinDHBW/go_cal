@@ -5,8 +5,6 @@ import (
 	"go_cal/data"
 	"go_cal/dataModel"
 	"go_cal/frontendHandling"
-	"os"
-	"strconv"
 	"testing"
 	"time"
 )
@@ -18,7 +16,8 @@ var App4 data.Appointment
 var App5 data.Appointment
 
 func TestGetFirstTerminOfRepeatingInDate(t *testing.T) {
-	dataModel.InitDataModel()
+	defer after()
+	dataModel.InitDataModel("../data/test")
 	user, _ := dataModel.Dm.AddUser("Testuser", "test", 0)
 	addAppointments(user.Id)
 	// Termine ab 01.01.2023
@@ -57,9 +56,6 @@ func TestGetFirstTerminOfRepeatingInDate(t *testing.T) {
 	App4.DateTimeStart = time.Date(2023, 12, 12, 15, 0, 0, 0, time.Local)
 	App4.DateTimeEnd = time.Date(2023, 12, 12, 17, 0, 0, 0, time.Local)
 	assert.Equal(t, resApp, App4, "yearly test")
-
-	_ = os.Remove("../files/" + strconv.FormatInt(int64(user.Id), 10) + ".json")
-
 }
 
 func addAppointments(id int) {
@@ -93,5 +89,4 @@ func addAppointments(id int) {
 	dataModel.Dm.AddAppointment(id, App3)
 	dataModel.Dm.AddAppointment(id, App4)
 	dataModel.Dm.AddAppointment(id, App5)
-
 }

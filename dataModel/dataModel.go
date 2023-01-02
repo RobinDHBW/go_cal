@@ -7,8 +7,6 @@ import (
 	"go_cal/fileHandler"
 	"golang.org/x/crypto/bcrypt"
 	"log"
-	"os"
-	"path/filepath"
 	"strings"
 	"time"
 )
