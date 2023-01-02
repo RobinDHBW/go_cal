@@ -26,7 +26,7 @@ func fileWriteRead(user data.User, fH *FileHandler) data.User {
 
 func after() {
 	os.RemoveAll("../data/test/")
-	os.MkdirAll("../data/test/", 777)
+	//os.MkdirAll("../data/test/", 777)
 }
 
 func TestNewFH(t *testing.T) {

@@ -36,7 +36,7 @@ func fileWriteRead(user data.User, fH *fileHandler.FileHandler) data.User {
 
 func after() {
 	os.RemoveAll("../data/test/")
-	os.MkdirAll("../data/test/", 777)
+	//os.MkdirAll("../data/test/", 777)
 }
 
 func TestNewDM(t *testing.T) {
@@ -136,14 +136,14 @@ func TestDataModel_AddAppointment(t *testing.T) {
 	if err != nil {
 		t.FailNow()
 	}
-	user = dataModel.AddAppointment(user.Id, data.NewAppointment("test", "hello123", tNow, tThen, user.Id, false, 0, false, ""))
+	user, ap := dataModel.AddAppointment(user.Id, "test", "hello123", "here", tNow, tThen, user.Id, false, 0, false, "")
 
-	assert.EqualValues(t, "test", user.Appointments[0].Title)
-	assert.EqualValues(t, tNow, user.Appointments[0].DateTimeStart)
-	assert.EqualValues(t, tThen, user.Appointments[0].DateTimeEnd)
-	assert.EqualValues(t, user.Id, user.Appointments[0].Userid)
-	assert.EqualValues(t, false, user.Appointments[0].Share.Public)
-	assert.EqualValues(t, false, user.Appointments[0].Timeseries.Repeat)
+	assert.EqualValues(t, "test", ap.Title)
+	assert.EqualValues(t, tNow, ap.DateTimeStart)
+	assert.EqualValues(t, tThen, ap.DateTimeEnd)
+	assert.EqualValues(t, user.Id, ap.Userid)
+	assert.EqualValues(t, false, ap.Share.Public)
+	assert.EqualValues(t, false, ap.Timeseries.Repeat)
 }
 
 func TestDataModel_DeleteAppointment(t *testing.T) {
@@ -159,16 +159,14 @@ func TestDataModel_DeleteAppointment(t *testing.T) {
 	tNow := time.Now()
 	tThen := tNow.Add(time.Hour * time.Duration(1))
 
-	ap1 := data.NewAppointment("test", "hello 123", tNow, tThen, user.Id, false, 0, false, "")
-	ap2 := data.NewAppointment("test1", "hello 123", tNow, tThen, user.Id, false, 0, false, "")
-	ap3 := data.NewAppointment("test2", "hello 123", tNow, tThen, user.Id, false, 0, false, "")
-
-	user = dataModel.AddAppointment(dataModel.AddAppointment(dataModel.AddAppointment(user.Id, ap1).Id, ap2).Id, ap3)
+	user, ap := dataModel.AddAppointment(user.Id, "test", "hello 123", "here", tNow, tThen, user.Id, false, 0, false, "")
+	user, ap = dataModel.AddAppointment(user.Id, "test1", "hello 123", "here", tNow, tThen, user.Id, false, 0, false, "")
+	user, ap = dataModel.AddAppointment(user.Id, "test2", "hello 123", "here", tNow, tThen, user.Id, false, 0, false, "")
 
 	lenAp := len(user.Appointments)
-	user = dataModel.DeleteAppointment(ap1.Id, user.Id)
+	user = dataModel.DeleteAppointment(ap.Id, user.Id)
 
-	_, ok := user.Appointments[ap1.Id]
+	_, ok := user.Appointments[ap.Id]
 
 	assert.EqualValues(t, lenAp-1, len(user.Appointments))
 	assert.False(t, ok)
@@ -188,16 +186,16 @@ func TestDataModel_EditAppointment(t *testing.T) {
 	tThen := tNow.Add(time.Hour * time.Duration(1))
 
 	title := "test"
-	ap1 := data.NewAppointment(title, "hello 123", tNow, tThen, user.Id, false, 0, false, "")
-	user = dataModel.AddAppointment(user.Id, ap1)
+	//ap1 := data.NewAppointment()
+	user, ap := dataModel.AddAppointment(user.Id, title, "hello 123", "here", tNow, tThen, user.Id, false, 0, false, "")
 
-	assert.EqualValues(t, title, user.Appointments[ap1.Id].Title)
+	assert.EqualValues(t, title, ap.Title)
 
 	title = "test123"
-	ap1.Title = title
-	user = dataModel.EditAppointment(user.Id, ap1)
+	ap.Title = title
+	user = dataModel.EditAppointment(user.Id, ap)
 
-	assert.EqualValues(t, title, user.Appointments[ap1.Id].Title)
+	assert.EqualValues(t, title, user.Appointments[ap.Id].Title)
 }
 
 func TestDataModel_GetAppointmentByTimeFrame(t *testing.T) {
@@ -219,11 +217,11 @@ func TestDataModel_GetAppointmentByTimeFrame(t *testing.T) {
 	t3 := time.Date(2022, 12, 24, 12, 00, 00, 00, time.UTC)
 	t3End := time.Date(2022, 12, 24, 13, 00, 00, 00, time.UTC)
 
-	ap1 := data.NewAppointment("test", "hello 123", t1, t1End, user.Id, false, 0, false, "")
-	ap2 := data.NewAppointment("test1", "hello 123", t2, t2End, user.Id, false, 0, false, "")
-	ap3 := data.NewAppointment("test2", "hello 123", t3, t3End, user.Id, false, 0, false, "")
+	user, _ = dataModel.AddAppointment(user.Id, "test", "hello 123", "here", t1, t1End, user.Id, false, 0, false, "")
+	user, _ = dataModel.AddAppointment(user.Id, "test1", "hello 123", "here", t2, t2End, user.Id, false, 0, false, "")
+	user, _ = dataModel.AddAppointment(user.Id, "test2", "hello 123", "Here", t3, t3End, user.Id, false, 0, false, "")
 
-	user = dataModel.AddAppointment(dataModel.AddAppointment(dataModel.AddAppointment(user.Id, ap1).Id, ap2).Id, ap3)
+	//user = dataModel.AddAppointment(dataModel.AddAppointment(dataModel.AddAppointment(user.Id, ap1).Id, ap2).Id, ap3)
 
 	_, check := dataModel.GetAppointmentsByTimeFrame(user.Id, time.Date(2022, 12, 24, 9, 59, 00, 00, time.UTC), time.Date(2022, 12, 24, 13, 01, 00, 00, time.UTC))
 	assert.EqualValues(t, len(user.Appointments), len(*check))
@@ -246,11 +244,11 @@ func TestDataModel_GetAppointmentsBySearchString(t *testing.T) {
 	t1 := time.Date(2022, 12, 24, 10, 00, 00, 00, time.UTC)
 	t1End := time.Date(2022, 12, 24, 11, 00, 00, 00, time.UTC)
 
-	ap1 := data.NewAppointment("test", "search for", t1, t1End, user.Id, false, 0, false, "")
-	ap2 := data.NewAppointment("test1", "catch me if you can", t1, t1End, user.Id, false, 0, false, "")
-	ap3 := data.NewAppointment("test2", "qwertzuiopasdfghjklyxcvbnm123456789", t1, t1End, user.Id, false, 0, false, "")
+	user, _ = dataModel.AddAppointment(user.Id, "test", "search for", "here", t1, t1End, user.Id, false, 0, false, "")
+	user, _ = dataModel.AddAppointment(user.Id, "test1", "catch me if you can", "here", t1, t1End, user.Id, false, 0, false, "")
+	user, _ = dataModel.AddAppointment(user.Id, "test2", "qwertzuiopasdfghjklyxcvbnm123456789", "Here", t1, t1End, user.Id, false, 0, false, "")
 
-	user = dataModel.AddAppointment(dataModel.AddAppointment(dataModel.AddAppointment(user.Id, ap1).Id, ap2).Id, ap3)
+	//user = dataModel.AddAppointment(dataModel.AddAppointment(dataModel.AddAppointment(user.Id, ap1).Id, ap2).Id, ap3)
 
 	_, check := dataModel.GetAppointmentsBySearchString(user.Id, "test")
 	assert.EqualValues(t, len(user.Appointments), len(*check))

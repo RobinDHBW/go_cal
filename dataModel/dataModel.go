@@ -12,6 +12,7 @@ import (
 )
 
 var Dm DataModel
+var apID = 0
 
 func InitDataModel(path string) {
 	Dm = NewDM(path)
@@ -53,6 +54,11 @@ func NewDM(dataPath string) DataModel {
 		var user data.User
 		json.Unmarshal([]byte(uString), &user)
 		uMap[user.Id] = user
+		for _, ap := range user.Appointments {
+			if ap.Id > apID {
+				apID = ap.Id
+			}
+		}
 	}
 
 	return DataModel{uMap, fH}
@@ -86,14 +92,15 @@ func (dm *DataModel) AddUser(name, pw string, userLevel int) (*data.User, error)
 	return &user, nil
 }
 
-// Call by reference or call by value?
-func (dm *DataModel) AddAppointment(id int, ap data.Appointment) *data.User {
-	user := dm.GetUserById(id)
-	//user.Appointments = append(user.Appointments, ap)
+func (dm *DataModel) AddAppointment(userID int, title, description, location string, dateTimeStart, dateTimeEnd time.Time, userId int, repeat bool, intervall int, public bool, url string) (*data.User, *data.Appointment) {
+	apID++
+	ap := data.NewAppointment(title, description, location, dateTimeStart, dateTimeEnd, apID, userId, repeat, intervall, public, url)
+
+	user := dm.GetUserById(userID)
 	user.Appointments[ap.Id] = ap
 
 	DataSync(user, dm)
-	return user
+	return user, &ap
 }
 
 func (dm *DataModel) DeleteAppointment(apId, uId int) *data.User {
@@ -104,9 +111,9 @@ func (dm *DataModel) DeleteAppointment(apId, uId int) *data.User {
 	return user
 }
 
-func (dm *DataModel) EditAppointment(uId int, ap data.Appointment) *data.User {
+func (dm *DataModel) EditAppointment(uId int, ap *data.Appointment) *data.User {
 	user := dm.GetUserById(uId)
-	user.Appointments[ap.Id] = ap
+	user.Appointments[ap.Id] = *ap
 
 	DataSync(user, dm)
 	return user

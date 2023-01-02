@@ -17,7 +17,7 @@ type FileHandler struct {
 // Initialize structs from disk
 func NewFH(dataPath string) FileHandler {
 
-	err := os.MkdirAll(dataPath, os.ModePerm)
+	err := os.MkdirAll(dataPath, 777)
 	if err != nil {
 		log.Fatal(err)
 	}
