@@ -258,7 +258,7 @@ func TestGetFrontendParameters(t *testing.T) {
 	http.SetCookie(recorder, &http.Cookie{Name: "fe_parameter", Value: cookieValue})
 	request := &http.Request{Header: http.Header{"Cookie": recorder.Header()["Set-Cookie"]}}
 	fv, err := GetFrontendParameters(request)
-	fvExp := FrontendView{
+	fvExp := &FrontendView{
 		Month:         10,
 		Year:          2022,
 		TerminPerSite: 10,
@@ -272,14 +272,14 @@ func TestGetFrontendParameters(t *testing.T) {
 	request = &http.Request{}
 	fv, err = GetFrontendParameters(request)
 	assert.NotNil(t, err)
-	assert.Equal(t, fv, FrontendView{}, "structs should be equal")
+	assert.Equal(t, fv, &FrontendView{}, "structs should be equal + empty")
 
 	// invalid Cookie
 	cookieValue = "{'Month':10,'Year':2022,'TerminPerS,'MinDate':'2022-09-12T10:00:00Z'}"
 	http.SetCookie(recorder, &http.Cookie{Name: "fe_parameter", Value: cookieValue})
 	request = &http.Request{Header: http.Header{"Cookie": recorder.Header()["Set-Cookie"]}}
 	assert.NotNil(t, err)
-	assert.Equal(t, fv, FrontendView{}, "structs should be equal")
+	assert.Equal(t, fv, &FrontendView{}, "structs should be equal + empty (invalid)")
 
 }
 
