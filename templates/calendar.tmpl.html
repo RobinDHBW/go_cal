@@ -16,7 +16,7 @@
                     <li class="prev"><button name="prev" id="prev" type="submit">&#10094;</button></li>
                     <li class="next"><button name="next" id="next" type="submit">&#10095;</button></li>
                     <li>
-                        {{.Month}} {{.Year}}<br><br>
+                        {{.FrontendView.Month}} {{.FrontendView.Year}}<br><br>
                         <select name="chooseMonth" id="chooseMonth">
                             <option value="1" {{if eq .Month 1}} selected {{end}}>Januar</option>
                             <option value="2" {{if eq .Month 2}} selected {{end}}>Februar</option>
@@ -34,7 +34,7 @@
                         <input class="select" id="chooseYear" name="chooseYear" type="number" min="0" step="1" value="{{.Year}}"/>
                         <button style="font-size: 16px" name="choose" id="choose" type="submit">Submit</button>
                         <br><br>
-                        <button style="font-size: 16px" name="today" id="today" type="submit">Today: {{.Current.Format "02.01.2006"}}</button>
+                        <button style="font-size: 16px" name="today" id="today" type="submit">Today: {{.GetCurrentDate.Format "02.01.2006"}}</button>
                     </li>
                 </ul>
             </form><br>
@@ -50,21 +50,21 @@
         <span class="day-name">Fri</span>
         <span class="day-name">Sat</span>
         <span class="day-name">Sun</span>
-        {{range .GetDaysBeforeMonthBegin}}
+        {{range .FrontendView.GetDaysBeforeMonthBegin}}
             <div class="day day--disabled"></div>
         {{end}}
-        {{$t := .GetAppointmentsForMonth}}
+        {{$t := .FrontendView.GetAppointmentsForMonth .User}}
 
-        {{if and (eq .Month .Current.Month) (eq .Year .Current.Year)}}
-            {{range $day := .GetDaysOfMonth}}
-                {{if eq $day $.Current.Day}}
+        {{if and (eq .FrontendView.Month .FrontendView.GetCurrentDate.Month) (eq .Year .FrontendView.GetCurrentDate.Year)}}
+            {{range $day := .FrontendView.GetDaysOfMonth}}
+                {{if eq $day $.FrontendView.GetCurrentDate.Day}}
                     <div class="day day-active">{{$day}}{{if gt (index $t $day) 0}}<br><br><br>Termine: {{index $t $day}}{{end}}</div>
                 {{else}}
                     <div class="day">{{$day}}{{if gt (index $t $day) 0}}<br><br><br>Termine: {{index $t $day}}{{end}}</div>
                 {{end}}
             {{end}}
         {{else}}
-            {{range $day := .GetDaysOfMonth}}
+            {{range $day := .FrontendView.GetDaysOfMonth}}
                 <div class="day">{{$day}}{{if gt (index $t $day) 0}}<br><br><br>Termine: {{index $t $day}}{{end}}</div>
 
             {{end}}

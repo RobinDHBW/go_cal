@@ -2,7 +2,6 @@ package authentication
 
 import (
 	"github.com/stretchr/testify/assert"
-	"go_cal/calendarView"
 	"go_cal/dataModel"
 	"go_cal/templates"
 	"io"
@@ -42,7 +41,7 @@ func TestCheckCookieSuccessful(t *testing.T) {
 	InitServer()
 	username := "test"
 	// prepare session
-	sessionToken, _ := createSession(username)
+	sessionToken, _ := CreateSession(username)
 	recorder := httptest.NewRecorder()
 	http.SetCookie(recorder, &http.Cookie{Name: "session_token", Value: sessionToken})
 	// copy cookie to request
@@ -54,7 +53,7 @@ func TestCheckCookieUnsuccessfulWrongCookieName(t *testing.T) {
 	InitServer()
 	username := "test"
 	// prepare session
-	sessionToken, _ := createSession(username)
+	sessionToken, _ := CreateSession(username)
 	recorder := httptest.NewRecorder()
 	http.SetCookie(recorder, &http.Cookie{Name: "wrong_session_token", Value: sessionToken})
 	// copy cookie to request
@@ -66,7 +65,7 @@ func TestCheckCookieUnsuccessfulWrongSessionToken(t *testing.T) {
 	InitServer()
 	username := "test"
 	// prepare session
-	createSession(username)
+	CreateSession(username)
 	recorder := httptest.NewRecorder()
 	http.SetCookie(recorder, &http.Cookie{Name: "session_token", Value: "cookie"})
 	// copy cookie to request
@@ -102,8 +101,8 @@ func createExpiredSession(username string) (sessionToken string, expires time.Ti
 
 func TestCreateSession(t *testing.T) {
 	InitServer()
-	sessionToken, expires := createSession("testUser")
-	assert.Equal(t, "testUser", GetUsernameBySessionToken(sessionToken))
+	sessionToken, expires := CreateSession("testUser")
+	assert.Equal(t, "testUser", getUsernameBySessionToken(sessionToken))
 	assert.LessOrEqual(t, expires.Sub(time.Now()).Minutes(), 2.0)
 }
 
@@ -144,7 +143,7 @@ func TestLoginHandlerWithoutCookie(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, "/updateCalendar", locationHeader.Path)
 	cookies := response.Result().Cookies()[0]
-	assert.Equal(t, "testUser", GetUsernameBySessionToken(cookies.Value))
+	assert.Equal(t, "testUser", getUsernameBySessionToken(cookies.Value))
 	assert.Equal(t, "session_token", cookies.Name)
 }
 
@@ -157,7 +156,7 @@ func TestLoginHandlerWithValidCookie(t *testing.T) {
 	_, err := dataModel.Dm.AddUser("testUser", "test", 1)
 	assert.Nil(t, err)
 	// create Session
-	sessionToken, _ := createSession("testUser")
+	sessionToken, _ := CreateSession("testUser")
 	// TODO: http und localhost
 	request, _ := http.NewRequest(http.MethodGet, "http://localhost:8080/", nil)
 	request.AddCookie(&http.Cookie{
@@ -202,7 +201,7 @@ func TestValidateInput(t *testing.T) {
 func TestWrapperValidCookie(t *testing.T) {
 	InitServer()
 	// create Session
-	sessionToken, expires := createSession("testUser")
+	sessionToken, expires := CreateSession("testUser")
 	request, _ := http.NewRequest(http.MethodGet, "http://localhost:8080/updateCalendar", nil)
 	request.AddCookie(&http.Cookie{
 		Name:  "session_token",
@@ -210,10 +209,10 @@ func TestWrapperValidCookie(t *testing.T) {
 	})
 	response := httptest.NewRecorder()
 	time.Sleep(3 + time.Second)
-	Wrapper(calendarView.UpdateCalendarHandler).ServeHTTP(response, request)
+	Wrapper(LoginHandler).ServeHTTP(response, request)
 	cookies := response.Result().Cookies()[0]
-	assert.Equal(t, http.StatusOK, response.Result().StatusCode)
-	assert.Equal(t, "testUser", GetUsernameBySessionToken(cookies.Value))
+	assert.Equal(t, http.StatusFound, response.Result().StatusCode)
+	assert.Equal(t, "testUser", getUsernameBySessionToken(cookies.Value))
 	assert.Equal(t, "session_token", cookies.Name)
 	assert.Less(t, expires, cookies.Expires)
 	body, _ := io.ReadAll(response.Result().Body)
@@ -224,14 +223,14 @@ func TestWrapperInvalidCookie(t *testing.T) {
 	InitServer()
 	templates.Init()
 	// create Session
-	createSession("testUser")
+	CreateSession("testUser")
 	request, _ := http.NewRequest(http.MethodGet, "http://localhost:8080/updateCalendar", nil)
 	request.AddCookie(&http.Cookie{
 		Name:  "session_token",
 		Value: "wrong_value",
 	})
 	response := httptest.NewRecorder()
-	Wrapper(calendarView.UpdateCalendarHandler).ServeHTTP(response, request)
+	Wrapper(LoginHandler).ServeHTTP(response, request)
 	assert.Equal(t, http.StatusUnauthorized, response.Result().StatusCode)
 	body, _ := io.ReadAll(response.Result().Body)
 	assert.Contains(t, string(body), "Error")

@@ -103,6 +103,14 @@ func (dm *DataModel) AddAppointment(userID int, title, description, location str
 	return user, &ap
 }
 
+func (dm *DataModel) AddSharedAppointment(id int, title string, ap data.Appointment) *data.User {
+	user := dm.GetUserById(id)
+	user.SharedAppointments[title] = append(user.SharedAppointments[title], ap)
+
+	DataSync(user, dm)
+	return user
+}
+
 func (dm *DataModel) DeleteAppointment(apId, uId int) *data.User {
 	user := dm.GetUserById(uId)
 	delete(user.Appointments, apId)
@@ -155,4 +163,13 @@ func (dm *DataModel) ComparePW(clear, hash string) bool {
 func (dm *DataModel) GetAppointmentsForUser(uId int) map[int]data.Appointment {
 	user := dm.GetUserById(uId)
 	return user.Appointments
+}
+func (dm *DataModel) AddTokenToSharedAppointment(id int, title, url string) {
+	user := dm.GetUserById(id)
+	for i := range user.SharedAppointments[title] {
+		user.SharedAppointments[title][i].Share.Tokens = append(user.SharedAppointments[title][i].Share.Tokens, url)
+		user.SharedAppointments[title][i].Share.Voting = append(user.SharedAppointments[title][i].Share.Voting, false)
+	}
+
+	DataSync(user, dm)
 }
