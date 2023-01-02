@@ -102,7 +102,7 @@ func createExpiredSession(username string) (sessionToken string, expires time.Ti
 
 func TestCreateSession(t *testing.T) {
 	InitServer()
-	sessionToken, expires := createSession("testUser")
+	sessionToken, expires := CreateSession("testUser")
 	assert.Equal(t, "testUser", GetUsernameBySessionToken(sessionToken))
 	assert.LessOrEqual(t, expires.Sub(time.Now()).Minutes(), 2.0)
 }
@@ -157,7 +157,7 @@ func TestLoginHandlerWithValidCookie(t *testing.T) {
 	_, err := dataModel.Dm.AddUser("testUser", "test", 1)
 	assert.Nil(t, err)
 	// create Session
-	sessionToken, _ := createSession("testUser")
+	sessionToken, _ := CreateSession("testUser")
 	// TODO: http und localhost
 	request, _ := http.NewRequest(http.MethodGet, "http://localhost:8080/", nil)
 	request.AddCookie(&http.Cookie{

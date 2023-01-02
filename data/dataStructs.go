@@ -42,3 +42,18 @@ func NewAppointment(title, description string, dateTimeStart, dateTimeEnd time.T
 	ApId++
 	return res
 }
+
+func (ap Appointment) GetDescriptionFromInterval() string {
+	switch ap.Timeseries.Intervall {
+	case 1:
+		return "täglich"
+	case 7:
+		return "wöchentlich"
+	case 30:
+		return "monatlich"
+	case 365:
+		return "jährlich"
+	default:
+		return "keine"
+	}
+}

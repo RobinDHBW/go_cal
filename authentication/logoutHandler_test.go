@@ -17,7 +17,7 @@ func TestLogoutHandlerSuccessful(t *testing.T) {
 	_, err := dm.AddUser("testUser", "test", 1)
 	assert.Nil(t, err)
 	// create session
-	sessionToken, _ := createSession("testUser")
+	sessionToken, _ := CreateSession("testUser")
 	// TODO: http und localhost
 	request, _ := http.NewRequest(http.MethodPost, "http://localhost:8080/logout", nil)
 	request.AddCookie(&http.Cookie{
