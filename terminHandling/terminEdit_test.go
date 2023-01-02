@@ -5,13 +5,13 @@ import (
 	"go_cal/dataModel"
 	"go_cal/frontendHandling"
 	"os"
-	"strconv"
 	"testing"
 	"time"
 )
 
 func TestGetTerminFromEditIndex(t *testing.T) {
-	dataModel.InitDataModel()
+	defer after()
+	dataModel.InitDataModel("../data/test")
 	user, _ := dataModel.Dm.AddUser("Testuser", "test", 0)
 	addAppointments(user.Id)
 	// Termine ab 01.01.2023
@@ -34,8 +34,6 @@ func TestGetTerminFromEditIndex(t *testing.T) {
 
 	appIndex = GetTerminFromEditIndex(*user, fv, 1)
 	assert.Equal(t, 1, appIndex, "index 1 test")
-
-	_ = os.Remove("../files/" + strconv.FormatInt(int64(user.Id), 10) + ".json")
 }
 
 func TestGetRepeatingMode(t *testing.T) {
@@ -59,28 +57,27 @@ func TestGetRepeatingMode(t *testing.T) {
 }
 
 func TestEditTerminFromInputIncorrectInput(t *testing.T) {
-	dataModel.InitDataModel()
+	defer after()
+	dataModel.InitDataModel("../data/test")
 	user, _ := dataModel.Dm.AddUser("Testuser", "test", 0)
 	addAppointments(user.Id)
-
-	_ = os.Remove("../files/" + strconv.FormatInt(int64(user.Id), 10) + ".json")
-
 }
 
 func TestEditTerminFromInputCorrectInputCreate(t *testing.T) {
-	dataModel.InitDataModel()
+	defer after()
+	dataModel.InitDataModel("../data/test")
 	user, _ := dataModel.Dm.AddUser("Testuser", "test", 0)
 	addAppointments(user.Id)
-
-	_ = os.Remove("../files/" + strconv.FormatInt(int64(user.Id), 10) + ".json")
-
 }
 
 func TestEditTerminFromInputCorrectInputEdit(t *testing.T) {
-	dataModel.InitDataModel()
+	defer after()
+	dataModel.InitDataModel("../data/test")
 	user, _ := dataModel.Dm.AddUser("Testuser", "test", 0)
 	addAppointments(user.Id)
+}
 
-	_ = os.Remove("../files/" + strconv.FormatInt(int64(user.Id), 10) + ".json")
-
+func after() {
+	os.RemoveAll("../data/test/")
+	os.MkdirAll("../data/test/", 777)
 }

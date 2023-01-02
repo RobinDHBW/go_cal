@@ -7,16 +7,16 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"os"
-	"strconv"
 	"testing"
 )
 
 // TODo: funktioniert noch nicht
 func TestUpdateCalendarHandler(t *testing.T) {
+	defer after()
 	authentication.Serv = &authentication.Server{Cmds: authentication.StartSessionManager()}
-	dataModel.InitDataModel()
-	user, _ := dataModel.Dm.AddUser("Testuser", "test", 0)
-
+	dataModel.InitDataModel("../data/test")
+	_, err := dataModel.Dm.AddUser("Testuser", "test", 0)
+	assert.Nil(t, err)
 	sessionToken, _ := authentication.CreateSession("Testuser")
 
 	// TODO: http und localhost
@@ -31,6 +31,9 @@ func TestUpdateCalendarHandler(t *testing.T) {
 	locationHeader, err := response.Result().Location()
 	assert.NoError(t, err)
 	assert.Equal(t, "/updateCalendar", locationHeader.Path)
-	_ = os.Remove("../files/" + strconv.FormatInt(int64(user.Id), 10) + ".json")
+}
 
+func after() {
+	os.RemoveAll("../data/test/")
+	os.MkdirAll("../data/test/", 777)
 }

@@ -161,7 +161,8 @@ func TestFrontendView_GetCurrentDate(t *testing.T) {
 }
 
 func TestFrontendView_GetAppointmentsForMonth(t *testing.T) {
-	dataModel.InitDataModel()
+	defer after()
+	dataModel.InitDataModel("../data/test")
 	fv := FrontendView{
 		Year:  2022,
 		Month: 12,
@@ -247,8 +248,6 @@ func TestFrontendView_GetAppointmentsForMonth(t *testing.T) {
 	exp[30]++
 	apps = fv.GetAppointmentsForMonth(*user)
 	assert.Equal(t, apps, exp, "test prev month: Slices not equal")
-	// remove created file
-	_ = os.Remove("../files/" + strconv.FormatInt(int64(user.Id), 10) + ".json")
 }
 
 func TestGetFrontendParameters(t *testing.T) {
@@ -304,7 +303,8 @@ func TestGetFeCookieString(t *testing.T) {
 }
 
 func TestGetTerminList(t *testing.T) {
-	dataModel.InitDataModel()
+	defer after()
+	dataModel.InitDataModel("../data/test")
 	user, _ := dataModel.Dm.AddUser("Testuser", "test", 0)
 	addAppointments(user.Id)
 	// Termine ab 11.12.2022
@@ -356,8 +356,6 @@ func TestGetTerminList(t *testing.T) {
 	expApp4.DateTimeEnd = expApp4.DateTimeEnd.AddDate(2, 0, 0)
 	exp = append(exp, expApp4)
 	assert.Equal(t, Apps, exp, "test 2 equal")
-
-	_ = os.Remove("../files/" + strconv.FormatInt(int64(user.Id), 10) + ".json")
 }
 
 func addAppointments(id int) {
@@ -391,5 +389,9 @@ func addAppointments(id int) {
 	dataModel.Dm.AddAppointment(id, App3)
 	dataModel.Dm.AddAppointment(id, App4)
 	dataModel.Dm.AddAppointment(id, App5)
+}
 
+func after() {
+	os.RemoveAll("../data/test/")
+	os.MkdirAll("../data/test/", 777)
 }

@@ -340,3 +340,10 @@ func GetUserBySessionToken(r *http.Request) (*data.User, error) {
 	user := dataModel.Dm.GetUserByName(username)
 	return user, nil
 }
+
+func getUsernameBySessionToken(sessionToken string) string {
+	replyChannel := make(chan *session)
+	Serv.Cmds <- Command{ty: read, sessionToken: sessionToken, replyChannel: replyChannel}
+	session := <-replyChannel
+	return session.uname
+}
