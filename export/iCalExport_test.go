@@ -1,6 +1,7 @@
 package export
 
 import (
+	"fmt"
 	"github.com/stretchr/testify/assert"
 	"go_cal/data"
 	"go_cal/dataModel"
@@ -9,6 +10,8 @@ import (
 	"testing"
 	"time"
 )
+
+const dataPath = "../data/test/IC"
 
 func TestNewVEvent(t *testing.T) {
 	stamp := time.Now()
@@ -26,7 +29,7 @@ func TestNewVEvent(t *testing.T) {
 }
 
 func TestNewICal(t *testing.T) {
-	dataPath := "../data/test"
+
 	dataModel := dataModel.NewDM(dataPath)
 
 	defer os.RemoveAll(dataPath)
@@ -42,6 +45,7 @@ func TestNewICal(t *testing.T) {
 	aps := []*data.Appointment{ap}
 	subject := NewICal(aps)
 
+	assert.EqualValues(t, fmt.Sprintf("%d", ap.Id), subject.VEvent[0].UID)
 	assert.EqualValues(t, "here", subject.VEvent[0].Location)
 	assert.EqualValues(t, "test", subject.VEvent[0].Summary)
 	assert.EqualValues(t, "search for", subject.VEvent[0].Description)
@@ -53,7 +57,7 @@ func TestNewICal(t *testing.T) {
 }
 
 func TestICal_ToString(t *testing.T) {
-	dataPath := "../data/test"
+	//dataPath := "../data/test"
 	dataModel := dataModel.NewDM(dataPath)
 
 	defer os.RemoveAll(dataPath)
