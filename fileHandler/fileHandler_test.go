@@ -10,6 +10,8 @@ import (
 	"testing"
 )
 
+const dataPath = "../data/test/FH"
+
 func fileWriteRead(user data.User, fH *FileHandler) data.User {
 	write, err := json.Marshal(user)
 	if err != nil {
@@ -25,20 +27,20 @@ func fileWriteRead(user data.User, fH *FileHandler) data.User {
 }
 
 func after() {
-	os.RemoveAll("../data/test/")
-	//os.MkdirAll("../data/test/", 777)
+	os.RemoveAll(dataPath)
 }
 
 func TestNewFH(t *testing.T) {
-	dP := "../data/test"
-	fH := NewFH(dP)
+	//dP := "../data/test"
+	fH := NewFH(dataPath)
+	defer after()
 
-	assert.EqualValues(t, dP, fH.dataPath)
+	assert.EqualValues(t, dataPath, fH.dataPath)
 }
 
 func TestFileHandler_SyncToFile(t *testing.T) {
 	user := data.NewUser("test", "test", 1, 3)
-	fH := NewFH("../data/test")
+	fH := NewFH(dataPath)
 	rUser := fileWriteRead(user, &fH)
 
 	defer after()
@@ -49,7 +51,7 @@ func TestFileHandler_SyncToFile(t *testing.T) {
 func TestFileHandler_ReadFromFile(t *testing.T) {
 
 	user := data.NewUser("test", "test", 1, 3)
-	fH := NewFH("../data/test")
+	fH := NewFH(dataPath)
 	rUser := fileWriteRead(user, &fH)
 
 	defer after()
@@ -59,13 +61,12 @@ func TestFileHandler_ReadFromFile(t *testing.T) {
 
 func TestFileHandler_ReadAll(t *testing.T) {
 	uList := []data.User{data.NewUser("test1", "test", 1, 3), data.NewUser("test2", "test", 2, 3), data.NewUser("test3", "test", 3, 3)}
-	fH := NewFH("../data/test")
+	fH := NewFH(dataPath)
 	for _, uD := range uList {
 		fileWriteRead(uD, &fH)
 	}
-	//defer after()
+	defer after()
 
-	//rSList := fH.ReadAll()
 	rUList := []data.User{}
 	for _, uString := range fH.ReadAll() {
 		var user data.User

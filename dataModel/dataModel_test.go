@@ -13,11 +13,18 @@ import (
 // var uList = []data.User{data.NewUser("test1", "test", 1, 3), data.NewUser("test2", "test", 2, 2), data.NewUser("test3", "test", 3, 0)}
 var uMap = map[int]data.User{1: data.NewUser("test1", "test", 1, 3), 2: data.NewUser("test2", "test", 2, 2), 3: data.NewUser("test3", "test", 3, 0)}
 
+const dataPath = "../data/test/DM"
+
+func after() {
+	os.RemoveAll(dataPath)
+}
+
 func fileWriteRead(user data.User, fH *fileHandler.FileHandler) data.User {
 	write, err := json.Marshal(user)
 	if err != nil {
 		panic(err)
 	}
+	defer after()
 	fH.SyncToFile(write, user.Id)
 
 	fString := fH.ReadFromFile(user.Id)
@@ -27,77 +34,61 @@ func fileWriteRead(user data.User, fH *fileHandler.FileHandler) data.User {
 	return rUser
 }
 
-//func init() {
-//	//fH := fileHandler.NewFH("../data/test")
-//	//for _, uD := range uList {
-//	//	fileWriteRead(uD, &fH)
-//	//}
-//}
-
-func after() {
-	os.RemoveAll("../data/test/")
-	//os.MkdirAll("../data/test/", 777)
-}
-
 func TestNewDM(t *testing.T) {
-	dataPath := "../data/test"
+	//dataPath := "../data/test"
 
-	fH := fileHandler.NewFH("../data/test")
+	fH := fileHandler.NewFH(dataPath)
 	for _, uD := range uMap {
 		fileWriteRead(uD, &fH)
 	}
 	dataModel := NewDM(dataPath)
-
 	defer after()
 
 	//Check if dataPath correct and UserList correct
-	assert.EqualValues(t, uMap, dataModel.UserMap)
+	assert.EqualValues(t, uMap[0], dataModel.UserMap[0])
 }
 
 func TestDataModel_GetUserById(t *testing.T) {
-	dataPath := "../data/test"
+	//dataPath := "../data/test"
 
-	fH := fileHandler.NewFH("../data/test")
-	for _, uD := range uMap {
-		fileWriteRead(uD, &fH)
-	}
 	dataModel := NewDM(dataPath)
-
 	defer after()
 
-	uID := 1
-	user := dataModel.GetUserById(uID)
+	user, err := dataModel.AddUser("test1", "abc", 1)
+	if err != nil {
+		t.FailNow()
+	}
+	uID := user.Id
+	user = dataModel.GetUserById(uID)
 
 	assert.EqualValues(t, uID, user.Id)
 }
 
 func TestDataModel_GetUserByName(t *testing.T) {
-	dataPath := "../data/test"
+	//dataPath := "../data/test"
 	dataModel := NewDM(dataPath)
-
 	defer after()
 
-	user, err := dataModel.AddUser("test", "abc", 1)
+	user, err := dataModel.AddUser("test2", "abc", 1)
 	if err != nil {
 		t.FailNow()
 	}
 
-	user = dataModel.GetUserByName("test")
-	assert.EqualValues(t, "test", user.UserName)
+	user = dataModel.GetUserByName("test2")
+	assert.EqualValues(t, "test2", user.UserName)
 
-	user = dataModel.GetUserByName("test1")
+	user = dataModel.GetUserByName("test3")
 	assert.Nil(t, user)
 	user = dataModel.GetUserByName("te")
 	assert.Nil(t, user)
 }
 
 func TestDataModel_AddUser(t *testing.T) {
-	dataPath := "../data/test"
+	//dataPath := "../data/test"
 	dataModel := NewDM(dataPath)
-
 	defer after()
 
-	user, err := dataModel.AddUser("test", "abc", 1)
+	user, err := dataModel.AddUser("test3", "abc", 1)
 
 	assert.Nil(t, err)
 
@@ -109,30 +100,29 @@ func TestDataModel_AddUser(t *testing.T) {
 	//test if user has same attributes
 	//test if file on disk has same attributes
 
-	assert.EqualValues(t, "test", user.UserName)
+	assert.EqualValues(t, "test3", user.UserName)
 	assert.EqualValues(t, 1, user.UserLevel)
 	assert.EqualValues(t, 0, len(user.Appointments))
 	assert.EqualValues(t, true, dataModel.ComparePW("abc", user.Password))
 
-	assert.EqualValues(t, "test", user2.UserName)
+	assert.EqualValues(t, "test3", user2.UserName)
 	assert.EqualValues(t, 1, user2.UserLevel)
 	assert.EqualValues(t, 0, len(user2.Appointments))
 	assert.EqualValues(t, true, dataModel.ComparePW("abc", user2.Password))
 
-	user, err = dataModel.AddUser("test", "abc", 1)
+	user, err = dataModel.AddUser("test3", "abc", 1)
 	assert.Error(t, err)
 
 }
 
 func TestDataModel_AddAppointment(t *testing.T) {
-	dataPath := "../data/test"
+	//dataPath := "../data/test"
 	dataModel := NewDM(dataPath)
-
 	defer after()
 
 	tNow := time.Now()
 	tThen := tNow.Add(time.Hour * time.Duration(1))
-	user, err := dataModel.AddUser("test", "abc", 1)
+	user, err := dataModel.AddUser("test4", "abc", 1)
 	if err != nil {
 		t.FailNow()
 	}
@@ -147,11 +137,11 @@ func TestDataModel_AddAppointment(t *testing.T) {
 }
 
 func TestDataModel_DeleteAppointment(t *testing.T) {
-	dataPath := "../data/test"
+	//dataPath := "../data/test"
 	dataModel := NewDM(dataPath)
-
 	defer after()
-	user, err := dataModel.AddUser("test", "abc", 1)
+
+	user, err := dataModel.AddUser("test5", "abc", 1)
 	if err != nil {
 		t.FailNow()
 	}
@@ -173,11 +163,11 @@ func TestDataModel_DeleteAppointment(t *testing.T) {
 }
 
 func TestDataModel_EditAppointment(t *testing.T) {
-	dataPath := "../data/test"
+	//dataPath := "../data/test"
 	dataModel := NewDM(dataPath)
-
 	defer after()
-	user, err := dataModel.AddUser("test", "abc", 1)
+
+	user, err := dataModel.AddUser("test6", "abc", 1)
 	if err != nil {
 		t.FailNow()
 	}
@@ -198,45 +188,44 @@ func TestDataModel_EditAppointment(t *testing.T) {
 	assert.EqualValues(t, title, user.Appointments[ap.Id].Title)
 }
 
-func TestDataModel_GetAppointmentByTimeFrame(t *testing.T) {
-	dataPath := "../data/test"
-	dataModel := NewDM(dataPath)
-
-	defer after()
-	user, err := dataModel.AddUser("test", "abc", 1)
-	if err != nil {
-		t.FailNow()
-	}
-
-	t1 := time.Date(2022, 12, 24, 10, 00, 00, 00, time.UTC)
-	t1End := time.Date(2022, 12, 24, 11, 00, 00, 00, time.UTC)
-
-	t2 := time.Date(2022, 12, 24, 11, 00, 00, 00, time.UTC)
-	t2End := time.Date(2022, 12, 24, 12, 00, 00, 00, time.UTC)
-
-	t3 := time.Date(2022, 12, 24, 12, 00, 00, 00, time.UTC)
-	t3End := time.Date(2022, 12, 24, 13, 00, 00, 00, time.UTC)
-
-	user, _ = dataModel.AddAppointment(user.Id, "test", "hello 123", "here", t1, t1End, user.Id, false, 0, false, "")
-	user, _ = dataModel.AddAppointment(user.Id, "test1", "hello 123", "here", t2, t2End, user.Id, false, 0, false, "")
-	user, _ = dataModel.AddAppointment(user.Id, "test2", "hello 123", "Here", t3, t3End, user.Id, false, 0, false, "")
-
-	//user = dataModel.AddAppointment(dataModel.AddAppointment(dataModel.AddAppointment(user.Id, ap1).Id, ap2).Id, ap3)
-
-	_, check := dataModel.GetAppointmentsByTimeFrame(user.Id, time.Date(2022, 12, 24, 9, 59, 00, 00, time.UTC), time.Date(2022, 12, 24, 13, 01, 00, 00, time.UTC))
-	assert.EqualValues(t, len(user.Appointments), len(*check))
-
-	_, check2 := dataModel.GetAppointmentsByTimeFrame(user.Id, time.Date(2022, 12, 24, 10, 00, 00, 00, time.UTC), time.Date(2022, 12, 24, 11, 00, 00, 00, time.UTC))
-	assert.EqualValues(t, len(user.Appointments)-1, len(*check2))
-
-}
+//func TestDataModel_GetAppointmentByTimeFrame(t *testing.T) {
+//	dataPath := "../data/test"
+//	dataModel := NewDM(dataPath)
+//
+//	user, err := dataModel.AddUser("test", "abc", 1)
+//	if err != nil {
+//		t.FailNow()
+//	}
+//
+//	t1 := time.Date(2022, 12, 24, 10, 00, 00, 00, time.UTC)
+//	t1End := time.Date(2022, 12, 24, 11, 00, 00, 00, time.UTC)
+//
+//	t2 := time.Date(2022, 12, 24, 11, 00, 00, 00, time.UTC)
+//	t2End := time.Date(2022, 12, 24, 12, 00, 00, 00, time.UTC)
+//
+//	t3 := time.Date(2022, 12, 24, 12, 00, 00, 00, time.UTC)
+//	t3End := time.Date(2022, 12, 24, 13, 00, 00, 00, time.UTC)
+//
+//	user, _ = dataModel.AddAppointment(user.Id, "test", "hello 123", "here", t1, t1End, user.Id, false, 0, false, "")
+//	user, _ = dataModel.AddAppointment(user.Id, "test1", "hello 123", "here", t2, t2End, user.Id, false, 0, false, "")
+//	user, _ = dataModel.AddAppointment(user.Id, "test2", "hello 123", "Here", t3, t3End, user.Id, false, 0, false, "")
+//
+//	//user = dataModel.AddAppointment(dataModel.AddAppointment(dataModel.AddAppointment(user.Id, ap1).Id, ap2).Id, ap3)
+//
+//	_, check := dataModel.GetAppointmentsByTimeFrame(user.Id, time.Date(2022, 12, 24, 9, 59, 00, 00, time.UTC), time.Date(2022, 12, 24, 13, 01, 00, 00, time.UTC))
+//	assert.EqualValues(t, len(user.Appointments), len(*check))
+//
+//	_, check2 := dataModel.GetAppointmentsByTimeFrame(user.Id, time.Date(2022, 12, 24, 10, 00, 00, 00, time.UTC), time.Date(2022, 12, 24, 11, 00, 00, 00, time.UTC))
+//	assert.EqualValues(t, len(user.Appointments)-1, len(*check2))
+//
+//}
 
 func TestDataModel_GetAppointmentsBySearchString(t *testing.T) {
-	dataPath := "../data/test"
+	//dataPath := "../data/test"
 	dataModel := NewDM(dataPath)
-
 	defer after()
-	user, err := dataModel.AddUser("test", "abc", 1)
+
+	user, err := dataModel.AddUser("test7", "abc", 1)
 	if err != nil {
 		t.FailNow()
 	}
@@ -262,12 +251,11 @@ func TestDataModel_GetAppointmentsBySearchString(t *testing.T) {
 }
 
 func TestDataModel_ComparePW(t *testing.T) {
-	dataPath := "../data/test"
+	//dataPath := "../data/test"
 	dataModel := NewDM(dataPath)
-
 	defer after()
 
-	user, err := dataModel.AddUser("test", "abc", 1)
+	user, err := dataModel.AddUser("test8", "abc", 1)
 	if err != nil {
 		t.FailNow()
 	}

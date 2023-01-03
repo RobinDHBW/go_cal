@@ -30,7 +30,7 @@ func TestNewICal(t *testing.T) {
 	dataModel := dataModel.NewDM(dataPath)
 
 	defer os.RemoveAll(dataPath)
-	user, err := dataModel.AddUser("test", "abc", 1)
+	user, err := dataModel.AddUser("ical", "abc", 1)
 	if err != nil {
 		t.FailNow()
 	}
