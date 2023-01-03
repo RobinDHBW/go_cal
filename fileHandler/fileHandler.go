@@ -14,7 +14,9 @@ type FileHandler struct {
 	fileNames []string
 }
 
-// NewFH Initialize structs from disk
+// NewFH - Initialize structs from disk
+// dataPath string - Path where files should be stored
+// return FileHandler - instance of type FileHandler
 func NewFH(dataPath string) FileHandler {
 
 	err := os.MkdirAll(dataPath, 777)
@@ -33,6 +35,9 @@ func NewFH(dataPath string) FileHandler {
 	return FileHandler{dataPath, fN}
 }
 
+// SyncToFile - Write bytes to file
+// json []byte - ByteArray
+// id int - file id, e.g.: 1.json
 func (fh *FileHandler) SyncToFile(json []byte, id int) {
 	fileName := strconv.Itoa(id) + ".json"
 	file, err := os.Create(path.Join(fh.dataPath, fileName)) //os.Create --> if already existing, file will be truncated
@@ -54,6 +59,9 @@ func (fh *FileHandler) SyncToFile(json []byte, id int) {
 	}
 }
 
+// ReadFromFile - Read from a file
+// id int - file id, e.g.: 1.json
+// return string - file content as string
 func (fh *FileHandler) ReadFromFile(id int) string {
 	fP := path.Join(fh.dataPath, strconv.Itoa(id)+".json")
 	file, err := os.Open(fP)
@@ -71,6 +79,8 @@ func (fh *FileHandler) ReadFromFile(id int) string {
 	return string(byteVal)
 }
 
+// ReadAll - Read all files from disk
+// return []string - array of string representing file contents
 func (fh *FileHandler) ReadAll() []string {
 	var uStrings []string
 
