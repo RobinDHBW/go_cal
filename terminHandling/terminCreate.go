@@ -10,7 +10,6 @@ import (
 )
 
 func TerminCreateHandler(w http.ResponseWriter, r *http.Request) {
-
 	err := r.ParseForm()
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
@@ -42,11 +41,7 @@ func TerminCreateHandler(w http.ResponseWriter, r *http.Request) {
 		err := EditTerminFromInput(r, false, user, -1)
 		errEmpty := error2.DisplayedError{}
 		if err == errEmpty {
-			templates.TempTerminList.Execute(w, struct {
-				*frontendHandling.FrontendView
-				*data.User
-			}{feParams,
-				user})
+			http.Redirect(w, r, "/listTermin", http.StatusFound)
 		} else {
 			w.WriteHeader(http.StatusBadRequest)
 			templates.TempError.Execute(w, err)

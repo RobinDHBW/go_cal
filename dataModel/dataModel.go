@@ -7,6 +7,7 @@ import (
 	"go_cal/fileHandler"
 	"golang.org/x/crypto/bcrypt"
 	"log"
+	url2 "net/url"
 	"strings"
 	"time"
 )
@@ -97,20 +98,32 @@ func (dm *DataModel) AddUser(name, pw string, userLevel int) (*data.User, error)
 	return &user, nil
 }
 
-func (dm *DataModel) AddAppointment(userID int, title, description, location string, dateTimeStart, dateTimeEnd time.Time, userId int, repeat bool, intervall int, public bool) (*data.User, *data.Appointment) {
+func (dm *DataModel) AddAppointment(userId int, title, description, location string, dateTimeStart, dateTimeEnd time.Time, repeat bool, intervall int, public bool) (*data.User, *data.Appointment) {
 	apID++
 	ap := data.NewAppointment(title, description, location, dateTimeStart, dateTimeEnd, apID, userId, repeat, intervall, public)
 
-	user := dm.GetUserById(userID)
+	user := dm.GetUserById(userId)
 	user.Appointments[ap.Id] = ap
 
 	DataSync(user, dm)
 	return user, &ap
 }
 
-func (dm *DataModel) AddSharedAppointment(id int, title string, ap data.Appointment) *data.User {
-	user := dm.GetUserById(id)
+func (dm *DataModel) AddSharedAppointment(userId int, title, location string, dateTimeStart, dateTimeEnd time.Time, repeat bool, intervall int, public bool) *data.User {
+	apID++
+	ap := data.NewAppointment(title, "", location, dateTimeStart, dateTimeEnd, apID, userId, repeat, intervall, public)
+	user := dm.GetUserById(userId)
 	user.SharedAppointments[title] = append(user.SharedAppointments[title], ap)
+
+	length := len(user.SharedAppointments[title])
+	if length > 1 {
+		user.SharedAppointments[title][length-1].Share.Tokens = user.SharedAppointments[title][0].Share.Tokens
+		user.SharedAppointments[title][length-1].Share.Public = true
+		user.SharedAppointments[title][length-1].Share.Voting = make([]bool, len(user.SharedAppointments[title][0].Share.Voting))
+		for i := range user.SharedAppointments[title][length-1].Share.Voting {
+			user.SharedAppointments[title][length-1].Share.Voting[i] = false
+		}
+	}
 
 	DataSync(user, dm)
 	return user
@@ -169,12 +182,54 @@ func (dm *DataModel) GetAppointmentsForUser(uId int) map[int]data.Appointment {
 	user := dm.GetUserById(uId)
 	return user.Appointments
 }
-func (dm *DataModel) AddTokenToSharedAppointment(id int, title, url string) {
+
+func (dm *DataModel) AddTokenToSharedAppointment(id int, title, url, username string) error {
 	user := dm.GetUserById(id)
+	for _, val := range user.SharedAppointments[title] {
+		for _, text := range val.Share.Tokens {
+			parsedUrl, _ := url2.Parse(text)
+			if username == parsedUrl.Query().Get("username") {
+				return errors.New("duplicate invited username")
+			}
+		}
+	}
 	for i := range user.SharedAppointments[title] {
 		user.SharedAppointments[title][i].Share.Tokens = append(user.SharedAppointments[title][i].Share.Tokens, url)
 		user.SharedAppointments[title][i].Share.Voting = append(user.SharedAppointments[title][i].Share.Voting, false)
 	}
-
 	DataSync(user, dm)
+	return nil
+}
+
+func (dm *DataModel) SetVotingForToken(user *data.User, votes []int, title, token, username string) error {
+	if IsVotingAllowed(title, token, user, username) {
+		var index int
+		for i, text := range user.SharedAppointments[title][0].Share.Tokens {
+			if strings.Contains(text, token) && strings.Contains(text, username) {
+				index = i
+				break
+			}
+		}
+		// alle Votes auf false setzen
+		for i, _ := range user.SharedAppointments[title] {
+			user.SharedAppointments[title][i].Share.Voting[index] = false
+		}
+		for i := range votes {
+			user.SharedAppointments[title][votes[i]].Share.Voting[index] = true
+		}
+		DataSync(user, dm)
+		return nil
+	} else {
+		return errors.New("Voting not allowed")
+	}
+}
+
+func IsVotingAllowed(title, token string, user *data.User, username string) bool {
+	query := "/terminVoting?invitor=" + user.UserName + "&termin=" + title + "&token=" + token + "&username=" + username
+	for _, val := range user.SharedAppointments[title][0].Share.Tokens {
+		if strings.Contains(val, query) {
+			return true
+		}
+	}
+	return false
 }

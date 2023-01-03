@@ -12,23 +12,23 @@
     <h1>Abstimmung</h1>
     <form id="votingForm" method="post" action="/terminVoting">
         <div class="terminlist">
-            <b>Titel: {{(index . 0).Title}}</b>
+            <b>Titel: {{(index .Appointments 0).Title}}</b>
             <br>
             Terminvorschläge: <br>
-            {{range $index, $v := .}}
+            {{range $index, $v := .Appointments}}
             <input type="checkbox" id="{{$index}}" name="{{$index}}">
             <label for="{{$index}}">
                     Zeitpunkt:
-                    {{.DateTimeStart.Format "01.02.2006 15:04"}}
+                    {{.DateTimeStart.Format "02.01.2006 15:04"}}
                     bis
-                    {{.DateTimeEnd.Format "01.02.2006 15:04"}}
+                    {{.DateTimeEnd.Format "02.01.2006 15:04"}}
                     | Wiederholung:
                     {{.GetDescriptionFromInterval}}
                     <br><br>
             </label>
             {{end}}
         </div>
-        <button style="font-size: 16px; margin: 10px" name="submitVoting" id="submitVoting" type="submit">Zusagen</button>
+        <button style="font-size: 16px; margin: 10px" name="submitVoting" id="submitVoting" type="submit" value="{{.Value}}">Zusagen</button>
     </form>
 
 </div>
