@@ -18,8 +18,7 @@ func TestLogoutHandlerSuccessful(t *testing.T) {
 	assert.Nil(t, err)
 	// create session
 	sessionToken, _ := CreateSession("testUser")
-	// TODO: http und localhost
-	request, _ := http.NewRequest(http.MethodPost, "http://localhost:8080/logout", nil)
+	request, _ := http.NewRequest(http.MethodPost, "/logout", nil)
 	request.AddCookie(&http.Cookie{
 		Name:  "session_token",
 		Value: sessionToken,
@@ -46,8 +45,7 @@ func TestLogoutHandlerNoCookie(t *testing.T) {
 	assert.Nil(t, err)
 	// create session
 	CreateSession("testUser")
-	// TODO: http und localhost
-	request, _ := http.NewRequest(http.MethodPost, "http://localhost:8080/logout", nil)
+	request, _ := http.NewRequest(http.MethodPost, "/logout", nil)
 	response := httptest.NewRecorder()
 	http.HandlerFunc(LogoutHandler).ServeHTTP(response, request)
 

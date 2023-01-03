@@ -18,7 +18,7 @@ func TerminVotingHandler(w http.ResponseWriter, r *http.Request) {
 		split := strings.Split(r.PostFormValue("submitVoting"), "|")
 		if len(split) < 4 {
 			w.WriteHeader(http.StatusBadRequest)
-			templates.TempError.Execute(w, error2.CreateError(error2.InvalidInput, r.Host+"/"))
+			templates.TempError.Execute(w, error2.CreateError(error2.InvalidInput, "/"))
 			return
 		}
 		title := split[0]

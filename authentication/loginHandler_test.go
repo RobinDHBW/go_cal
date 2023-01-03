@@ -124,8 +124,7 @@ func TestLoginHandlerWithoutCookie(t *testing.T) {
 	_, err := dataModel.Dm.AddUser("testUser", "test", 1)
 	assert.Nil(t, err)
 
-	// TODO: http und localhost
-	request, _ := http.NewRequest(http.MethodPost, "http://localhost:8080/", nil)
+	request, _ := http.NewRequest(http.MethodPost, "/", nil)
 	form := url.Values{}
 	form.Add("uname", "testUser")
 	form.Add("passwd", "test")
@@ -157,8 +156,7 @@ func TestLoginHandlerWithValidCookie(t *testing.T) {
 	assert.Nil(t, err)
 	// create Session
 	sessionToken, _ := CreateSession("testUser")
-	// TODO: http und localhost
-	request, _ := http.NewRequest(http.MethodGet, "http://localhost:8080/", nil)
+	request, _ := http.NewRequest(http.MethodGet, "/", nil)
 	request.AddCookie(&http.Cookie{
 		Name:  "session_token",
 		Value: sessionToken,
@@ -177,8 +175,7 @@ func TestRegisterHandler(t *testing.T) {
 	dataModel.InitDataModel("../data/test")
 	templates.Init()
 
-	// TODO: http und localhost
-	request, _ := http.NewRequest(http.MethodPost, "http://localhost:8080/register", nil)
+	request, _ := http.NewRequest(http.MethodPost, "/register", nil)
 	form := url.Values{}
 	form.Add("uname", "testUser")
 	form.Add("passwd", "test123")
@@ -202,7 +199,7 @@ func TestWrapperValidCookie(t *testing.T) {
 	InitServer()
 	// create Session
 	sessionToken, expires := CreateSession("testUser")
-	request, _ := http.NewRequest(http.MethodGet, "http://localhost:8080/updateCalendar", nil)
+	request, _ := http.NewRequest(http.MethodGet, "/updateCalendar", nil)
 	request.AddCookie(&http.Cookie{
 		Name:  "session_token",
 		Value: sessionToken,
@@ -224,7 +221,7 @@ func TestWrapperInvalidCookie(t *testing.T) {
 	templates.Init()
 	// create Session
 	CreateSession("testUser")
-	request, _ := http.NewRequest(http.MethodGet, "http://localhost:8080/updateCalendar", nil)
+	request, _ := http.NewRequest(http.MethodGet, "/updateCalendar", nil)
 	request.AddCookie(&http.Cookie{
 		Name:  "session_token",
 		Value: "wrong_value",

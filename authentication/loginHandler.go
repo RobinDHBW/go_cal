@@ -104,7 +104,7 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 				// Response header 400 setzen
 				w.WriteHeader(http.StatusBadRequest)
 				// Fehlermeldung für Nutzer anzeigen
-				templates.TempError.Execute(w, error2.CreateError(error2.EmptyField, r.Host+"/"))
+				templates.TempError.Execute(w, error2.CreateError(error2.EmptyField, "/"))
 				return
 			}
 			// user authentifizieren
@@ -122,7 +122,7 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 				cookieValue, err := frontendHandling.GetFeCookieString(frontendHandling.FrontendView{})
 				if err != nil {
 					w.WriteHeader(http.StatusBadRequest)
-					templates.TempError.Execute(w, error2.CreateError(error2.InvalidInput, r.Host+"/"))
+					templates.TempError.Execute(w, error2.CreateError(error2.InvalidInput, "/"))
 					return
 				}
 				http.SetCookie(w, &http.Cookie{
@@ -137,7 +137,7 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 				// Response header 401 setzen
 				w.WriteHeader(http.StatusUnauthorized)
 				// Fehlermeldung für Nutzer anzeigen
-				templates.TempError.Execute(w, error2.CreateError(error2.WrongCredentials, r.Host+"/"))
+				templates.TempError.Execute(w, error2.CreateError(error2.WrongCredentials, "/"))
 				return
 			}
 		}
@@ -165,7 +165,7 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 			// Response header 400 setzen
 			w.WriteHeader(http.StatusBadRequest)
 			// Fehlermeldung für Nutzer anzeigen
-			templates.TempError.Execute(w, error2.CreateError(error2.EmptyField, r.Host+"/register"))
+			templates.TempError.Execute(w, error2.CreateError(error2.EmptyField, "/register"))
 			return
 		}
 		// neuen User erstellen
@@ -175,7 +175,7 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 			// Response header 400 setzen
 			w.WriteHeader(http.StatusBadRequest)
 			// Fehlermeldung für Nutzer anzeigen
-			templates.TempError.Execute(w, error2.CreateError(error2.DuplicateUserName, r.Host+"/register"))
+			templates.TempError.Execute(w, error2.CreateError(error2.DuplicateUserName, "/register"))
 			return
 			// Nutzername existiert noch nicht, Erstellung war erfolgreich
 		} else {
@@ -190,7 +190,7 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 			cookieValue, err := frontendHandling.GetFeCookieString(frontendHandling.FrontendView{})
 			if err != nil {
 				w.WriteHeader(http.StatusBadRequest)
-				templates.TempError.Execute(w, error2.CreateError(error2.InvalidInput, r.Host+"/"))
+				templates.TempError.Execute(w, error2.CreateError(error2.InvalidInput, "/"))
 				return
 			}
 			http.SetCookie(w, &http.Cookie{
@@ -228,7 +228,7 @@ func Wrapper(handler http.HandlerFunc) http.HandlerFunc {
 			// Response header 401 setzen
 			w.WriteHeader(http.StatusUnauthorized)
 			// Fehlermeldung für Nutzer anzeigen
-			templates.TempError.Execute(w, error2.CreateError(error2.Authentification, r.Host+"/"))
+			templates.TempError.Execute(w, error2.CreateError(error2.Authentification, "/"))
 			return
 		}
 	}

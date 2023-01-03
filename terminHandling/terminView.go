@@ -15,14 +15,14 @@ func TerminHandler(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
-		templates.TempError.Execute(w, error2.CreateError(error2.InvalidInput, r.Host+"/listTermin"))
+		templates.TempError.Execute(w, error2.CreateError(error2.InvalidInput, "/listTermin"))
 		return
 	}
 	user, err := authentication.GetUserBySessionToken(r)
 	if err != nil || user == nil {
 		w.WriteHeader(http.StatusUnauthorized)
 		// Fehlermeldung für Nutzer anzeigen
-		templates.TempError.Execute(w, error2.CreateError(error2.Authentification, r.Host+"/"))
+		templates.TempError.Execute(w, error2.CreateError(error2.Authentification, "/"))
 		return
 	}
 
@@ -44,7 +44,7 @@ func TerminHandler(w http.ResponseWriter, r *http.Request) {
 		input, err := strconv.Atoi(r.Form.Get("numberPerSite"))
 		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
-			templates.TempError.Execute(w, error2.CreateError(error2.InvalidInput, r.Host+"/listTermin"))
+			templates.TempError.Execute(w, error2.CreateError(error2.InvalidInput, "/listTermin"))
 			return
 		}
 		feParams.TerminPerSite = input
@@ -52,7 +52,7 @@ func TerminHandler(w http.ResponseWriter, r *http.Request) {
 		input, err = strconv.Atoi(r.Form.Get("siteChoose"))
 		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
-			templates.TempError.Execute(w, error2.CreateError(error2.InvalidInput, r.Host+"/listTermin"))
+			templates.TempError.Execute(w, error2.CreateError(error2.InvalidInput, "/listTermin"))
 			return
 		}
 		feParams.TerminSite = input
@@ -60,7 +60,7 @@ func TerminHandler(w http.ResponseWriter, r *http.Request) {
 		inputDate, err := time.Parse("2006-01-02", r.Form.Get("dateChoose"))
 		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
-			templates.TempError.Execute(w, error2.CreateError(error2.InvalidInput, r.Host+"/listTermin"))
+			templates.TempError.Execute(w, error2.CreateError(error2.InvalidInput, "/listTermin"))
 			return
 		}
 		feParams.MinDate = inputDate
@@ -68,7 +68,7 @@ func TerminHandler(w http.ResponseWriter, r *http.Request) {
 		cookieValue, err := frontendHandling.GetFeCookieString(*feParams)
 		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
-			templates.TempError.Execute(w, error2.CreateError(error2.InvalidInput, r.Host+"/"))
+			templates.TempError.Execute(w, error2.CreateError(error2.InvalidInput, "/"))
 			return
 		}
 		http.SetCookie(w, &http.Cookie{

@@ -6,8 +6,8 @@ import (
 )
 
 func TestCreateError(t *testing.T) {
-	errorStruct := CreateError(Authentification, "localhost:8080/")
+	errorStruct := CreateError(DuplicateUserName, "/register")
 	// TODO: http und localhost
-	assert.Equal(t, "http://localhost:8080/", errorStruct.Link)
-	assert.Equal(t, string(Authentification), errorStruct.Text)
+	assert.Equal(t, "/register", errorStruct.Link)
+	assert.Equal(t, string(DuplicateUserName), errorStruct.Text)
 }

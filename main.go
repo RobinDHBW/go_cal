@@ -19,6 +19,8 @@ func main() {
 	authentication.InitServer()
 	//authentication.Serv = &authentication.Server{Cmds: authentication.StartSessionManager()}
 	templates.Init()
+	// setzt rand.Seed für Generierung von einmaligen Tokens
+	terminHandling.InitSeed()
 
 	http.HandleFunc("/updateCalendar", authentication.Wrapper(calendar.UpdateCalendarHandler))
 	http.HandleFunc("/register", authentication.RegisterHandler)
