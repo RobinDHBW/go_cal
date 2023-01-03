@@ -78,7 +78,12 @@ func TerminShareHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		url := CreateURL(username, title, user.UserName)
-		dataModel.Dm.AddTokenToSharedAppointment(user.Id, title, url)
+		err := dataModel.Dm.AddTokenToSharedAppointment(user.Id, title, url, username)
+		if err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			templates.TempError.Execute(w, error2.CreateError(error2.DuplicateUserName, r.Host+"/listShareTermin"))
+			return
+		}
 		http.Redirect(w, r, "/listShareTermin", http.StatusFound)
 	default:
 		//templates.TempShareTermin.Execute(w, user.SharedAppointments)
