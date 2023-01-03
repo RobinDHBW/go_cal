@@ -1,6 +1,7 @@
 package terminHandling
 
 import (
+	"fmt"
 	"go_cal/authentication"
 	"go_cal/data"
 	"go_cal/dataModel"
@@ -10,6 +11,8 @@ import (
 	"net/http"
 	"net/url"
 	"regexp"
+	"strconv"
+	"strings"
 	"time"
 )
 
@@ -85,6 +88,37 @@ func TerminShareHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		http.Redirect(w, r, "/listShareTermin", http.StatusFound)
+	case r.Form.Has("acceptTermin"):
+		parts := strings.Split(r.PostFormValue("acceptTermin"), "|")
+		if len(parts) != 2 {
+			w.WriteHeader(http.StatusBadRequest)
+			templates.TempError.Execute(w, error2.CreateError(error2.InvalidInput, r.Host+"/listShareTermin"))
+			return
+		}
+		id, err := strconv.Atoi(parts[0])
+		if err != nil || id < 0 {
+			w.WriteHeader(http.StatusBadRequest)
+			templates.TempError.Execute(w, error2.CreateError(error2.InvalidInput, r.Host+"/listShareTermin"))
+			return
+		}
+		if len(user.SharedAppointments[parts[1]]) > 0 && len(user.SharedAppointments[parts[1]]) > id {
+			app := user.SharedAppointments[parts[1]][id]
+			description := "Abstimmungsergebnis: \n"
+			for _, val := range user.SharedAppointments[parts[1]] {
+				description = description + "Zeitraum: " + val.DateTimeStart.Format("02.01.2006 15:04") + " bis " + val.DateTimeEnd.Format("02.01.2006 15:04") + " | Wiederholung: " + val.GetDescriptionFromInterval() + "\n Abgestimmt: "
+				for i, voted := range val.Share.Voting {
+					if voted {
+						description = description + val.Share.GetUsernameFromUrl(val.Share.Tokens[i]) + ", "
+					}
+				}
+				description = description + "\n\n"
+			}
+			fmt.Println(description)
+			dataModel.Dm.AddAppointment(user.Id, app.Title, description, app.Location, app.DateTimeStart, app.DateTimeEnd, app.Timeseries.Repeat, app.Timeseries.Intervall, true)
+			dataModel.Dm.DeleteSharedAppointment(app.Title, user.Id)
+			http.Redirect(w, r, "/listTermin", http.StatusFound)
+		}
+
 	default:
 		//templates.TempShareTermin.Execute(w, user.SharedAppointments)
 		http.Redirect(w, r, "/listShareTermin", http.StatusFound)
