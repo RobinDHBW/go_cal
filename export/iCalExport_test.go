@@ -3,6 +3,7 @@ package export
 import (
 	"fmt"
 	"github.com/stretchr/testify/assert"
+	"go_cal/data"
 	"go_cal/dataModel"
 	"os"
 	"strings"
@@ -39,16 +40,17 @@ func TestNewICal(t *testing.T) {
 	t1End := time.Date(2022, 12, 24, 11, 00, 00, 00, time.UTC)
 
 	user, ap := dataModel.AddAppointment(user.Id, "test", "search for", "here", t1, t1End, user.Id, false, 0, false, "")
-	subject := NewICal(ap)
+	aps := []*data.Appointment{ap}
+	subject := NewICal(aps)
 
-	assert.EqualValues(t, fmt.Sprintf("%d", ap.Id), subject.VEvent.UID)
-	assert.EqualValues(t, "here", subject.VEvent.Location)
-	assert.EqualValues(t, "test", subject.VEvent.Summary)
-	assert.EqualValues(t, "search for", subject.VEvent.Description)
-	assert.EqualValues(t, "PUBLIC", subject.VEvent.Class)
-	assert.EqualValues(t, "1", subject.VEvent.UID)
-	assert.EqualValues(t, t1, subject.VEvent.DTStart)
-	assert.EqualValues(t, t1End, subject.VEvent.DTEnd)
+	assert.EqualValues(t, fmt.Sprintf("%d", ap.Id), subject.VEvent[0].UID)
+	assert.EqualValues(t, "here", subject.VEvent[0].Location)
+	assert.EqualValues(t, "test", subject.VEvent[0].Summary)
+	assert.EqualValues(t, "search for", subject.VEvent[0].Description)
+	assert.EqualValues(t, "PUBLIC", subject.VEvent[0].Class)
+	assert.EqualValues(t, "1", subject.VEvent[0].UID)
+	assert.EqualValues(t, t1, subject.VEvent[0].DTStart)
+	assert.EqualValues(t, t1End, subject.VEvent[0].DTEnd)
 
 }
 
@@ -66,7 +68,8 @@ func TestICal_ToString(t *testing.T) {
 	t1End := time.Date(2022, 12, 24, 11, 00, 00, 00, time.UTC)
 
 	user, ap := dataModel.AddAppointment(user.Id, "test", "search for", "here", t1, t1End, user.Id, false, 0, false, "")
-	subject := NewICal(ap)
+	aps := []*data.Appointment{ap}
+	subject := NewICal(aps)
 	check := subject.ToString()
 
 	splits := strings.Split(check, "\n")
