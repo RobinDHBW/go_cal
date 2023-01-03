@@ -14,7 +14,7 @@ type FileHandler struct {
 	fileNames []string
 }
 
-// Initialize structs from disk
+// NewFH Initialize structs from disk
 func NewFH(dataPath string) FileHandler {
 
 	err := os.MkdirAll(dataPath, 777)
@@ -26,7 +26,7 @@ func NewFH(dataPath string) FileHandler {
 	if err != nil {
 		log.Fatal(err)
 	}
-	fN := []string{}
+	var fN []string
 	for _, f := range files {
 		fN = append(fN, f.Name())
 	}
@@ -40,9 +40,18 @@ func (fh *FileHandler) SyncToFile(json []byte, id int) {
 		log.Fatal(err)
 	}
 
-	defer file.Close()
+	defer func(file *os.File) {
+		err := file.Close()
+		if err != nil {
+			log.Fatal(err)
+		}
+	}(file)
+
 	fh.fileNames = append(fh.fileNames, fileName)
-	file.Write(json)
+	_, err = file.Write(json)
+	if err != nil {
+		log.Fatal(err)
+	}
 }
 
 func (fh *FileHandler) ReadFromFile(id int) string {
@@ -51,7 +60,12 @@ func (fh *FileHandler) ReadFromFile(id int) string {
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer file.Close()
+	defer func(file *os.File) {
+		err := file.Close()
+		if err != nil {
+			log.Fatal(err)
+		}
+	}(file)
 
 	byteVal, _ := io.ReadAll(file)
 	return string(byteVal)
@@ -60,13 +74,19 @@ func (fh *FileHandler) ReadFromFile(id int) string {
 func (fh *FileHandler) ReadAll() []string {
 	var uStrings []string
 
-	//@TODO Make parallel
-	for _, name := range fh.fileNames {
-		id, err := strconv.Atoi(strings.Split(name, ".")[0])
-		if err != nil {
-			log.Fatal(err)
+	out := make(chan string, 1)
+	go func() {
+		for _, name := range fh.fileNames {
+			id, err := strconv.Atoi(strings.Split(name, ".")[0])
+			if err != nil {
+				log.Fatal(err)
+			}
+			out <- fh.ReadFromFile(id)
 		}
-		uStrings = append(uStrings, fh.ReadFromFile(id))
+		close(out)
+	}()
+	for s := range out {
+		uStrings = append(uStrings, s)
 	}
 	return uStrings
 }

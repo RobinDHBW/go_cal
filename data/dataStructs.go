@@ -43,7 +43,7 @@ func NewUser(name, pw string, id, userLevel int) User {
 	return User{name, pw, userLevel, id, make(map[int]Appointment), make(map[string][]Appointment)}
 }
 
-func NewAppointment(title, description, location string, dateTimeStart, dateTimeEnd time.Time, id, userId int, repeat bool, intervall int, public bool, url string) Appointment {
+func NewAppointment(title, description, location string, dateTimeStart, dateTimeEnd time.Time, id, userId int, repeat bool, intervall int, public bool) Appointment {
 	res := Appointment{id, dateTimeStart, dateTimeEnd, location, title, description, userId, TimeSeries{repeat, intervall}, Share{public, make([]string, 0), make([]bool, 0)}}
 	return res
 }

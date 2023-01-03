@@ -13,6 +13,13 @@ import (
 
 const dataPath = "../data/test/IC"
 
+func after() {
+	err := os.RemoveAll(dataPath)
+	if err != nil {
+		return
+	}
+}
+
 func TestNewVEvent(t *testing.T) {
 	stamp := time.Now()
 	subject := NewVEvent("test1", "Here", "test", "test", "Test", stamp, stamp, stamp)
@@ -30,10 +37,10 @@ func TestNewVEvent(t *testing.T) {
 
 func TestNewICal(t *testing.T) {
 
-	dataModel := dataModel.NewDM(dataPath)
+	dM := dataModel.NewDM(dataPath)
 
-	defer os.RemoveAll(dataPath)
-	user, err := dataModel.AddUser("ical", "abc", 1)
+	defer after()
+	user, err := dM.AddUser("ical", "abc", 1)
 	if err != nil {
 		t.FailNow()
 	}
@@ -41,7 +48,7 @@ func TestNewICal(t *testing.T) {
 	t1 := time.Date(2022, 12, 24, 10, 00, 00, 00, time.UTC)
 	t1End := time.Date(2022, 12, 24, 11, 00, 00, 00, time.UTC)
 
-	user, ap := dataModel.AddAppointment(user.Id, "test", "search for", "here", t1, t1End, user.Id, false, 0, false, "")
+	user, ap := dM.AddAppointment(user.Id, "test", "search for", "here", t1, t1End, user.Id, false, 0, false, "")
 	aps := []*data.Appointment{ap}
 	subject := NewICal(aps)
 
@@ -58,10 +65,10 @@ func TestNewICal(t *testing.T) {
 
 func TestICal_ToString(t *testing.T) {
 	//dataPath := "../data/test"
-	dataModel := dataModel.NewDM(dataPath)
+	dM := dataModel.NewDM(dataPath)
 
-	defer os.RemoveAll(dataPath)
-	user, err := dataModel.AddUser("test", "abc", 1)
+	defer after()
+	user, err := dM.AddUser("test", "abc", 1)
 	if err != nil {
 		t.FailNow()
 	}
@@ -69,7 +76,7 @@ func TestICal_ToString(t *testing.T) {
 	t1 := time.Date(2022, 12, 24, 10, 00, 00, 00, time.UTC)
 	t1End := time.Date(2022, 12, 24, 11, 00, 00, 00, time.UTC)
 
-	user, ap := dataModel.AddAppointment(user.Id, "test", "search for", "here", t1, t1End, user.Id, false, 0, false, "")
+	user, ap := dM.AddAppointment(user.Id, "test", "search for", "here", t1, t1End, user.Id, false, 0, false, "")
 	aps := []*data.Appointment{ap}
 	subject := NewICal(aps)
 	check := subject.ToString()

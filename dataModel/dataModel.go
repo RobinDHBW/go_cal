@@ -36,9 +36,9 @@ func DataSync(user *data.User, dm *DataModel) {
 	dm.fH.SyncToFile(write, user.Id)
 }
 
-func CheckDate(toCheck, from, to time.Time) bool {
-	return from.Equal(toCheck) || !from.After(toCheck) || to.Equal(toCheck) || !to.Before(toCheck)
-}
+//func CheckDate(toCheck, from, to time.Time) bool {
+//	return from.Equal(toCheck) || !from.After(toCheck) || to.Equal(toCheck) || !to.Before(toCheck)
+//}
 
 type DataModel struct {
 	UserMap map[int]data.User
@@ -52,7 +52,12 @@ func NewDM(dataPath string) DataModel {
 
 	for _, uString := range sList {
 		var user data.User
-		json.Unmarshal([]byte(uString), &user)
+		err := json.Unmarshal([]byte(uString), &user)
+
+		if err != nil {
+			log.Fatal(err)
+		}
+
 		uMap[user.Id] = user
 		for _, ap := range user.Appointments {
 			if ap.Id > apID {
@@ -83,7 +88,7 @@ func (dm *DataModel) GetUserByName(search string) *data.User {
 func (dm *DataModel) AddUser(name, pw string, userLevel int) (*data.User, error) {
 	for _, val := range dm.UserMap {
 		if val.UserName == name {
-			return nil, errors.New("Username already exists")
+			return nil, errors.New("username already exists")
 		}
 	}
 	user := data.NewUser(name, encryptPW(pw), len(dm.UserMap)+1, userLevel)
@@ -92,9 +97,9 @@ func (dm *DataModel) AddUser(name, pw string, userLevel int) (*data.User, error)
 	return &user, nil
 }
 
-func (dm *DataModel) AddAppointment(userID int, title, description, location string, dateTimeStart, dateTimeEnd time.Time, userId int, repeat bool, intervall int, public bool, url string) (*data.User, *data.Appointment) {
+func (dm *DataModel) AddAppointment(userID int, title, description, location string, dateTimeStart, dateTimeEnd time.Time, userId int, repeat bool, intervall int, public bool) (*data.User, *data.Appointment) {
 	apID++
-	ap := data.NewAppointment(title, description, location, dateTimeStart, dateTimeEnd, apID, userId, repeat, intervall, public, url)
+	ap := data.NewAppointment(title, description, location, dateTimeStart, dateTimeEnd, apID, userId, repeat, intervall, public)
 
 	user := dm.GetUserById(userID)
 	user.Appointments[ap.Id] = ap

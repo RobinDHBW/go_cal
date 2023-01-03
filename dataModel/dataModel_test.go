@@ -16,13 +16,16 @@ var uMap = map[int]data.User{1: data.NewUser("test1", "test", 1, 3), 2: data.New
 const dataPath = "../data/test/DM"
 
 func after() {
-	os.RemoveAll(dataPath)
+	err := os.RemoveAll(dataPath)
+	if err != nil {
+		return
+	}
 }
 
-func fileWriteRead(user data.User, fH *fileHandler.FileHandler) data.User {
+func fileWriteRead(user data.User, fH *fileHandler.FileHandler, t *testing.T) data.User {
 	write, err := json.Marshal(user)
 	if err != nil {
-		panic(err)
+		t.FailNow()
 	}
 	defer after()
 	fH.SyncToFile(write, user.Id)
@@ -30,7 +33,10 @@ func fileWriteRead(user data.User, fH *fileHandler.FileHandler) data.User {
 	fString := fH.ReadFromFile(user.Id)
 
 	var rUser data.User
-	json.Unmarshal([]byte(fString), &rUser)
+	err = json.Unmarshal([]byte(fString), &rUser)
+	if err != nil {
+		t.FailNow()
+	}
 	return rUser
 }
 
@@ -39,7 +45,7 @@ func TestNewDM(t *testing.T) {
 
 	fH := fileHandler.NewFH(dataPath)
 	for _, uD := range uMap {
-		fileWriteRead(uD, &fH)
+		fileWriteRead(uD, &fH, t)
 	}
 	dataModel := NewDM(dataPath)
 	defer after()
@@ -95,7 +101,10 @@ func TestDataModel_AddUser(t *testing.T) {
 	userFile := dataModel.fH.ReadFromFile(user.Id)
 	var user2 data.User
 
-	json.Unmarshal([]byte(userFile), &user2)
+	err = json.Unmarshal([]byte(userFile), &user2)
+	if err != nil {
+		t.FailNow()
+	}
 
 	//test if user has same attributes
 	//test if file on disk has same attributes
@@ -126,7 +135,7 @@ func TestDataModel_AddAppointment(t *testing.T) {
 	if err != nil {
 		t.FailNow()
 	}
-	user, ap := dataModel.AddAppointment(user.Id, "test", "hello123", "here", tNow, tThen, user.Id, false, 0, false, "")
+	user, ap := dataModel.AddAppointment(user.Id, "test", "hello123", "here", tNow, tThen, user.Id, false, 0, false)
 
 	assert.EqualValues(t, "test", ap.Title)
 	assert.EqualValues(t, tNow, ap.DateTimeStart)
@@ -149,9 +158,9 @@ func TestDataModel_DeleteAppointment(t *testing.T) {
 	tNow := time.Now()
 	tThen := tNow.Add(time.Hour * time.Duration(1))
 
-	user, ap := dataModel.AddAppointment(user.Id, "test", "hello 123", "here", tNow, tThen, user.Id, false, 0, false, "")
-	user, ap = dataModel.AddAppointment(user.Id, "test1", "hello 123", "here", tNow, tThen, user.Id, false, 0, false, "")
-	user, ap = dataModel.AddAppointment(user.Id, "test2", "hello 123", "here", tNow, tThen, user.Id, false, 0, false, "")
+	user, ap := dataModel.AddAppointment(user.Id, "test", "hello 123", "here", tNow, tThen, user.Id, false, 0, false)
+	user, ap = dataModel.AddAppointment(user.Id, "test1", "hello 123", "here", tNow, tThen, user.Id, false, 0, false)
+	user, ap = dataModel.AddAppointment(user.Id, "test2", "hello 123", "here", tNow, tThen, user.Id, false, 0, false)
 
 	lenAp := len(user.Appointments)
 	user = dataModel.DeleteAppointment(ap.Id, user.Id)
@@ -177,7 +186,7 @@ func TestDataModel_EditAppointment(t *testing.T) {
 
 	title := "test"
 	//ap1 := data.NewAppointment()
-	user, ap := dataModel.AddAppointment(user.Id, title, "hello 123", "here", tNow, tThen, user.Id, false, 0, false, "")
+	user, ap := dataModel.AddAppointment(user.Id, title, "hello 123", "here", tNow, tThen, user.Id, false, 0, false)
 
 	assert.EqualValues(t, title, ap.Title)
 
@@ -233,9 +242,9 @@ func TestDataModel_GetAppointmentsBySearchString(t *testing.T) {
 	t1 := time.Date(2022, 12, 24, 10, 00, 00, 00, time.UTC)
 	t1End := time.Date(2022, 12, 24, 11, 00, 00, 00, time.UTC)
 
-	user, _ = dataModel.AddAppointment(user.Id, "test", "search for", "here", t1, t1End, user.Id, false, 0, false, "")
-	user, _ = dataModel.AddAppointment(user.Id, "test1", "catch me if you can", "here", t1, t1End, user.Id, false, 0, false, "")
-	user, _ = dataModel.AddAppointment(user.Id, "test2", "qwertzuiopasdfghjklyxcvbnm123456789", "Here", t1, t1End, user.Id, false, 0, false, "")
+	user, _ = dataModel.AddAppointment(user.Id, "test", "search for", "here", t1, t1End, user.Id, false, 0, false)
+	user, _ = dataModel.AddAppointment(user.Id, "test1", "catch me if you can", "here", t1, t1End, user.Id, false, 0, false)
+	user, _ = dataModel.AddAppointment(user.Id, "test2", "qwertzuiopasdfghjklyxcvbnm123456789", "Here", t1, t1End, user.Id, false, 0, false)
 
 	//user = dataModel.AddAppointment(dataModel.AddAppointment(dataModel.AddAppointment(user.Id, ap1).Id, ap2).Id, ap3)
 
