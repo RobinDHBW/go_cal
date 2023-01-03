@@ -3,6 +3,7 @@ package terminHandling
 import (
 	"go_cal/authentication"
 	"go_cal/data"
+	"go_cal/dataModel"
 	error2 "go_cal/error"
 	"go_cal/frontendHandling"
 	"go_cal/templates"
@@ -81,6 +82,11 @@ func TerminHandler(w http.ResponseWriter, r *http.Request) {
 			*data.User
 		}{feParams,
 			user})
+	case r.Form.Has("searchTerminSubmit"):
+		searchString := r.Form.Get("terminSearch")
+
+		_, apps := dataModel.Dm.GetAppointmentsBySearchString(user.Id, searchString)
+		templates.TempSearchTermin.Execute(w, apps)
 	default:
 		templates.TempTerminList.Execute(w, struct {
 			*frontendHandling.FrontendView
