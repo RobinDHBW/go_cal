@@ -178,9 +178,9 @@ func (dm *DataModel) ComparePW(clear, hash string) bool {
 	return true
 }
 
-func (dm *DataModel) GetAppointmentsForUser(uId int) map[int]data.Appointment {
+func (dm *DataModel) GetAppointmentsForUser(uId int) *map[int]data.Appointment {
 	user := dm.GetUserById(uId)
-	return user.Appointments
+	return &user.Appointments
 }
 
 func (dm *DataModel) AddTokenToSharedAppointment(id int, title, url, username string) error {
