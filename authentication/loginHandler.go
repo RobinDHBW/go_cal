@@ -5,6 +5,7 @@ package authentication
 // https://github.com/eliben/code-for-blog/blob/master/2019/gohttpconcurrency/channel-manager-server.go
 
 import (
+	"errors"
 	"go_cal/data"
 	"go_cal/dataModel"
 	error2 "go_cal/error"
@@ -329,22 +330,29 @@ func GetUserBySessionToken(r *http.Request) (*data.User, error) {
 	cookie, err := r.Cookie("session_token")
 	if err != nil {
 		return nil, err
-
 	}
 	sessionToken := cookie.Value
 
 	replyChannel := make(chan *session)
 	Serv.Cmds <- Command{ty: read, sessionToken: sessionToken, replyChannel: replyChannel}
-	session := <-replyChannel
-
-	username := session.uname
+	replySession := <-replyChannel
+	if *replySession == (session{}) {
+		return nil, errors.New("cannot get User")
+	}
+	username := replySession.uname
 	user := dataModel.Dm.GetUserByName(username)
+	if user == nil {
+		return nil, errors.New("cannot get User")
+	}
 	return user, nil
 }
 
 func getUsernameBySessionToken(sessionToken string) string {
 	replyChannel := make(chan *session)
 	Serv.Cmds <- Command{ty: read, sessionToken: sessionToken, replyChannel: replyChannel}
-	session := <-replyChannel
-	return session.uname
+	replySession := <-replyChannel
+	if *replySession == (session{}) {
+		return ""
+	}
+	return replySession.uname
 }

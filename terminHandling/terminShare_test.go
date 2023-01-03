@@ -4,13 +4,27 @@ import (
 	"github.com/stretchr/testify/assert"
 	"go_cal/dataModel"
 	error2 "go_cal/error"
+	"go_cal/templates"
 	"net/http"
+	"net/http/httptest"
 	"net/url"
 	"testing"
 	"time"
 )
 
 func TestTerminShareHandler(t *testing.T) {
+	templates.Init()
+	defer after()
+	dataModel.InitDataModel("../data/test")
+	_, err := dataModel.Dm.AddUser("peter", "test", 1)
+	assert.Nil(t, err)
+
+	request, _ := http.NewRequest(http.MethodPost, "/shareTermin", nil)
+	form := url.Values{}
+	form.Add("shareCreate", "")
+	request.PostForm = form
+	response := httptest.NewRecorder()
+	http.HandlerFunc(TerminShareHandler).ServeHTTP(response, request)
 
 }
 
