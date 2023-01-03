@@ -16,7 +16,7 @@ func TerminEditHandler(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
-		templates.TempError.Execute(w, error2.CreateError(error2.Default2, r.Host+"/editTermin"))
+		templates.TempError.Execute(w, error2.CreateError(error2.Default2, r.Host+"/listTermin"))
 		return
 	}
 	user, err := authentication.GetUserBySessionToken(r)
@@ -29,7 +29,7 @@ func TerminEditHandler(w http.ResponseWriter, r *http.Request) {
 	feParams, err := frontendHandling.GetFrontendParameters(r)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
-		templates.TempError.Execute(w, error2.CreateError(error2.InvalidInput, r.Host+"/editTermin"))
+		templates.TempError.Execute(w, error2.CreateError(error2.InvalidInput, r.Host+"/listTermin"))
 		return
 	}
 	switch {
@@ -37,7 +37,7 @@ func TerminEditHandler(w http.ResponseWriter, r *http.Request) {
 		index, err := strconv.Atoi(r.Form.Get("editTermin"))
 		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
-			templates.TempError.Execute(w, error2.CreateError(error2.InvalidInput, r.Host+"/editTermin"))
+			templates.TempError.Execute(w, error2.CreateError(error2.InvalidInput, r.Host+"/listTermin"))
 			return
 		}
 		u := *user
@@ -49,11 +49,7 @@ func TerminEditHandler(w http.ResponseWriter, r *http.Request) {
 		err := EditTerminFromInput(r, true, user, id)
 		errEmpty := error2.DisplayedError{}
 		if err == errEmpty {
-			templates.TempTerminList.Execute(w, struct {
-				*frontendHandling.FrontendView
-				*data.User
-			}{feParams,
-				user})
+			http.Redirect(w, r, "/listTermin", http.StatusFound)
 		} else {
 			w.WriteHeader(http.StatusBadRequest)
 			templates.TempError.Execute(w, err)
@@ -62,23 +58,10 @@ func TerminEditHandler(w http.ResponseWriter, r *http.Request) {
 
 	case r.Form.Has("deleteTerminSubmit"):
 		id, _ := strconv.Atoi(r.FormValue("deleteTerminSubmit")) //ToDo testen ob das so geht
-
-		//editIndex := GetTerminFromEditIndex(u, *feParams, index)
 		dataModel.Dm.DeleteAppointment(id, user.Id)
-
-		//DeleteTermin(user)
-		templates.TempTerminList.Execute(w, struct {
-			*frontendHandling.FrontendView
-			*data.User
-		}{feParams,
-			user})
-
+		http.Redirect(w, r, "/listTermin", http.StatusFound)
 	default:
-		templates.TempTerminList.Execute(w, struct {
-			*frontendHandling.FrontendView
-			*data.User
-		}{feParams,
-			user})
+		http.Redirect(w, r, "/listTermin", http.StatusFound)
 	}
 }
 

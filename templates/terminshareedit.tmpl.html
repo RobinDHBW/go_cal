@@ -27,9 +27,9 @@
         Bisherige Terminvorschläge: <br>
         {{range $index, $v := .}}
             Zeitpunkt:
-            {{.DateTimeStart.Format "01.02.2006 15:04"}}
+            {{.DateTimeStart.Format "02.01.2006 15:04"}}
             bis
-            {{.DateTimeEnd.Format "01.02.2006 15:04"}}
+            {{.DateTimeEnd.Format "02.01.2006 15:04"}}
             <br>
             Wiederholung:
             {{.GetDescriptionFromInterval}}

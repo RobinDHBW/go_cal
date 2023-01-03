@@ -15,7 +15,7 @@
                 <li>
                     <form id="terminListForm" method="post" action="/listTermin">
                         Terminübersicht<br><br>
-                        <button style="font-size: 16px" name="calendarBack" id="calendarBack" type="submit">Zurück zum Kalendar</button>
+                        <button style="font-size: 16px" name="calendarBack" id="calendarBack" type="submit" formaction="/updateCalendar">Zurück zum Kalendar</button>
                         <br>
                         <label class="inputlabel" for="dateChoose">Datum wählen</label>
                         <input style="font-size: 16px" name="dateChoose" id="dateChoose" type="date" value='{{.FrontendView.MinDate.Format "2006-01-02"}}'/>
