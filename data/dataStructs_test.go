@@ -26,3 +26,31 @@ func TestNewAppointment(t *testing.T) {
 	assert.EqualValues(t, 0, aTest.Timeseries.Intervall)
 	assert.EqualValues(t, false, aTest.Share.Public)
 }
+
+func TestAppointment_GetDescriptionFromInterval(t *testing.T) {
+	tNow := time.Now()
+	tThen := tNow.Add(time.Hour * time.Duration(1))
+	ap := NewAppointment("test", "hallo 123", "here", tNow, tThen, 1, 1, true, 1, false)
+	assert.Equal(t, "täglich", ap.GetDescriptionFromInterval())
+	ap.Timeseries.Intervall = 7
+	assert.Equal(t, "wöchentlich", ap.GetDescriptionFromInterval())
+	ap.Timeseries.Intervall = 365
+	assert.Equal(t, "jährlich", ap.GetDescriptionFromInterval())
+	ap.Timeseries.Intervall = 30
+	assert.Equal(t, "monatlich", ap.GetDescriptionFromInterval())
+	ap.Timeseries.Intervall = -5
+	assert.Equal(t, "keine", ap.GetDescriptionFromInterval())
+
+}
+
+func TestShare_GetUsernameFromUrl(t *testing.T) {
+	text := "http://localhost:8080/terminVoting?invitor=test&termin=test&token=jWAgIWSYiPxDiauBNPfQusername=Testuser"
+	tNow := time.Now()
+	tThen := tNow.Add(time.Hour * time.Duration(1))
+	ap := NewAppointment("test", "hallo 123", "here", tNow, tThen, 1, 1, true, 1, false)
+	result := ap.Share.GetUsernameFromUrl(text)
+	assert.Equal(t, "", result)
+	text = "http://localhost:8080/terminVoting?invitor=test&termin=test&token=jWAgIWSYiPxDiauBNPfQ&username=Testuser"
+	result = ap.Share.GetUsernameFromUrl(text)
+	assert.Equal(t, "Testuser", result)
+}

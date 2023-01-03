@@ -45,7 +45,12 @@ func TerminEditHandler(w http.ResponseWriter, r *http.Request) {
 		templates.TempTerminEdit.Execute(w, user.Appointments[editIndex])
 
 	case r.Form.Has("editTerminSubmit"):
-		id, _ := strconv.Atoi(r.FormValue("editTerminSubmit")) //ToDo testen ob das so geht
+		id, err1 := strconv.Atoi(r.FormValue("editTerminSubmit"))
+		if err1 != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			templates.TempError.Execute(w, error2.CreateError(error2.InvalidInput, r.Host+"/listTermin"))
+			return
+		}
 		err := EditTerminFromInput(r, true, user, id)
 		errEmpty := error2.DisplayedError{}
 		if err == errEmpty {
@@ -57,7 +62,12 @@ func TerminEditHandler(w http.ResponseWriter, r *http.Request) {
 		}
 
 	case r.Form.Has("deleteTerminSubmit"):
-		id, _ := strconv.Atoi(r.FormValue("deleteTerminSubmit")) //ToDo testen ob das so geht
+		id, err := strconv.Atoi(r.FormValue("deleteTerminSubmit"))
+		if err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			templates.TempError.Execute(w, error2.CreateError(error2.InvalidInput, r.Host+"/listTermin"))
+			return
+		}
 		dataModel.Dm.DeleteAppointment(id, user.Id)
 		http.Redirect(w, r, "/listTermin", http.StatusFound)
 	default:
@@ -109,11 +119,11 @@ func GetRepeatingMode(mode string) int {
 // fetch + validate frontend inputs
 // edits/creates appointment with inputs, if user inputs were correct
 func EditTerminFromInput(r *http.Request, edit bool, user *data.User, id int) error2.DisplayedError {
-	begin, err := time.Parse("2006-01-02T15:04", r.Form.Get("dateBegin"))
+	begin, err := time.Parse("2006-01-02T15:04", r.PostFormValue("dateBegin"))
 	if err != nil {
 		return error2.CreateError(error2.InvalidInput, r.Host+"/listTermin")
 	}
-	end, err := time.Parse("2006-01-02T15:04", r.Form.Get("dateEnd"))
+	end, err := time.Parse("2006-01-02T15:04", r.PostFormValue("dateEnd"))
 	if err != nil {
 		return error2.CreateError(error2.InvalidInput, r.Host+"/listTermin")
 	}
@@ -121,12 +131,12 @@ func EditTerminFromInput(r *http.Request, edit bool, user *data.User, id int) er
 		return error2.CreateError(error2.EndBeforeBegin, r.Host+"/listTermin")
 	}
 
-	repeat := GetRepeatingMode(r.Form.Get("chooseRepeat"))
-	title := r.Form.Get("title")
+	repeat := GetRepeatingMode(r.PostFormValue("chooseRepeat"))
+	title := r.PostFormValue("title")
 	if len(title) == 0 {
 		return error2.CreateError(error2.TitleIsEmpty, r.Host+"/listTermin")
 	}
-	content := r.Form.Get("content")
+	content := r.PostFormValue("content")
 	if edit {
 		app := user.Appointments[id]
 		app.Title = title

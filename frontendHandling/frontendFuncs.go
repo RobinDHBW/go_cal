@@ -21,8 +21,8 @@ type FrontendView struct {
 // GetDaysOfMonth
 // days calculation based on https://brandur.org/fragments/go-days-in-month
 // calculates number of days for a month and returns slice containing the days
-func (cal *FrontendView) GetDaysOfMonth() []int {
-	days := time.Date(cal.Year, cal.Month+1, 0, 0, 0, 0, 0, time.UTC).Day()
+func (fv *FrontendView) GetDaysOfMonth() []int {
+	days := time.Date(fv.Year, fv.Month+1, 0, 0, 0, 0, 0, time.UTC).Day()
 	dayRange := make([]int, days)
 	for i := range dayRange {
 		dayRange[i] = i + 1
@@ -33,8 +33,8 @@ func (cal *FrontendView) GetDaysOfMonth() []int {
 // GetDaysBeforeMonthBegin
 // calculates number of days in week before month starts
 // returns empty slice with length = number of days
-func (cal *FrontendView) GetDaysBeforeMonthBegin() []int {
-	weekday := time.Date(cal.Year, cal.Month, 1, 0, 0, 0, 0, time.UTC).Weekday()
+func (fv *FrontendView) GetDaysBeforeMonthBegin() []int {
+	weekday := time.Date(fv.Year, fv.Month, 1, 0, 0, 0, 0, time.UTC).Weekday()
 	if weekday == 0 {
 		return make([]int, 6)
 	} else {
@@ -44,88 +44,88 @@ func (cal *FrontendView) GetDaysBeforeMonthBegin() []int {
 
 // NextMonth
 // adds 1 month to given FrontendView
-func (cal *FrontendView) NextMonth() {
-	if cal.Month == 12 {
-		cal.Month = 1
-		cal.Year++
+func (fv *FrontendView) NextMonth() {
+	if fv.Month == 12 {
+		fv.Month = 1
+		fv.Year++
 	} else {
-		cal.Month++
+		fv.Month++
 	}
 }
 
 // PrevMonth
 // subtracts one month from given FrontendView
-func (cal *FrontendView) PrevMonth() {
-	if cal.Month == 1 {
-		cal.Month = 12
-		cal.Year--
+func (fv *FrontendView) PrevMonth() {
+	if fv.Month == 1 {
+		fv.Month = 12
+		fv.Year--
 	} else {
-		cal.Month--
+		fv.Month--
 	}
 }
 
 // CurrentMonth
 // set month and year from FrontendView to current date
-func (cal *FrontendView) CurrentMonth() {
-	cal.Month = time.Now().Month()
-	cal.Year = time.Now().Year()
+func (fv *FrontendView) CurrentMonth() {
+	fv.Month = time.Now().Month()
+	fv.Year = time.Now().Year()
 }
 
 // ChooseMonth
 // set month and year to custom, error if date is not valid
-func (cal *FrontendView) ChooseMonth(year int, month time.Month) error {
+func (fv *FrontendView) ChooseMonth(year int, month time.Month) error {
 	if year < 0 || month < 1 || month > 12 {
 		return errors.New("given date not valid")
 	}
-	cal.Month = month
-	cal.Year = year
+	fv.Month = month
+	fv.Year = year
 	return nil
 }
 
 // GetCurrentDate
 // returns current datetime
-func (cal *FrontendView) GetCurrentDate() time.Time {
+func (fv *FrontendView) GetCurrentDate() time.Time {
 	return time.Now()
 }
 
 // GetAppointmentsForMonth
 // searches for appointments for given user and month
 // returns slice with number of appointments for each day
-func (cal *FrontendView) GetAppointmentsForMonth(user data.User) []int {
+func (fv *FrontendView) GetAppointmentsForMonth(user data.User) []int {
 	tl := user.Appointments
 	appointmentsPerDay := make([]int, 32) //max. index = 31 (number of days)
 	for i := range tl {
-		if tl[i].DateTimeStart.Year() == cal.Year && tl[i].DateTimeStart.Month() == cal.Month {
+		if tl[i].DateTimeStart.Year() == fv.Year && tl[i].DateTimeStart.Month() == fv.Month {
 			appointmentsPerDay[tl[i].DateTimeStart.Day()]++
 		}
 		if tl[i].Timeseries.Repeat {
 			start := tl[i].DateTimeStart
 			switch tl[i].Timeseries.Intervall {
 			case 1:
-				for start.Before(time.Date(cal.Year, cal.Month+1, 1, 0, 0, 0, 0, time.Local)) {
+				for start.Before(time.Date(fv.Year, fv.Month+1, 1, 0, 0, 0, 0, time.Local)) {
 					start = start.AddDate(0, 0, 1)
-					if start.Year() == cal.Year && start.Month() == cal.Month {
+					if start.Year() == fv.Year && start.Month() == fv.Month {
 						appointmentsPerDay[start.Day()]++
 					}
 				}
 			case 7:
-				for start.Before(time.Date(cal.Year, cal.Month+1, 1, 0, 0, 0, 0, time.Local)) {
+				for start.Before(time.Date(fv.Year, fv.Month+1, 1, 0, 0, 0, 0, time.Local)) {
 					start = start.AddDate(0, 0, 7)
-					if start.Year() == cal.Year && start.Month() == cal.Month {
+					if start.Year() == fv.Year && start.Month() == fv.Month {
 						appointmentsPerDay[start.Day()]++
 					}
 				}
 			case 30:
-				for start.Before(time.Date(cal.Year, cal.Month+1, 1, 0, 0, 0, 0, time.Local)) {
+				for start.Before(time.Date(fv.Year, fv.Month+1, 1, 0, 0, 0, 0, time.Local)) {
 					start = start.AddDate(0, 1, 0)
-					if start.Year() == cal.Year && start.Month() == cal.Month {
+					if start.Year() == fv.Year && start.Month() == fv.Month {
 						appointmentsPerDay[start.Day()]++
 					}
 				}
 			case 365:
-				for start.Before(time.Date(cal.Year, cal.Month+1, 1, 0, 0, 0, 0, time.Local)) {
+				for start.Before(time.Date(fv.Year, fv.Month+1, 1, 0, 0, 0, 0, time.Local)) {
 					start = start.AddDate(1, 0, 0)
-					if start.Year() == cal.Year && start.Month() == cal.Month {
+					if start.Year() == fv.Year && start.Month() == fv.Month {
 						appointmentsPerDay[start.Day()]++
 					}
 				}

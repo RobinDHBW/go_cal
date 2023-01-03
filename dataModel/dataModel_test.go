@@ -275,3 +275,33 @@ func TestDataModel_ComparePW(t *testing.T) {
 	assert.EqualValues(t, true, Dm.ComparePW("abc", user.Password))
 	assert.EqualValues(t, false, Dm.ComparePW("123", user.Password))
 }
+
+func TestDataModel_DeleteSharedAppointment(t *testing.T) {
+	//dataPath := "../data/test"
+	dataModel := NewDM(dataPath)
+	defer after()
+
+	user, err := dataModel.AddUser("test5", "abc", 1)
+
+	if err != nil {
+		t.FailNow()
+	}
+
+	tNow := time.Now()
+	tThen := tNow.Add(time.Hour * time.Duration(1))
+
+	dataModel.AddSharedAppointment(user.Id, "test", "here", tNow, tThen, false, 0, false)
+	dataModel.AddSharedAppointment(user.Id, "test", "here", tNow.Add(time.Hour*time.Duration(1)), tThen.Add(time.Hour*time.Duration(1)), false, 0, false)
+	dataModel.AddSharedAppointment(user.Id, "test1", "here", tNow, tThen, false, 0, false)
+
+	assert.Equal(t, 2, len(user.SharedAppointments["test"]))
+	assert.Equal(t, 1, len(user.SharedAppointments["test1"]))
+
+	user = dataModel.DeleteSharedAppointment("test", user.Id)
+
+	_, ok := user.SharedAppointments["test"]
+
+	assert.Equal(t, 0, len(user.SharedAppointments["test"]))
+	assert.Equal(t, 1, len(user.SharedAppointments["test1"]))
+	assert.False(t, ok)
+}
