@@ -38,7 +38,7 @@ func TestNewICal(t *testing.T) {
 	t1 := time.Date(2022, 12, 24, 10, 00, 00, 00, time.UTC)
 	t1End := time.Date(2022, 12, 24, 11, 00, 00, 00, time.UTC)
 
-	user, ap := dataModel.AddAppointment(user.Id, "test", "search for", "here", t1, t1End, user.Id, false, 0, false, "")
+	user, ap := dataModel.AddAppointment(user.Id, "test", "search for", "here", t1, t1End, false, 0, false)
 	subject := NewICal(ap)
 
 	assert.EqualValues(t, fmt.Sprintf("%d", ap.Id), subject.VEvent.UID)
@@ -65,7 +65,7 @@ func TestICal_ToString(t *testing.T) {
 	t1 := time.Date(2022, 12, 24, 10, 00, 00, 00, time.UTC)
 	t1End := time.Date(2022, 12, 24, 11, 00, 00, 00, time.UTC)
 
-	user, ap := dataModel.AddAppointment(user.Id, "test", "search for", "here", t1, t1End, user.Id, false, 0, false, "")
+	user, ap := dataModel.AddAppointment(user.Id, "test", "search for", "here", t1, t1End, false, 0, false)
 	subject := NewICal(ap)
 	check := subject.ToString()
 
