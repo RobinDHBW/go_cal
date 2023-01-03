@@ -15,7 +15,9 @@ type FileHandler struct {
 }
 
 // NewFH - Initialize structs from disk
+//
 // dataPath string - Path where files should be stored
+//
 // return FileHandler - instance of type FileHandler
 func NewFH(dataPath string) FileHandler {
 
@@ -36,7 +38,9 @@ func NewFH(dataPath string) FileHandler {
 }
 
 // SyncToFile - Write bytes to file
+//
 // json []byte - ByteArray
+//
 // id int - file id, e.g.: 1.json
 func (fh *FileHandler) SyncToFile(json []byte, id int) {
 	fileName := strconv.Itoa(id) + ".json"
@@ -60,7 +64,9 @@ func (fh *FileHandler) SyncToFile(json []byte, id int) {
 }
 
 // ReadFromFile - Read from a file
+//
 // id int - file id, e.g.: 1.json
+//
 // return string - file content as string
 func (fh *FileHandler) ReadFromFile(id int) string {
 	fP := path.Join(fh.dataPath, strconv.Itoa(id)+".json")
@@ -80,6 +86,7 @@ func (fh *FileHandler) ReadFromFile(id int) string {
 }
 
 // ReadAll - Read all files from disk
+//
 // return []string - array of string representing file contents
 func (fh *FileHandler) ReadAll() []string {
 	var uStrings []string
