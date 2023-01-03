@@ -3,8 +3,13 @@ package export
 import (
 	"fmt"
 	"go_cal/data"
+	"strconv"
 	"time"
 )
+
+func timeToCoalString(t time.Time) string {
+	return strconv.Itoa(t.Year()) + strconv.Itoa(int(t.Month())) + strconv.Itoa(t.Day()) + "T" + strconv.Itoa(t.Hour()) + strconv.Itoa(t.Minute()) + strconv.Itoa(t.Second()) + "Z"
+}
 
 type VEvent struct {
 	UID         string
@@ -38,7 +43,8 @@ func NewICal(aps []*data.Appointment) ICal {
 
 func (ics *ICal) ToString() string {
 	res := "BEGIN:VCALENDAR"
-	res += "\nVERSION:" + fmt.Sprintf("%f", ics.Version)
+	//res += "\nVERSION:" + fmt.Sprintf("%f", ics.Version)
+	res += "\nVERSION:" + strconv.FormatFloat(ics.Version, 'f', 1, 64)
 	res += "\nPRODID:" + ics.ProdID
 	res += "\nMETHOD:" + ics.Method
 
@@ -49,9 +55,9 @@ func (ics *ICal) ToString() string {
 		res += "\nSUMMARY:" + event.Summary
 		res += "\nDESCRIPTION:" + event.Description
 		res += "\nCLASS:" + event.Class
-		res += "\nDTSTART:" + event.DTStart.String()
-		res += "\nDTEND:" + event.DTEnd.String()
-		res += "\nDTSTAMP:" + event.DTStamp.String()
+		res += "\nDTSTART:" + timeToCoalString(event.DTStart)
+		res += "\nDTEND:" + timeToCoalString(event.DTEnd)
+		res += "\nDTSTAMP:" + timeToCoalString(event.DTStamp)
 		res += "\nEND:VEVENT"
 	}
 	res += "\nEND:VCALENDAR"

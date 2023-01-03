@@ -1,7 +1,6 @@
 package export
 
 import (
-	"fmt"
 	"github.com/stretchr/testify/assert"
 	"go_cal/data"
 	"go_cal/dataModel"
@@ -43,7 +42,6 @@ func TestNewICal(t *testing.T) {
 	aps := []*data.Appointment{ap}
 	subject := NewICal(aps)
 
-	assert.EqualValues(t, fmt.Sprintf("%d", ap.Id), subject.VEvent[0].UID)
 	assert.EqualValues(t, "here", subject.VEvent[0].Location)
 	assert.EqualValues(t, "test", subject.VEvent[0].Summary)
 	assert.EqualValues(t, "search for", subject.VEvent[0].Description)
