@@ -3,12 +3,22 @@ package export
 import (
 	"fmt"
 	"github.com/stretchr/testify/assert"
+	"go_cal/data"
 	"go_cal/dataModel"
 	"os"
 	"strings"
 	"testing"
 	"time"
 )
+
+const dataPath = "../data/test/IC"
+
+func after() {
+	err := os.RemoveAll(dataPath)
+	if err != nil {
+		return
+	}
+}
 
 func TestNewVEvent(t *testing.T) {
 	stamp := time.Now()
@@ -26,12 +36,11 @@ func TestNewVEvent(t *testing.T) {
 }
 
 func TestNewICal(t *testing.T) {
-	dataPath := "../data/test"
-	//dataModel := NewDM(dataPath)
-	dataModel.InitDataModel(dataPath)
 
-	defer os.RemoveAll(dataPath)
-	user, err := dataModel.Dm.AddUser("test", "abc", 1)
+	dM := dataModel.NewDM(dataPath)
+
+	defer after()
+	user, err := dM.AddUser("ical", "abc", 1)
 	if err != nil {
 		t.FailNow()
 	}
@@ -39,27 +48,28 @@ func TestNewICal(t *testing.T) {
 	t1 := time.Date(2022, 12, 24, 10, 00, 00, 00, time.UTC)
 	t1End := time.Date(2022, 12, 24, 11, 00, 00, 00, time.UTC)
 
-	user, ap := dataModel.Dm.AddAppointment(user.Id, "test", "search for", "here", t1, t1End, false, 0, false)
-	subject := NewICal(ap)
 
-	assert.EqualValues(t, fmt.Sprintf("%d", ap.Id), subject.VEvent.UID)
-	assert.EqualValues(t, "here", subject.VEvent.Location)
-	assert.EqualValues(t, "test", subject.VEvent.Summary)
-	assert.EqualValues(t, "search for", subject.VEvent.Description)
-	assert.EqualValues(t, "PUBLIC", subject.VEvent.Class)
-	assert.EqualValues(t, "1", subject.VEvent.UID)
-	assert.EqualValues(t, t1, subject.VEvent.DTStart)
-	assert.EqualValues(t, t1End, subject.VEvent.DTEnd)
+	user, ap := dM.AddAppointment(user.Id, "test", "search for", "here", t1, t1End, user.Id, false, 0, false, "")
+	aps := []*data.Appointment{ap}
+	subject := NewICal(aps)
+
+	assert.EqualValues(t, fmt.Sprintf("%d", ap.Id), subject.VEvent[0].UID)
+	assert.EqualValues(t, "here", subject.VEvent[0].Location)
+	assert.EqualValues(t, "test", subject.VEvent[0].Summary)
+	assert.EqualValues(t, "search for", subject.VEvent[0].Description)
+	assert.EqualValues(t, "PUBLIC", subject.VEvent[0].Class)
+	assert.EqualValues(t, "1", subject.VEvent[0].UID)
+	assert.EqualValues(t, t1, subject.VEvent[0].DTStart)
+	assert.EqualValues(t, t1End, subject.VEvent[0].DTEnd)
 
 }
 
 func TestICal_ToString(t *testing.T) {
-	dataPath := "../data/test"
-	//dataModel := NewDM(dataPath)
-	dataModel.InitDataModel(dataPath)
+	//dataPath := "../data/test"
+	dM := dataModel.NewDM(dataPath)
 
-	defer os.RemoveAll(dataPath)
-	user, err := dataModel.Dm.AddUser("test", "abc", 1)
+	defer after()
+	user, err := dM.AddUser("test", "abc", 1)
 	if err != nil {
 		t.FailNow()
 	}
@@ -67,8 +77,9 @@ func TestICal_ToString(t *testing.T) {
 	t1 := time.Date(2022, 12, 24, 10, 00, 00, 00, time.UTC)
 	t1End := time.Date(2022, 12, 24, 11, 00, 00, 00, time.UTC)
 
-	user, ap := dataModel.Dm.AddAppointment(user.Id, "test", "search for", "here", t1, t1End, false, 0, false)
-	subject := NewICal(ap)
+	user, ap := dM.AddAppointment(user.Id, "test", "search for", "here", t1, t1End, user.Id, false, 0, false, "")
+	aps := []*data.Appointment{ap}
+	subject := NewICal(aps)
 	check := subject.ToString()
 
 	splits := strings.Split(check, "\n")

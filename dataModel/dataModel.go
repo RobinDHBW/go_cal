@@ -37,9 +37,9 @@ func DataSync(user *data.User, dm *DataModel) {
 	dm.fH.SyncToFile(write, user.Id)
 }
 
-func CheckDate(toCheck, from, to time.Time) bool {
-	return from.Equal(toCheck) || !from.After(toCheck) || to.Equal(toCheck) || !to.Before(toCheck)
-}
+//func CheckDate(toCheck, from, to time.Time) bool {
+//	return from.Equal(toCheck) || !from.After(toCheck) || to.Equal(toCheck) || !to.Before(toCheck)
+//}
 
 type DataModel struct {
 	UserMap map[int]data.User
@@ -53,7 +53,12 @@ func NewDM(dataPath string) DataModel {
 
 	for _, uString := range sList {
 		var user data.User
-		json.Unmarshal([]byte(uString), &user)
+		err := json.Unmarshal([]byte(uString), &user)
+
+		if err != nil {
+			log.Fatal(err)
+		}
+
 		uMap[user.Id] = user
 		for _, ap := range user.Appointments {
 			if ap.Id > apID {
@@ -84,7 +89,7 @@ func (dm *DataModel) GetUserByName(search string) *data.User {
 func (dm *DataModel) AddUser(name, pw string, userLevel int) (*data.User, error) {
 	for _, val := range dm.UserMap {
 		if val.UserName == name {
-			return nil, errors.New("Username already exists")
+			return nil, errors.New("username already exists")
 		}
 	}
 	user := data.NewUser(name, encryptPW(pw), len(dm.UserMap)+1, userLevel)
@@ -140,17 +145,17 @@ func (dm *DataModel) EditAppointment(uId int, ap *data.Appointment) *data.User {
 	return user
 }
 
-func (dm *DataModel) GetAppointmentsByTimeFrame(uId int, tFrom, tTo time.Time) (*data.User, *map[int]data.Appointment) {
-	user := dm.GetUserById(uId)
-	res := make(map[int]data.Appointment)
-	for key, val := range user.Appointments {
-		if CheckDate(val.DateTimeStart, tFrom, tTo) || CheckDate(val.DateTimeEnd, tFrom, tTo) {
-			res[key] = val
-		}
-	}
-
-	return user, &res
-}
+//func (dm *DataModel) GetAppointmentsByTimeFrame(uId int, tFrom, tTo time.Time) (*data.User, *map[int]data.Appointment) {
+//	user := dm.GetUserById(uId)
+//	res := make(map[int]data.Appointment)
+//	for key, val := range user.Appointments {
+//		if CheckDate(val.DateTimeStart, tFrom, tTo) || CheckDate(val.DateTimeEnd, tFrom, tTo) {
+//			res[key] = val
+//		}
+//	}
+//
+//	return user, &res
+//}
 
 func (dm *DataModel) GetAppointmentsBySearchString(uId int, search string) (*data.User, *map[int]data.Appointment) {
 	user := dm.GetUserById(uId)
