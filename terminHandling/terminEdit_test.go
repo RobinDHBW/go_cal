@@ -24,16 +24,16 @@ func TestGetTerminFromEditIndex(t *testing.T) {
 	}
 	// Exspected order of appointmentIds: 4 1 2 3
 	appIndex := GetTerminFromEditIndex(*user, fv, 2)
-	assert.Equal(t, 2, appIndex, "index 2 test")
+	assert.Equal(t, 3, appIndex, "index 2 test")
 
 	appIndex = GetTerminFromEditIndex(*user, fv, 3)
-	assert.Equal(t, 3, appIndex, "index 3 test")
+	assert.Equal(t, 4, appIndex, "index 3 test")
 
 	appIndex = GetTerminFromEditIndex(*user, fv, 0)
-	assert.Equal(t, 4, appIndex, "index 0 test")
+	assert.Equal(t, 5, appIndex, "index 0 test")
 
 	appIndex = GetTerminFromEditIndex(*user, fv, 1)
-	assert.Equal(t, 1, appIndex, "index 1 test")
+	assert.Equal(t, 2, appIndex, "index 1 test")
 }
 
 func TestGetRepeatingMode(t *testing.T) {

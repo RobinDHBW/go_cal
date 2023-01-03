@@ -157,7 +157,7 @@ func TestFrontendView_ChooseMonth(t *testing.T) {
 
 func TestFrontendView_GetCurrentDate(t *testing.T) {
 	fv := FrontendView{}
-	assert.Equal(t, fv.GetCurrentDate(), time.Now(), "Times should be equal")
+	assert.WithinDuration(t, fv.GetCurrentDate(), time.Now(), 1*time.Second, "Times should be equal")
 }
 
 func TestFrontendView_GetAppointmentsForMonth(t *testing.T) {

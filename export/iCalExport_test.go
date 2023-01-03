@@ -27,10 +27,11 @@ func TestNewVEvent(t *testing.T) {
 
 func TestNewICal(t *testing.T) {
 	dataPath := "../data/test"
-	dataModel := dataModel.NewDM(dataPath)
+	//dataModel := NewDM(dataPath)
+	dataModel.InitDataModel(dataPath)
 
 	defer os.RemoveAll(dataPath)
-	user, err := dataModel.AddUser("test", "abc", 1)
+	user, err := dataModel.Dm.AddUser("test", "abc", 1)
 	if err != nil {
 		t.FailNow()
 	}
@@ -38,7 +39,7 @@ func TestNewICal(t *testing.T) {
 	t1 := time.Date(2022, 12, 24, 10, 00, 00, 00, time.UTC)
 	t1End := time.Date(2022, 12, 24, 11, 00, 00, 00, time.UTC)
 
-	user, ap := dataModel.AddAppointment(user.Id, "test", "search for", "here", t1, t1End, false, 0, false)
+	user, ap := dataModel.Dm.AddAppointment(user.Id, "test", "search for", "here", t1, t1End, false, 0, false)
 	subject := NewICal(ap)
 
 	assert.EqualValues(t, fmt.Sprintf("%d", ap.Id), subject.VEvent.UID)
@@ -54,10 +55,11 @@ func TestNewICal(t *testing.T) {
 
 func TestICal_ToString(t *testing.T) {
 	dataPath := "../data/test"
-	dataModel := dataModel.NewDM(dataPath)
+	//dataModel := NewDM(dataPath)
+	dataModel.InitDataModel(dataPath)
 
 	defer os.RemoveAll(dataPath)
-	user, err := dataModel.AddUser("test", "abc", 1)
+	user, err := dataModel.Dm.AddUser("test", "abc", 1)
 	if err != nil {
 		t.FailNow()
 	}
@@ -65,7 +67,7 @@ func TestICal_ToString(t *testing.T) {
 	t1 := time.Date(2022, 12, 24, 10, 00, 00, 00, time.UTC)
 	t1End := time.Date(2022, 12, 24, 11, 00, 00, 00, time.UTC)
 
-	user, ap := dataModel.AddAppointment(user.Id, "test", "search for", "here", t1, t1End, false, 0, false)
+	user, ap := dataModel.Dm.AddAppointment(user.Id, "test", "search for", "here", t1, t1End, false, 0, false)
 	subject := NewICal(ap)
 	check := subject.ToString()
 
