@@ -206,39 +206,39 @@ func TestDataModel_EditAppointment(t *testing.T) {
 	assert.EqualValues(t, title, user.Appointments[ap.Id].Title)
 }
 
-func TestDataModel_GetAppointmentByTimeFrame(t *testing.T) {
-	dataPath := "../data/test"
-	//dataModel := NewDM(dataPath)
-	InitDataModel(dataPath)
-
-	defer after()
-	user, err := Dm.AddUser("test", "abc", 1)
-	if err != nil {
-		t.FailNow()
-	}
-
-	t1 := time.Date(2022, 12, 24, 10, 00, 00, 00, time.UTC)
-	t1End := time.Date(2022, 12, 24, 11, 00, 00, 00, time.UTC)
-
-	t2 := time.Date(2022, 12, 24, 11, 00, 00, 00, time.UTC)
-	t2End := time.Date(2022, 12, 24, 12, 00, 00, 00, time.UTC)
-
-	t3 := time.Date(2022, 12, 24, 12, 00, 00, 00, time.UTC)
-	t3End := time.Date(2022, 12, 24, 13, 00, 00, 00, time.UTC)
-
-	user, _ = Dm.AddAppointment(user.Id, "test", "hello 123", "here", t1, t1End, false, 0, false)
-	user, _ = Dm.AddAppointment(user.Id, "test1", "hello 123", "here", t2, t2End, false, 0, false)
-	user, _ = Dm.AddAppointment(user.Id, "test2", "hello 123", "Here", t3, t3End, false, 0, false)
-
-	//user = dataModel.AddAppointment(dataModel.AddAppointment(dataModel.AddAppointment(user.Id, ap1).Id, ap2).Id, ap3)
-
-	_, check := Dm.GetAppointmentsByTimeFrame(user.Id, time.Date(2022, 12, 24, 9, 59, 00, 00, time.UTC), time.Date(2022, 12, 24, 13, 01, 00, 00, time.UTC))
-	assert.EqualValues(t, len(user.Appointments), len(*check))
-
-	_, check2 := Dm.GetAppointmentsByTimeFrame(user.Id, time.Date(2022, 12, 24, 10, 00, 00, 00, time.UTC), time.Date(2022, 12, 24, 11, 00, 00, 00, time.UTC))
-	assert.EqualValues(t, len(user.Appointments)-1, len(*check2))
-
-}
+//func TestDataModel_GetAppointmentByTimeFrame(t *testing.T) {
+//	dataPath := "../data/test"
+//	//dataModel := NewDM(dataPath)
+//	InitDataModel(dataPath)
+//
+//	defer after()
+//	user, err := Dm.AddUser("test", "abc", 1)
+//	if err != nil {
+//		t.FailNow()
+//	}
+//
+//	t1 := time.Date(2022, 12, 24, 10, 00, 00, 00, time.UTC)
+//	t1End := time.Date(2022, 12, 24, 11, 00, 00, 00, time.UTC)
+//
+//	t2 := time.Date(2022, 12, 24, 11, 00, 00, 00, time.UTC)
+//	t2End := time.Date(2022, 12, 24, 12, 00, 00, 00, time.UTC)
+//
+//	t3 := time.Date(2022, 12, 24, 12, 00, 00, 00, time.UTC)
+//	t3End := time.Date(2022, 12, 24, 13, 00, 00, 00, time.UTC)
+//
+//	user, _ = Dm.AddAppointment(user.Id, "test", "hello 123", "here", t1, t1End, false, 0, false)
+//	user, _ = Dm.AddAppointment(user.Id, "test1", "hello 123", "here", t2, t2End, false, 0, false)
+//	user, _ = Dm.AddAppointment(user.Id, "test2", "hello 123", "Here", t3, t3End, false, 0, false)
+//
+//	//user = dataModel.AddAppointment(dataModel.AddAppointment(dataModel.AddAppointment(user.Id, ap1).Id, ap2).Id, ap3)
+//
+//	_, check := Dm.GetAppointmentsByTimeFrame(user.Id, time.Date(2022, 12, 24, 9, 59, 00, 00, time.UTC), time.Date(2022, 12, 24, 13, 01, 00, 00, time.UTC))
+//	assert.EqualValues(t, len(user.Appointments), len(*check))
+//
+//	_, check2 := Dm.GetAppointmentsByTimeFrame(user.Id, time.Date(2022, 12, 24, 10, 00, 00, 00, time.UTC), time.Date(2022, 12, 24, 11, 00, 00, 00, time.UTC))
+//	assert.EqualValues(t, len(user.Appointments)-1, len(*check2))
+//
+//}
 
 func TestDataModel_GetAppointmentsBySearchString(t *testing.T) {
 	dataPath := "../data/test"

@@ -33,74 +33,72 @@ func TerminShareHandler(w http.ResponseWriter, r *http.Request) {
 	//	templates.TempError.Execute(w, error2.CreateError(error2.InvalidInput, r.Host+"/shareTermin"))
 	//	return
 	//}
-
 	switch {
-	case r.Form.Has("shareTermin"):
-		templates.TempShareTermin.Execute(w, user.SharedAppointments)
+	// Terminfindung erstellen
 	case r.Form.Has("shareCreate"):
 		templates.TempCreateShareTermin.Execute(w, nil)
-	case r.Form.Has("terminlistShareBack"):
-		templates.TempShareTermin.Execute(w, user.SharedAppointments)
+	// Eingaben zur Terminfindungserstellung bestätigen
 	case r.Form.Has("terminShareCreateSubmit"):
 		title := r.PostFormValue("title")
 		if !validateInput(title) {
 			w.WriteHeader(http.StatusBadRequest)
-			templates.TempError.Execute(w, error2.CreateError(error2.InvalidInput, r.Host+"/shareTermin"))
+			templates.TempError.Execute(w, error2.CreateError(error2.InvalidInput, r.Host+"/listShareTermin"))
 			return
 		}
 		err := createSharedTermin(r, user, title)
 		if err == (error2.DisplayedError{}) {
-			templates.TempEditShareTermin.Execute(w, user.SharedAppointments[title])
+			http.Redirect(w, r, "/listShareTermin", http.StatusFound)
 		} else {
 			w.WriteHeader(http.StatusBadRequest)
 			templates.TempError.Execute(w, err)
 			return
 		}
+	// Terminfindung bearbeiten
 	case r.Form.Has("editShareTermin"):
 		value := r.PostFormValue("editShareTermin")
 		templates.TempEditShareTermin.Execute(w, user.SharedAppointments[value])
+	// Eingaben zur Terminfindungsbearbeitung bestätigen
 	case r.Form.Has("editShareTerminSubmit"):
 		title := r.PostFormValue("editShareTerminSubmit")
 		err := createSharedTermin(r, user, title)
 		if err == (error2.DisplayedError{}) {
-			templates.TempEditShareTermin.Execute(w, user.SharedAppointments[title])
+			http.Redirect(w, r, "/listShareTermin", http.StatusFound)
 		} else {
 			w.WriteHeader(http.StatusBadRequest)
 			templates.TempError.Execute(w, err)
 			return
 		}
+	// User zu Terminfindung einladen
 	case r.Form.Has("inviteUserSubmit"):
 		username := r.PostFormValue("username")
 		title := r.PostFormValue("inviteUserSubmit")
 		if !validateInput(username) {
 			w.WriteHeader(http.StatusBadRequest)
-			templates.TempError.Execute(w, error2.CreateError(error2.InvalidInput, r.Host+"/shareTermin"))
+			templates.TempError.Execute(w, error2.CreateError(error2.InvalidInput, r.Host+"/listShareTermin"))
 			return
 		}
 		url := CreateURL(username, title, user.UserName)
 		dataModel.Dm.AddTokenToSharedAppointment(user.Id, title, url)
-		templates.TempEditShareTermin.Execute(w, user.SharedAppointments[title])
+		http.Redirect(w, r, "/listShareTermin", http.StatusFound)
 	default:
-		templates.TempShareTermin.Execute(w, user.SharedAppointments)
+		//templates.TempShareTermin.Execute(w, user.SharedAppointments)
+		http.Redirect(w, r, "/listShareTermin", http.StatusFound)
 	}
 }
 
 func createSharedTermin(r *http.Request, user *data.User, title string) error2.DisplayedError {
 	begin, err := time.Parse("2006-01-02T15:04", r.Form.Get("dateBegin"))
 	if err != nil {
-		return error2.CreateError(error2.InvalidInput, r.Host+"/shareTermin")
+		return error2.CreateError(error2.InvalidInput, r.Host+"/listShareTermin")
 	}
 	end, err := time.Parse("2006-01-02T15:04", r.Form.Get("dateEnd"))
 	if err != nil {
-		return error2.CreateError(error2.InvalidInput, r.Host+"/shareTermin")
+		return error2.CreateError(error2.InvalidInput, r.Host+"/listSareTermin")
 	}
 	if end.Before(begin) {
-		return error2.CreateError(error2.EndBeforeBegin, r.Host+"/shareTermin")
+		return error2.CreateError(error2.EndBeforeBegin, r.Host+"/listShareTermin")
 	}
-
 	repeat := GetRepeatingMode(r.Form.Get("chooseRepeat"))
-
-	//ap := data.NewAppointment(title, "", begin, end, user.Id, repeat > 0, repeat, true)
 	dataModel.Dm.AddSharedAppointment(user.Id, title, "here", begin, end, repeat > 0, repeat, true)
 	return error2.DisplayedError{}
 }

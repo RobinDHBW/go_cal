@@ -28,6 +28,7 @@ func main() {
 	http.HandleFunc("/listTermin", terminHandling.TerminHandler)
 	http.HandleFunc("/createTermin", terminHandling.TerminCreateHandler)
 	http.HandleFunc("/editTermin", terminHandling.TerminEditHandler)
+	http.HandleFunc("/listShareTermin", terminHandling.TerminShareListHandler)
 	http.HandleFunc("/shareTermin", terminHandling.TerminShareHandler)
 	http.HandleFunc("/terminVoting", terminHandling.TerminVotingHandler)
 	//http.HandleFunc("/download", export.Wrapper(export.AuthenticatorFunc(export.CheckUserValid), terminHandling.DownloadHandler))
