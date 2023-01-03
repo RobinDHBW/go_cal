@@ -46,12 +46,12 @@ func (ics *ICal) ToString() string {
 		res += "\nBEGIN:VEVENT"
 		res += "\nUID:" + event.UID
 		res += "\nLOCATION:" + event.Location
-		res += "\nSUMMARY" + event.Summary
+		res += "\nSUMMARY:" + event.Summary
 		res += "\nDESCRIPTION:" + event.Description
 		res += "\nCLASS:" + event.Class
 		res += "\nDTSTART:" + event.DTStart.String()
 		res += "\nDTEND:" + event.DTEnd.String()
-		res += "\nDTSTAMP" + event.DTStamp.String()
+		res += "\nDTSTAMP:" + event.DTStamp.String()
 		res += "\nEND:VEVENT"
 	}
 	res += "\nEND:VCALENDAR"
