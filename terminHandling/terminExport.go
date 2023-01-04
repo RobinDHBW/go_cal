@@ -1,7 +1,7 @@
 package terminHandling
 
 import (
-	"go_cal/authentication"
+	"go_cal/dataModel"
 	error2 "go_cal/error"
 	"go_cal/export"
 	"go_cal/templates"
@@ -16,14 +16,15 @@ func ICalHandler(w http.ResponseWriter, r *http.Request) {
 		templates.TempError.Execute(w, error2.CreateError(error2.Default2, r.Host+"/listShareTermin"))
 		return
 	}
-	user, err := authentication.GetUserBySessionToken(r)
-	if err != nil || user == nil {
+	uName, _, ok := r.BasicAuth()
+	if !ok {
 		w.WriteHeader(http.StatusUnauthorized)
 		// Fehlermeldung für Nutzer anzeigen
 		templates.TempError.Execute(w, error2.CreateError(error2.Authentification, r.Host+"/"))
 		return
 	}
 
+	user := dataModel.Dm.GetUserByName(uName)
 	//http://host/getIcal --> no queries needed
 	ical := []byte(export.NewICal(&user.Appointments).ToString())
 

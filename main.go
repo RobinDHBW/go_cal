@@ -5,6 +5,7 @@ import (
 	"go_cal/calendar"
 	"go_cal/configuration"
 	"go_cal/dataModel"
+	"go_cal/export"
 	"go_cal/templates"
 	"go_cal/terminHandling"
 	"log"
@@ -40,9 +41,8 @@ func main() {
 	http.HandleFunc("/listShareTermin", authentication.Wrapper(terminHandling.TerminShareListHandler))
 	http.HandleFunc("/shareTermin", authentication.Wrapper(terminHandling.TerminShareHandler))
 	http.HandleFunc("/terminVoting", terminHandling.TerminVotingHandler)
-	http.HandleFunc("/getIcal", authentication.Wrapper(terminHandling.ICalHandler))
 
-	//http.HandleFunc("/download", export.Wrapper(export.AuthenticatorFunc(export.CheckUserValid), terminHandling.DownloadHandler))
+	http.HandleFunc("/getIcal", export.Wrapper(export.AuthenticatorFunc(export.CheckUserValid), terminHandling.ICalHandler))
 	http.Handle("/templates/static/", http.StripPrefix("/templates/static", http.FileServer(http.Dir("templates/static"))))
 
 	log.Fatalln(http.ListenAndServe(":"+strconv.Itoa(configuration.Port), nil))
