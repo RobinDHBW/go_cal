@@ -6,6 +6,7 @@ package authentication
 
 import (
 	"errors"
+	"go_cal/configuration"
 	"go_cal/data"
 	"go_cal/dataModel"
 	error2 "go_cal/error"
@@ -78,7 +79,7 @@ func StartSessionManager() chan<- Command {
 				delete(sessions, cmd.sessionToken)
 				cmd.replyChannel <- &session{}
 			case update:
-				sessions[cmd.sessionToken].expires = time.Now().Add(1 * time.Minute)
+				sessions[cmd.sessionToken].expires = time.Now().Add(time.Minute * time.Duration(*configuration.Timeout))
 				cmd.replyChannel <- sessions[cmd.sessionToken]
 			}
 		}
@@ -241,13 +242,9 @@ func refreshCookie(r *http.Request) (sessionToken string, expires time.Time) {
 	cookie, _ := r.Cookie("session_token")
 	// Sessiontoken auslesen
 	sessionToken = cookie.Value
+	// Session aktualisieren
 	Serv.Cmds <- Command{ty: update, sessionToken: sessionToken, replyChannel: replyChannel}
 	replySession := <-replyChannel
-	// session auslesen
-	//session, _ := sessions[sessionToken]
-	// Session ist valide, da zuvor CheckCookie ausgeführt wurde
-	// expires um 10 min verlägern
-	//session.expires = session.expires.Add(1 * time.Minute)
 	return sessionToken, replySession.expires
 }
 
@@ -300,9 +297,8 @@ func CreateSession(username string) (sessionToken string, expires time.Time) {
 	replyChannel := make(chan *session)
 	// Sessiontoken generieren
 	sessionToken = createUUID(25)
-	// Session läuft nach x Minuten ab
-	// TODO Zeit anpassen
-	expires = time.Now().Add(1 * time.Minute)
+	// Session läuft nach x Minuten ab (über flag gesteuert)
+	expires = time.Now().Add(time.Minute * time.Duration(*configuration.Timeout))
 	// Session anhand des Sessiontokens speichern
 	Serv.Cmds <- Command{ty: write, sessionToken: sessionToken, session: &session{uname: username, expires: expires}, replyChannel: replyChannel}
 	// session aus Antwortchannel lesen
