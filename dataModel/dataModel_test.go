@@ -27,7 +27,7 @@ func fileWriteRead(user data.User, fH *fileHandler.FileHandler, t *testing.T) da
 	if err != nil {
 		t.FailNow()
 	}
-	defer after()
+	//defer after()
 	fH.SyncToFile(write, user.Id)
 
 	fString := fH.ReadFromFile(user.Id)
@@ -94,12 +94,13 @@ func TestDataModel_GetUserByName(t *testing.T) {
 func TestDataModel_AddUser(t *testing.T) {
 	//dataPath := "../data/test"
 	dataModel := NewDM(dataPath)
+	fH := fileHandler.NewFH(dataPath)
 	defer after()
 
 	user, err := dataModel.AddUser("test3", "abc", 1)
 	assert.Nil(t, err)
 
-	userFile := Dm.fH.ReadFromFile(user.Id)
+	userFile := fH.ReadFromFile(user.Id)
 	var user2 data.User
 
 	err = json.Unmarshal([]byte(userFile), &user2)
@@ -165,7 +166,7 @@ func TestDataModel_DeleteAppointment(t *testing.T) {
 	user, ap = dataModel.AddAppointment(user.Id, "test2", "hello 123", "here", tNow, tThen, false, 0, false)
 
 	lenAp := len(user.Appointments)
-	user = Dm.DeleteAppointment(ap.Id, user.Id)
+	user = dataModel.DeleteAppointment(ap.Id, user.Id)
 
 	_, ok := user.Appointments[ap.Id]
 
@@ -196,7 +197,7 @@ func TestDataModel_EditAppointment(t *testing.T) {
 
 	title = "test123"
 	ap.Title = title
-	user = Dm.EditAppointment(user.Id, ap)
+	user = dataModel.EditAppointment(user.Id, ap)
 
 	assert.EqualValues(t, title, user.Appointments[ap.Id].Title)
 }
@@ -252,13 +253,13 @@ func TestDataModel_GetAppointmentsBySearchString(t *testing.T) {
 
 	//user = dataModel.AddAppointment(dataModel.AddAppointment(dataModel.AddAppointment(user.Id, ap1).Id, ap2).Id, ap3)
 
-	_, check := Dm.GetAppointmentsBySearchString(user.Id, "test")
+	_, check := dataModel.GetAppointmentsBySearchString(user.Id, "test")
 	assert.EqualValues(t, len(user.Appointments), len(*check))
 
-	_, check = Dm.GetAppointmentsBySearchString(user.Id, "catch")
+	_, check = dataModel.GetAppointmentsBySearchString(user.Id, "catch")
 	assert.EqualValues(t, 1, len(*check))
 
-	_, check = Dm.GetAppointmentsBySearchString(user.Id, "123456")
+	_, check = dataModel.GetAppointmentsBySearchString(user.Id, "123456")
 	assert.EqualValues(t, 1, len(*check))
 
 }

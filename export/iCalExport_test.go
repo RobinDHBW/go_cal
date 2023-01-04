@@ -3,7 +3,6 @@ package export
 import (
 	"fmt"
 	"github.com/stretchr/testify/assert"
-	"go_cal/data"
 	"go_cal/dataModel"
 	"os"
 	"strings"
@@ -49,8 +48,7 @@ func TestNewICal(t *testing.T) {
 	t1End := time.Date(2022, 12, 24, 11, 00, 00, 00, time.UTC)
 
 	user, ap := dM.AddAppointment(user.Id, "test", "search for", "here", t1, t1End, false, 0, false)
-	aps := []*data.Appointment{ap}
-	subject := NewICal(aps)
+	subject := NewICal(dM.GetAppointmentsForUser(user.Id))
 
 	assert.EqualValues(t, fmt.Sprintf("%d", ap.Id), subject.VEvent[0].UID)
 	assert.EqualValues(t, "here", subject.VEvent[0].Location)
@@ -76,9 +74,8 @@ func TestICal_ToString(t *testing.T) {
 	t1 := time.Date(2022, 12, 24, 10, 00, 00, 00, time.UTC)
 	t1End := time.Date(2022, 12, 24, 11, 00, 00, 00, time.UTC)
 
-	user, ap := dM.AddAppointment(user.Id, "test", "search for", "here", t1, t1End, false, 0, false)
-	aps := []*data.Appointment{ap}
-	subject := NewICal(aps)
+	dM.AddAppointment(user.Id, "test", "search for", "here", t1, t1End, false, 0, false)
+	subject := NewICal(dM.GetAppointmentsForUser(user.Id))
 	check := subject.ToString()
 
 	splits := strings.Split(check, "\n")
