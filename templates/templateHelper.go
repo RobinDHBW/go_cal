@@ -18,6 +18,7 @@ var TempCreateShareTermin *template.Template
 var TempEditShareTermin *template.Template
 var TempTerminVoting *template.Template
 var TempTerminVotingSuccess *template.Template
+var TempSearchTermin *template.Template
 
 func Init() {
 	dir, _ := os.Getwd()
@@ -32,6 +33,7 @@ func Init() {
 		TempShareTermin = template.Must(template.ParseFiles("./templates/terminshare.tmpl.html", "./templates/header.tmpl.html"))
 		TempCreateShareTermin = template.Must(template.ParseFiles("./templates/terminsharecreate.tmpl.html", "./templates/header.tmpl.html"))
 		TempEditShareTermin = template.Must(template.ParseFiles("./templates/terminshareedit.tmpl.html", "./templates/header.tmpl.html"))
+		TempSearchTermin = template.Must(template.ParseFiles("./templates/terminsearch.tmpl.html", "./templates/header.tmpl.html"))
 		TempTerminVoting = template.Must(template.ParseFiles("./templates/terminvoting.tmpl.html"))
 		TempTerminVotingSuccess = template.Must(template.ParseFiles("./templates/terminvotingsuccess.tmpl.html"))
 	} else {
@@ -45,6 +47,7 @@ func Init() {
 		TempShareTermin = template.Must(template.ParseFiles("../templates/terminshare.tmpl.html", "../templates/header.tmpl.html"))
 		TempCreateShareTermin = template.Must(template.ParseFiles("../templates/terminsharecreate.tmpl.html", "../templates/header.tmpl.html"))
 		TempEditShareTermin = template.Must(template.ParseFiles("../templates/terminshareedit.tmpl.html", "../templates/header.tmpl.html"))
+		TempSearchTermin = template.Must(template.ParseFiles("../templates/terminsearch.tmpl.html", "../templates/header.tmpl.html"))
 		TempTerminVoting = template.Must(template.ParseFiles("../templates/terminvoting.tmpl.html"))
 		TempTerminVotingSuccess = template.Must(template.ParseFiles("../templates/terminvotingsuccess.tmpl.html"))
 	}

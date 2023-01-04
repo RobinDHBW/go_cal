@@ -226,10 +226,21 @@ func (dm *DataModel) SetVotingForToken(user *data.User, votes []int, title, toke
 
 func IsVotingAllowed(title, token string, user *data.User, username string) bool {
 	query := "/terminVoting?invitor=" + user.UserName + "&termin=" + title + "&token=" + token + "&username=" + username
+	if len(user.SharedAppointments[title]) == 0 {
+		return false
+	}
 	for _, val := range user.SharedAppointments[title][0].Share.Tokens {
 		if strings.Contains(val, query) {
 			return true
 		}
 	}
 	return false
+}
+
+func (dm *DataModel) DeleteSharedAppointment(title string, uId int) *data.User {
+	user := dm.GetUserById(uId)
+	delete(user.SharedAppointments, title)
+
+	DataSync(user, dm)
+	return user
 }

@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Terminlist</title>
+  <link href="templates/static/terminlist.css" type="text/css" rel="stylesheet">
+  <link rel="icon" href="data:,">
+</head>
+<body>
+
+{{template "header"}}
+<div class="calendar-container">
+  <div class="month">
+    <ul>
+      <li>
+        <form id="terminListForm" method="post" action="/listTermin">
+          Terminübersicht<br><br>
+          <button style="font-size: 16px" name="calendarBack" id="calendarBack" type="submit" formaction="/updateCalendar">Zurück zum Kalendar</button>
+            <br><br>
+            <button style="font-size: 16px" name="terminlistBack" id="terminlistBack" type="submit">Zurück zur Terminliste</button>
+        </form>
+      </li><br>
+
+      <form id="searchTerminForm" method="post" action="/listTermin">
+        <input style="font-size: 16px" name="terminSearch" id="terminSearch" type="text" placeholder='Titel und Beschreibung durchsuchen ...'/>
+        <button style="font-size: 16px" name="searchTerminSubmit" id="searchTerminSubmit" type="submit">Termin suchen</button>
+      </form>
+    </ul>
+
+  </div>
+  <div class="terminlist">
+    {{range $index, $v := .}}
+    <span class="termin">
+                    {{.Title}}
+                    <br>
+                    Zeitpunkt: {{.DateTimeStart.Format "02.01.2006 15:04"}} bis {{.DateTimeEnd.Format "02.01.2006 15:04"}} (Wiederholung: {{.GetDescriptionFromInterval}})
+                    <br>
+                    {{.Description}}
+                    <hr>
+                </span>
+    {{else}}
+    <span class="termin">
+                    Keine Termine gefunden
+                    <hr>
+                </span>
+    {{end}}
+
+  </div>
+</div>
+
+</body>
+</html>

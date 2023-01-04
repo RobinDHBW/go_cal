@@ -275,3 +275,92 @@ func TestDataModel_ComparePW(t *testing.T) {
 	assert.EqualValues(t, true, Dm.ComparePW("abc", user.Password))
 	assert.EqualValues(t, false, Dm.ComparePW("123", user.Password))
 }
+
+func TestDataModel_AddSharedAppointment(t *testing.T) {
+	dataModel := NewDM(dataPath)
+	defer after()
+
+	user, err := dataModel.AddUser("test5", "abc", 1)
+	if err != nil {
+		t.FailNow()
+	}
+	tNow := time.Now()
+	tThen := tNow.Add(time.Hour * time.Duration(1))
+	apIDbefore := apID
+	lenBefore := len(user.SharedAppointments["test"])
+	dataModel.AddSharedAppointment(user.Id, "test", "here", tNow, tThen, false, 0, false)
+	assert.Equal(t, apIDbefore+1, apID)
+	assert.Equal(t, lenBefore+1, len(user.SharedAppointments["test"]))
+	expAp := data.NewAppointment("test", "", "here", tNow, tThen, apIDbefore, user.Id, false, 0, false)
+	assert.Equal(t, expAp, user.SharedAppointments["test"][lenBefore])
+
+	_ = Dm.AddTokenToSharedAppointment(user.Id, "test", "TestURL", "invitedUser")
+	_ = Dm.AddTokenToSharedAppointment(user.Id, "test", "TestURL2", "invitedUser2")
+	dataModel.AddSharedAppointment(user.Id, "test", "here", tNow.Add(time.Hour*time.Duration(1)), tThen.Add(time.Hour*time.Duration(1)), false, 0, false)
+	assert.Equal(t, &user.SharedAppointments["test"][lenBefore+1].Share.Tokens, &user.SharedAppointments["test"][lenBefore].Share.Tokens)
+	assert.Equal(t, true, user.SharedAppointments["test"][lenBefore+1].Share.Public)
+	assert.Equal(t, false, user.SharedAppointments["test"][lenBefore+1].Share.Voting[0])
+	assert.Equal(t, false, user.SharedAppointments["test"][lenBefore+1].Share.Voting[1])
+
+	dataModel.AddSharedAppointment(user.Id, "test1", "here", tNow, tThen, false, 0, false)
+	assert.Equal(t, 2, len(user.SharedAppointments["test"]))
+	assert.Equal(t, 1, len(user.SharedAppointments["test1"]))
+}
+
+func TestDataModel_AddTokenToSharedAppointment(t *testing.T) {
+	InitDataModel("../data/test")
+	defer after()
+
+	user, err := Dm.AddUser("test5", "abc", 1)
+	if err != nil {
+		t.FailNow()
+	}
+	tNow := time.Now()
+	tThen := tNow.Add(time.Hour * time.Duration(1))
+	lenBefore := len(user.SharedAppointments["test"])
+	Dm.AddSharedAppointment(user.Id, "test", "here", tNow, tThen, false, 0, false)
+
+	err = Dm.AddTokenToSharedAppointment(user.Id, "test", "/xyz?username=invitedUser", "invitedUser")
+	assert.Nil(t, err)
+	err = Dm.AddTokenToSharedAppointment(user.Id, "test", "/xyz?username=invitedUser", "invitedUser")
+	assert.NotNil(t, err)
+	err = Dm.AddTokenToSharedAppointment(user.Id, "test", "/xyz?username=invitedUser2", "invitedUser2")
+	assert.Nil(t, err)
+
+	assert.Equal(t, "/xyz?username=invitedUser", user.SharedAppointments["test"][lenBefore].Share.Tokens[0])
+	assert.Equal(t, "/xyz?username=invitedUser2", user.SharedAppointments["test"][lenBefore].Share.Tokens[1])
+
+	assert.Equal(t, lenBefore+2, len(user.SharedAppointments["test"][lenBefore].Share.Tokens))
+	assert.Equal(t, false, user.SharedAppointments["test"][lenBefore].Share.Voting[0])
+	assert.Equal(t, false, user.SharedAppointments["test"][lenBefore].Share.Voting[1])
+
+}
+
+func TestDataModel_DeleteSharedAppointment(t *testing.T) {
+	InitDataModel("../data/test")
+	defer after()
+
+	user, err := Dm.AddUser("test5", "abc", 1)
+
+	if err != nil {
+		t.FailNow()
+	}
+
+	tNow := time.Now()
+	tThen := tNow.Add(time.Hour * time.Duration(1))
+
+	Dm.AddSharedAppointment(user.Id, "test", "here", tNow, tThen, false, 0, false)
+	Dm.AddSharedAppointment(user.Id, "test", "here", tNow.Add(time.Hour*time.Duration(1)), tThen.Add(time.Hour*time.Duration(1)), false, 0, false)
+	Dm.AddSharedAppointment(user.Id, "test1", "here", tNow, tThen, false, 0, false)
+
+	assert.Equal(t, 2, len(user.SharedAppointments["test"]))
+	assert.Equal(t, 1, len(user.SharedAppointments["test1"]))
+
+	user = Dm.DeleteSharedAppointment("test", user.Id)
+
+	_, ok := user.SharedAppointments["test"]
+
+	assert.Equal(t, 0, len(user.SharedAppointments["test"]))
+	assert.Equal(t, 1, len(user.SharedAppointments["test1"]))
+	assert.False(t, ok)
+}

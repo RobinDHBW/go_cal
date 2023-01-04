@@ -22,6 +22,7 @@
         </form>
     </div>
     <div class="terminlist">
+        {{$share:=(index . 0).Share}}
         <b>Titel: {{(index . 0).Title}}</b>
         <br>
         Bisherige Terminvorschläge: <br>
@@ -33,13 +34,22 @@
             <br>
             Wiederholung:
             {{.GetDescriptionFromInterval}}
+        <br>
+        Bisher zugesagt:
+        {{range $i, $x := .Share.Voting}}
+            {{if .}}
+                {{$share.GetUsernameFromUrl (index $share.Tokens $i)}},&nbsp;
+            {{end}}
+        {{end}}
+        <form name="terminAcceptForm" method="post" action="/shareTermin">
+        <button style="font-size: 16px" name="acceptTermin" type="submit" value="{{$index}}|{{.Title}}">Terminvorschlag auswählen</button>
+        </form>
         <br><br>
         {{end}}
     </div>
     <hr>
     <div class="terminlist">
         Bisherige eingeladene User: <br>
-        {{$share:=(index . 0).Share}}
         {{range $index, $v := $share.Tokens}}
         {{$share.GetUsernameFromUrl .}}
         <br>

@@ -3,6 +3,7 @@ package terminHandling
 import (
 	"go_cal/authentication"
 	"go_cal/data"
+	"go_cal/dataModel"
 	error2 "go_cal/error"
 	"go_cal/frontendHandling"
 	"go_cal/templates"
@@ -26,7 +27,12 @@ func TerminHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	feParams, _ := frontendHandling.GetFrontendParameters(r)
+	feParams, err := frontendHandling.GetFrontendParameters(r)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		templates.TempError.Execute(w, error2.CreateError(error2.InvalidInput, r.Host+"/listTermin"))
+		return
+	}
 	switch {
 	case r.Form.Has("calendarBack"):
 		templates.TempInit.Execute(w, struct {
@@ -75,12 +81,16 @@ func TerminHandler(w http.ResponseWriter, r *http.Request) {
 			Name:  "fe_parameter",
 			Value: cookieValue,
 		})
-		//TView.GetTerminList()
 		templates.TempTerminList.Execute(w, struct {
 			*frontendHandling.FrontendView
 			*data.User
 		}{feParams,
 			user})
+	case r.Form.Has("searchTerminSubmit"):
+		searchString := r.Form.Get("terminSearch")
+
+		_, apps := dataModel.Dm.GetAppointmentsBySearchString(user.Id, searchString)
+		templates.TempSearchTermin.Execute(w, apps)
 	default:
 		templates.TempTerminList.Execute(w, struct {
 			*frontendHandling.FrontendView

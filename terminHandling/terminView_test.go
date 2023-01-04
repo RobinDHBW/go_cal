@@ -2,9 +2,14 @@ package terminHandling
 
 import (
 	"github.com/stretchr/testify/assert"
+	"go_cal/authentication"
 	"go_cal/data"
 	"go_cal/dataModel"
 	"go_cal/frontendHandling"
+	"go_cal/templates"
+	"net/http"
+	"net/http/httptest"
+	"net/url"
 	"testing"
 	"time"
 )
@@ -14,6 +19,141 @@ import (
 //var App3 data.Appointment
 //var App4 data.Appointment
 //var App5 data.Appointment
+
+func TestTerminHandler_InvalidRequest(t *testing.T) {
+	templates.Init()
+	authentication.InitServer()
+	defer after()
+	dataModel.InitDataModel("../data/test")
+	_, err := dataModel.Dm.AddUser("testUser", "test", 1)
+	assert.Nil(t, err)
+
+	// TODO: http und localhost
+	request, _ := http.NewRequest(http.MethodPost, "http://localhost:8080/editTermin", nil)
+	form := url.Values{}
+	request.PostForm = form
+	request.AddCookie(&http.Cookie{
+		Name:  "session_token",
+		Value: "cookie123",
+	})
+	response := httptest.NewRecorder()
+	http.HandlerFunc(TerminHandler).ServeHTTP(response, request)
+	assert.Equal(t, http.StatusUnauthorized, response.Result().StatusCode)
+
+	sessionToken, _ := authentication.CreateSession("testUser")
+	// TODO: http und localhost
+	request, _ = http.NewRequest(http.MethodPost, "http://localhost:8080/editTermin", nil)
+	form = url.Values{}
+	request.PostForm = form
+	request.AddCookie(&http.Cookie{
+		Name:  "session_token",
+		Value: sessionToken,
+	})
+	response = httptest.NewRecorder()
+	http.HandlerFunc(TerminHandler).ServeHTTP(response, request)
+	assert.Equal(t, http.StatusBadRequest, response.Result().StatusCode)
+}
+
+func TestTerminHandler_ButtonBackAndSearch(t *testing.T) {
+	templates.Init()
+	authentication.InitServer()
+	defer after()
+	dataModel.InitDataModel("../data/test")
+	_, err := dataModel.Dm.AddUser("testUser", "test", 1)
+	assert.Nil(t, err)
+
+	request := initValidSession("listTermin")
+	form := url.Values{}
+	form.Add("calendarBack", "")
+	request.PostForm = form
+	response := httptest.NewRecorder()
+	http.HandlerFunc(TerminHandler).ServeHTTP(response, request)
+	assert.Equal(t, http.StatusOK, response.Result().StatusCode)
+
+	request = initValidSession("listTermin")
+	form = url.Values{}
+	form.Add("terminlistBack", "")
+	request.PostForm = form
+	response = httptest.NewRecorder()
+	http.HandlerFunc(TerminHandler).ServeHTTP(response, request)
+	assert.Equal(t, http.StatusOK, response.Result().StatusCode)
+
+	request = initValidSession("listTermin")
+	form = url.Values{}
+	form.Add("searchTerminSubmit", "")
+	request.PostForm = form
+	response = httptest.NewRecorder()
+	http.HandlerFunc(TerminHandler).ServeHTTP(response, request)
+	assert.Equal(t, http.StatusOK, response.Result().StatusCode)
+
+	request = initValidSession("listTermin")
+	form = url.Values{}
+	request.PostForm = form
+	response = httptest.NewRecorder()
+	http.HandlerFunc(TerminHandler).ServeHTTP(response, request)
+	assert.Equal(t, http.StatusOK, response.Result().StatusCode)
+}
+
+func TestTerminHandler_SubmitTermin(t *testing.T) {
+	templates.Init()
+	authentication.InitServer()
+	defer after()
+	dataModel.InitDataModel("../data/test")
+	_, err := dataModel.Dm.AddUser("testUser", "test", 1)
+	assert.Nil(t, err)
+
+	request := initValidSession("listTermin")
+	form := url.Values{}
+	form.Add("submitTermin", "")
+	form.Add("numberPerSite", "keineZahl")
+	request.PostForm = form
+	response := httptest.NewRecorder()
+	http.HandlerFunc(TerminHandler).ServeHTTP(response, request)
+	assert.Equal(t, http.StatusBadRequest, response.Result().StatusCode)
+
+	request = initValidSession("listTermin")
+	form = url.Values{}
+	form.Add("submitTermin", "")
+	form.Add("numberPerSite", "5")
+	form.Add("siteChoose", "keineZahl")
+	request.PostForm = form
+	response = httptest.NewRecorder()
+	http.HandlerFunc(TerminHandler).ServeHTTP(response, request)
+	assert.Equal(t, http.StatusBadRequest, response.Result().StatusCode)
+
+	request = initValidSession("listTermin")
+	form = url.Values{}
+	form.Add("submitTermin", "")
+	form.Add("numberPerSite", "5")
+	form.Add("siteChoose", "1")
+	form.Add("dateChoose", "keinDatum")
+	request.PostForm = form
+	response = httptest.NewRecorder()
+	http.HandlerFunc(TerminHandler).ServeHTTP(response, request)
+	assert.Equal(t, http.StatusBadRequest, response.Result().StatusCode)
+
+	request = initValidSession("listTermin")
+	form = url.Values{}
+	form.Add("submitTermin", "")
+	form.Add("numberPerSite", "5")
+	form.Add("siteChoose", "1")
+	form.Add("dateChoose", "2022-12-12")
+	request.PostForm = form
+	response = httptest.NewRecorder()
+	http.HandlerFunc(TerminHandler).ServeHTTP(response, request)
+	cookie := response.Result().Cookies()[0]
+	fvExp := frontendHandling.FrontendView{
+		Month:         time.Now().Month(),
+		Year:          time.Now().Year(),
+		TerminPerSite: 5,
+		TerminSite:    1,
+		MinDate:       time.Date(2022, 12, 12, 0, 0, 0, 0, time.UTC),
+	}
+	expCookie, _ := frontendHandling.GetFeCookieString(fvExp)
+	assert.Equal(t, expCookie, cookie.Value)
+	assert.Equal(t, http.StatusOK, response.Result().StatusCode)
+
+}
 
 func TestGetFirstTerminOfRepeatingInDate(t *testing.T) {
 	defer after()
