@@ -7,6 +7,7 @@ import (
 	"go_cal/data"
 	"go_cal/fileHandler"
 	"go_cal/templates"
+	"log"
 	"net/url"
 	"os"
 	"testing"
@@ -479,13 +480,19 @@ func TestDataModel_AddSharedAppointment(t *testing.T) {
 	apIDbefore := apID
 	lenBefore := len(user.SharedAppointments["test"])
 	dataModel.AddSharedAppointment(user.Id, "test", "here", tNow, tThen, false, 0, false)
+
 	assert.Equal(t, apIDbefore+1, apID)
 	assert.Equal(t, lenBefore+1, len(user.SharedAppointments["test"]))
 	expAp := data.NewAppointment("test", "", "here", tNow, tThen, apIDbefore, user.Id, false, 0, false)
-	assert.Equal(t, expAp, user.SharedAppointments["test"][lenBefore])
+	assert.EqualValues(t, expAp.Title, user.SharedAppointments["test"][lenBefore].Title)
+	assert.EqualValues(t, expAp.Location, user.SharedAppointments["test"][lenBefore].Location)
+	assert.EqualValues(t, expAp.DateTimeEnd, user.SharedAppointments["test"][lenBefore].DateTimeEnd)
+	assert.EqualValues(t, expAp.DateTimeStart, user.SharedAppointments["test"][lenBefore].DateTimeStart)
+	assert.EqualValues(t, expAp.Timeseries, user.SharedAppointments["test"][lenBefore].Timeseries)
+	assert.EqualValues(t, expAp.Share, user.SharedAppointments["test"][lenBefore].Share)
 
-	_ = Dm.AddTokenToSharedAppointment(user.Id, "test", "TestURL", "invitedUser")
-	_ = Dm.AddTokenToSharedAppointment(user.Id, "test", "TestURL2", "invitedUser2")
+	_ = dataModel.AddTokenToSharedAppointment(user.Id, "test", "TestURL", "invitedUser")
+	_ = dataModel.AddTokenToSharedAppointment(user.Id, "test", "TestURL2", "invitedUser2")
 	dataModel.AddSharedAppointment(user.Id, "test", "here", tNow.Add(time.Hour*time.Duration(1)), tThen.Add(time.Hour*time.Duration(1)), false, 0, false)
 	assert.Equal(t, &user.SharedAppointments["test"][lenBefore+1].Share.Tokens, &user.SharedAppointments["test"][lenBefore].Share.Tokens)
 	assert.Equal(t, true, user.SharedAppointments["test"][lenBefore+1].Share.Public)
@@ -498,11 +505,12 @@ func TestDataModel_AddSharedAppointment(t *testing.T) {
 }
 
 func TestDataModel_AddTokenToSharedAppointment(t *testing.T) {
-	InitDataModel("../data/test")
+	InitDataModel(dataPath)
 	defer after()
 
-	user, err := Dm.AddUser("test5", "abc", 1)
+	user, err := Dm.AddUser("test6", "abc", 1)
 	if err != nil {
+		log.Fatal("error not nil")
 		t.FailNow()
 	}
 	tNow := time.Now()
@@ -527,10 +535,10 @@ func TestDataModel_AddTokenToSharedAppointment(t *testing.T) {
 }
 
 func TestDataModel_DeleteSharedAppointment(t *testing.T) {
-	InitDataModel("../data/test")
+	InitDataModel(dataPath)
 	defer after()
 
-	user, err := Dm.AddUser("test5", "abc", 1)
+	user, err := Dm.AddUser("test7", "abc", 1)
 
 	if err != nil {
 		t.FailNow()

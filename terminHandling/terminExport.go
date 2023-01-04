@@ -6,6 +6,7 @@ import (
 	"go_cal/export"
 	"go_cal/templates"
 	"net/http"
+	"strconv"
 )
 
 func ICalHandler(w http.ResponseWriter, r *http.Request) {
@@ -25,6 +26,10 @@ func ICalHandler(w http.ResponseWriter, r *http.Request) {
 
 	//http://host/getIcal --> no queries needed
 	ical := []byte(export.NewICal(&user.Appointments).ToString())
-	w.Write(ical)
 
+	fileName := "exportUser_" + strconv.Itoa(user.Id) + ".ics"
+
+	w.Header().Set("Content-Disposition", "attachment; filename="+fileName)
+	w.Header().Set("Content-Type", "Text/Calendar")
+	w.Write(ical)
 }
