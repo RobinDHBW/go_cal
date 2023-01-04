@@ -4,6 +4,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"go_cal/configuration"
 	"go_cal/dataModel"
+	error2 "go_cal/error"
 	"go_cal/templates"
 	"io"
 	"net/http"
@@ -172,6 +173,75 @@ func TestLoginHandlerWithValidCookie(t *testing.T) {
 	assert.Equal(t, "/updateCalendar", locationHeader.Path)
 }
 
+func TestLoginHandlerNoForm(t *testing.T) {
+	setup()
+	defer after()
+	// create User
+	_, err := dataModel.Dm.AddUser("testUser", "test", 1)
+	assert.Nil(t, err)
+	// create Session
+	CreateSession("testUser")
+	request, _ := http.NewRequest(http.MethodPost, "/", nil)
+	response := httptest.NewRecorder()
+	http.HandlerFunc(LoginHandler).ServeHTTP(response, request)
+	body, _ := io.ReadAll(response.Result().Body)
+	assert.Equal(t, http.StatusInternalServerError, response.Result().StatusCode)
+	assert.Contains(t, string(body), string(error2.Default2))
+}
+
+func TestLoginHandlerInvalidInput(t *testing.T) {
+	setup()
+	defer after()
+	// create User
+	_, err := dataModel.Dm.AddUser("testUser", "test", 1)
+	assert.Nil(t, err)
+	// create Session
+	CreateSession("testUser")
+	request, _ := http.NewRequest(http.MethodPost, "/", nil)
+	form := url.Values{}
+	form.Add("uname", "")
+	form.Add("passwd", "test123")
+	form.Add("login", "")
+	request.PostForm = form
+	response := httptest.NewRecorder()
+	http.HandlerFunc(LoginHandler).ServeHTTP(response, request)
+	body, _ := io.ReadAll(response.Result().Body)
+	assert.Equal(t, http.StatusBadRequest, response.Result().StatusCode)
+	assert.Contains(t, string(body), string(error2.EmptyField))
+}
+
+func TestLoginHandlerAuthenticationFailed(t *testing.T) {
+	setup()
+	defer after()
+	// create User
+	_, err := dataModel.Dm.AddUser("testUser", "test", 1)
+	assert.Nil(t, err)
+	// create Session
+	CreateSession("testUser")
+	request, _ := http.NewRequest(http.MethodPost, "/", nil)
+	form := url.Values{}
+	form.Add("uname", "wrongUsername")
+	form.Add("passwd", "test123")
+	form.Add("login", "")
+	request.PostForm = form
+	response := httptest.NewRecorder()
+	http.HandlerFunc(LoginHandler).ServeHTTP(response, request)
+	body, _ := io.ReadAll(response.Result().Body)
+	assert.Equal(t, http.StatusUnauthorized, response.Result().StatusCode)
+	assert.Contains(t, string(body), string(error2.WrongCredentials))
+}
+
+func TestLoginHandlerGetTemplate(t *testing.T) {
+	setup()
+	defer after()
+	request, _ := http.NewRequest(http.MethodGet, "/", nil)
+	response := httptest.NewRecorder()
+	http.HandlerFunc(LoginHandler).ServeHTTP(response, request)
+	body, _ := io.ReadAll(response.Result().Body)
+	assert.Equal(t, http.StatusOK, response.Result().StatusCode)
+	assert.Contains(t, string(body), "Login")
+}
+
 func TestRegisterHandler(t *testing.T) {
 	setup()
 	defer after()
@@ -188,6 +258,65 @@ func TestRegisterHandler(t *testing.T) {
 
 	assert.Equal(t, "testUser", dataModel.Dm.GetUserByName("testUser").UserName)
 	assert.True(t, dataModel.Dm.ComparePW("test123", dataModel.Dm.GetUserByName("testUser").Password))
+}
+
+func TestRegisterHandlerNoForm(t *testing.T) {
+	setup()
+	defer after()
+
+	request, _ := http.NewRequest(http.MethodPost, "/register", nil)
+	response := httptest.NewRecorder()
+	http.HandlerFunc(RegisterHandler).ServeHTTP(response, request)
+	body, _ := io.ReadAll(response.Result().Body)
+	assert.Equal(t, http.StatusInternalServerError, response.Result().StatusCode)
+	assert.Contains(t, string(body), string(error2.Default2))
+}
+
+func TestRegisterHandlerInvalidInput(t *testing.T) {
+	setup()
+	defer after()
+
+	request, _ := http.NewRequest(http.MethodPost, "/register", nil)
+	form := url.Values{}
+	form.Add("uname", "")
+	form.Add("passwd", "test123")
+	form.Add("register", "")
+	request.PostForm = form
+	response := httptest.NewRecorder()
+	http.HandlerFunc(RegisterHandler).ServeHTTP(response, request)
+	body, _ := io.ReadAll(response.Result().Body)
+	assert.Equal(t, http.StatusBadRequest, response.Result().StatusCode)
+	assert.Contains(t, string(body), string(error2.EmptyField))
+}
+
+func TestRegisterHandlerDuplicateUsername(t *testing.T) {
+	setup()
+	defer after()
+
+	_, err := dataModel.Dm.AddUser("testUser", "test", 1)
+	assert.Nil(t, err)
+	request, _ := http.NewRequest(http.MethodPost, "/register", nil)
+	form := url.Values{}
+	form.Add("uname", "testUser")
+	form.Add("passwd", "test123")
+	form.Add("register", "")
+	request.PostForm = form
+	response := httptest.NewRecorder()
+	http.HandlerFunc(RegisterHandler).ServeHTTP(response, request)
+	body, _ := io.ReadAll(response.Result().Body)
+	assert.Equal(t, http.StatusBadRequest, response.Result().StatusCode)
+	assert.Contains(t, string(body), string(error2.DuplicateUserName))
+}
+
+func TestRegisterHandlerGetTemplate(t *testing.T) {
+	setup()
+	defer after()
+	request, _ := http.NewRequest(http.MethodGet, "/", nil)
+	response := httptest.NewRecorder()
+	http.HandlerFunc(RegisterHandler).ServeHTTP(response, request)
+	body, _ := io.ReadAll(response.Result().Body)
+	assert.Equal(t, http.StatusOK, response.Result().StatusCode)
+	assert.Contains(t, string(body), "Register")
 }
 
 func TestValidateInput(t *testing.T) {
@@ -298,11 +427,11 @@ func TestGetUserBySessionTokenUnsuccessfulNoUser(t *testing.T) {
 	setup()
 	defer after()
 	// create Session
-	CreateSession("testUser")
+	sessionToken, _ := CreateSession("testUser")
 	request, _ := http.NewRequest(http.MethodPost, "/", nil)
 	request.AddCookie(&http.Cookie{
 		Name:  "session_token",
-		Value: "value",
+		Value: sessionToken,
 	})
 	user, err := GetUserBySessionToken(request)
 	assert.Error(t, err)

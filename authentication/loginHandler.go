@@ -94,7 +94,12 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 	// kein gültiger Cookie im Request --> login-procedure
 	if !isCookieValid {
 		// übermitteltes Formular parsen
-		r.ParseForm()
+		err := r.ParseForm()
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			templates.TempError.Execute(w, error2.CreateError(error2.Default2, "/listTermin"))
+			return
+		}
 		// wenn Login-Button gedrückt und POST ausgeführt wurde
 		if r.PostForm.Has("login") && r.Method == http.MethodPost {
 			// Eingabefelder (username und password) auslesen
@@ -155,7 +160,12 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 
 func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 	// übermitteltes Formular parsen
-	r.ParseForm()
+	err := r.ParseForm()
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		templates.TempError.Execute(w, error2.CreateError(error2.Default2, "/listTermin"))
+		return
+	}
 	// wenn Register-Button gedrückt und POST ausgeführt wurde
 	if r.PostForm.Has("register") && r.Method == http.MethodPost {
 		// Eingabefelder (username und password) auslesen
