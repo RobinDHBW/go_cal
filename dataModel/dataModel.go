@@ -7,6 +7,7 @@ import (
 	"go_cal/fileHandler"
 	"golang.org/x/crypto/bcrypt"
 	"log"
+	"math/rand"
 	url2 "net/url"
 	"strings"
 	"time"
@@ -220,7 +221,7 @@ func (dm *DataModel) SetVotingForToken(user *data.User, votes []int, title, toke
 		DataSync(user, dm)
 		return nil
 	} else {
-		return errors.New("Voting not allowed")
+		return errors.New("voting not allowed")
 	}
 }
 
@@ -238,4 +239,29 @@ func IsVotingAllowed(title, token string, user *data.User, username string) bool
 		}
 	}
 	return false
+}
+
+func CreateURL(username, title, invitor string) string {
+	token := createToken(20)
+	params := url2.Values{}
+	params.Add("username", username)
+	params.Add("termin", title)
+	params.Add("token", token)
+	params.Add("invitor", invitor)
+	baseUrl, _ := url2.Parse("/terminVoting")
+	baseUrl.RawQuery = params.Encode()
+	return baseUrl.String()
+}
+
+func createToken(n int) string {
+	const letterBytes = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+	b := make([]byte, n)
+	for i := range b {
+		b[i] = letterBytes[rand.Intn(len(letterBytes))]
+	}
+	return string(b)
+}
+
+func InitSeed() {
+	rand.Seed(time.Now().UnixNano())
 }

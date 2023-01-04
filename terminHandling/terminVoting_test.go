@@ -44,7 +44,7 @@ func TestTerminVotingHandlerGetQueryVotingAllowed(t *testing.T) {
 	endDate, _ := time.Parse("2006-01-02T15:04", "2023-01-03T23:00")
 	dataModel.Dm.AddSharedAppointment(user.Id, "Terminfindung1", "here", beginDate, endDate, false, 0, true)
 	// user einladen
-	err = dataModel.Dm.AddTokenToSharedAppointment(user.Id, "Terminfindung1", CreateURL("peter", "Terminfindung1", "anna"), "peter")
+	err = dataModel.Dm.AddTokenToSharedAppointment(user.Id, "Terminfindung1", dataModel.CreateURL("peter", "Terminfindung1", "anna"), "peter")
 	assert.Nil(t, err)
 	// token extrahieren
 	tokenUrl, err := url.Parse(user.SharedAppointments["Terminfindung1"][0].Share.Tokens[0])
@@ -71,7 +71,7 @@ func TestTerminVotingHandlerPostWrongValue(t *testing.T) {
 	endDate, _ := time.Parse("2006-01-02T15:04", "2023-01-03T23:00")
 	dataModel.Dm.AddSharedAppointment(user.Id, "Terminfindung1", "here", beginDate, endDate, false, 0, true)
 	// user einladen
-	err = dataModel.Dm.AddTokenToSharedAppointment(user.Id, "Terminfindung1", CreateURL("peter", "Terminfindung1", "anna"), "peter")
+	err = dataModel.Dm.AddTokenToSharedAppointment(user.Id, "Terminfindung1", dataModel.CreateURL("peter", "Terminfindung1", "anna"), "peter")
 	assert.Nil(t, err)
 	// token extrahieren
 	tokenUrl, err := url.Parse(user.SharedAppointments["Terminfindung1"][0].Share.Tokens[0])
@@ -99,7 +99,7 @@ func TestTerminVotingHandlerPostNoUser(t *testing.T) {
 	endDate, _ := time.Parse("2006-01-02T15:04", "2023-01-03T23:00")
 	dataModel.Dm.AddSharedAppointment(user.Id, "Terminfindung1", "here", beginDate, endDate, false, 0, true)
 	// user einladen
-	err = dataModel.Dm.AddTokenToSharedAppointment(user.Id, "Terminfindung1", CreateURL("peter", "Terminfindung1", "anna"), "peter")
+	err = dataModel.Dm.AddTokenToSharedAppointment(user.Id, "Terminfindung1", dataModel.CreateURL("peter", "Terminfindung1", "anna"), "peter")
 	assert.Nil(t, err)
 	// token extrahieren
 	tokenUrl, err := url.Parse(user.SharedAppointments["Terminfindung1"][0].Share.Tokens[0])
@@ -127,7 +127,7 @@ func TestTerminVotingHandlerPostCorrectValue(t *testing.T) {
 	endDate, _ := time.Parse("2006-01-02T15:04", "2023-01-03T23:00")
 	dataModel.Dm.AddSharedAppointment(user.Id, "Terminfindung1", "here", beginDate, endDate, false, 0, true)
 	// user einladen
-	err = dataModel.Dm.AddTokenToSharedAppointment(user.Id, "Terminfindung1", CreateURL("peter", "Terminfindung1", "anna"), "peter")
+	err = dataModel.Dm.AddTokenToSharedAppointment(user.Id, "Terminfindung1", dataModel.CreateURL("peter", "Terminfindung1", "anna"), "peter")
 	assert.Nil(t, err)
 	// token extrahieren
 	tokenUrl, err := url.Parse(user.SharedAppointments["Terminfindung1"][0].Share.Tokens[0])

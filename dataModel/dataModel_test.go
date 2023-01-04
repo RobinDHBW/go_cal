@@ -3,8 +3,11 @@ package dataModel
 import (
 	"encoding/json"
 	"github.com/stretchr/testify/assert"
+	"go_cal/configuration"
 	"go_cal/data"
 	"go_cal/fileHandler"
+	"go_cal/templates"
+	"net/url"
 	"os"
 	"testing"
 	"time"
@@ -274,4 +277,190 @@ func TestDataModel_ComparePW(t *testing.T) {
 	}
 	assert.EqualValues(t, true, Dm.ComparePW("abc", user.Password))
 	assert.EqualValues(t, false, Dm.ComparePW("123", user.Password))
+}
+
+func TestDataModel_SetVotingForTokenSuccessful(t *testing.T) {
+	setup()
+	defer after()
+
+	user, err := Dm.AddUser("Peter", "test123", 1)
+	assert.Nil(t, err)
+	// Terminfindung erstellen
+	beginDate, _ := time.Parse("2006-01-02T15:04", "2023-01-03T22:00")
+	endDate, _ := time.Parse("2006-01-02T15:04", "2023-01-03T23:00")
+	Dm.AddSharedAppointment(user.Id, "Terminfindung1", "here", beginDate, endDate, false, 0, true)
+	// zweiter Terminvorschlag
+	beginDate, _ = time.Parse("2006-01-02T15:04", "2023-02-10T22:00")
+	endDate, _ = time.Parse("2006-01-02T15:04", "2023-02-10T23:00")
+	Dm.AddSharedAppointment(user.Id, "Terminfindung1", "here", beginDate, endDate, false, 0, true)
+	assert.Equal(t, 2, len(user.SharedAppointments["Terminfindung1"]))
+
+	// user einladen
+	err = Dm.AddTokenToSharedAppointment(user.Id, "Terminfindung1", CreateURL("Anna", "Terminfindung1", "Peter"), "Anna")
+	assert.Nil(t, err)
+	// zweiten User einladen
+	err = Dm.AddTokenToSharedAppointment(user.Id, "Terminfindung1", CreateURL("Hans", "Terminfindung1", "Peter"), "Hans")
+	assert.Nil(t, err)
+	assert.Equal(t, 2, len(user.SharedAppointments["Terminfindung1"][0].Share.Tokens))
+	assert.Equal(t, 2, len(user.SharedAppointments["Terminfindung1"][0].Share.Voting))
+	// initial haben beide User bei beiden Terminen abgesagt
+	assert.False(t, user.SharedAppointments["Terminfindung1"][0].Share.Voting[0])
+	assert.False(t, user.SharedAppointments["Terminfindung1"][0].Share.Voting[1])
+	assert.False(t, user.SharedAppointments["Terminfindung1"][1].Share.Voting[0])
+	assert.False(t, user.SharedAppointments["Terminfindung1"][1].Share.Voting[1])
+	// URLs für die 2 Termine müssen pro User gleich sein
+	assert.Equal(t, user.SharedAppointments["Terminfindung1"][0].Share.Tokens[0], user.SharedAppointments["Terminfindung1"][1].Share.Tokens[0])
+	assert.Equal(t, user.SharedAppointments["Terminfindung1"][0].Share.Tokens[1], user.SharedAppointments["Terminfindung1"][1].Share.Tokens[1])
+	// token extrahieren
+	urlAnna, err := url.Parse(user.SharedAppointments["Terminfindung1"][0].Share.Tokens[0])
+	assert.Nil(t, err)
+	urlHans, err := url.Parse(user.SharedAppointments["Terminfindung1"][0].Share.Tokens[1])
+	assert.Nil(t, err)
+	tokenAnna := urlAnna.Query().Get("token")
+	tokenHans := urlHans.Query().Get("token")
+	// Hans sagt für den ersten Termin zu, für den zweiten ab
+	keys := make([]int, 0)
+	keys = append(keys, 0)
+	err = Dm.SetVotingForToken(user, keys, "Terminfindung1", tokenHans, "Hans")
+	assert.Nil(t, err)
+	// Hans hat für den ersten Termin zugesagt
+	assert.True(t, user.SharedAppointments["Terminfindung1"][0].Share.Voting[1])
+	// und für den 2. abgesagt
+	assert.False(t, user.SharedAppointments["Terminfindung1"][1].Share.Voting[1])
+	// Anna sagt für beide Termine zu
+	keys = make([]int, 0)
+	keys = append(keys, 0, 1)
+	err = Dm.SetVotingForToken(user, keys, "Terminfindung1", tokenAnna, "Anna")
+	assert.Nil(t, err)
+	// Anna hat für beide Termin zugesagt
+	assert.True(t, user.SharedAppointments["Terminfindung1"][0].Share.Voting[0])
+	assert.True(t, user.SharedAppointments["Terminfindung1"][1].Share.Voting[0])
+}
+
+func TestDataModel_SetVotingForTokenUnsuccessful(t *testing.T) {
+	setup()
+	defer after()
+
+	user, err := Dm.AddUser("Peter", "test123", 1)
+	assert.Nil(t, err)
+	// Terminfindung erstellen
+	beginDate, _ := time.Parse("2006-01-02T15:04", "2023-01-03T22:00")
+	endDate, _ := time.Parse("2006-01-02T15:04", "2023-01-03T23:00")
+	Dm.AddSharedAppointment(user.Id, "Terminfindung1", "here", beginDate, endDate, false, 0, true)
+
+	// user einladen
+	err = Dm.AddTokenToSharedAppointment(user.Id, "Terminfindung1", CreateURL("Anna", "Terminfindung1", "Peter"), "Anna")
+	assert.Nil(t, err)
+
+	// token extrahieren
+	urlAnna, err := url.Parse(user.SharedAppointments["Terminfindung1"][0].Share.Tokens[0])
+	assert.Nil(t, err)
+	tokenAnna := urlAnna.Query().Get("token")
+	// Anna sagt für den einzigen Termin zu
+	keys := make([]int, 0)
+	keys = append(keys, 0)
+	// falscher Titel
+	err = Dm.SetVotingForToken(user, keys, "falsche Terminfindung", tokenAnna, "Anna")
+	assert.Error(t, err)
+}
+
+func TestDataModel_IsVotingAllowedSuccessful(t *testing.T) {
+	setup()
+	defer after()
+
+	user, err := Dm.AddUser("Peter", "test123", 1)
+	assert.Nil(t, err)
+	// Terminfindung erstellen
+	beginDate, _ := time.Parse("2006-01-02T15:04", "2023-01-03T22:00")
+	endDate, _ := time.Parse("2006-01-02T15:04", "2023-01-03T23:00")
+	Dm.AddSharedAppointment(user.Id, "Terminfindung1", "here", beginDate, endDate, false, 0, true)
+	// user einladen
+	err = Dm.AddTokenToSharedAppointment(user.Id, "Terminfindung1", CreateURL("Anna", "Terminfindung1", "Peter"), "Anna")
+	assert.Nil(t, err)
+	// token extrahieren
+	tokenUrl, err := url.Parse(user.SharedAppointments["Terminfindung1"][0].Share.Tokens[0])
+	assert.Nil(t, err)
+	token := tokenUrl.Query().Get("token")
+	assert.True(t, IsVotingAllowed("Terminfindung1", token, user, "Anna"))
+}
+
+func TestDataModel_IsVotingAllowedUnsuccessfulNoUser(t *testing.T) {
+	setup()
+	defer after()
+
+	user, err := Dm.AddUser("Peter", "test123", 1)
+	assert.Nil(t, err)
+	// Terminfindung erstellen
+	beginDate, _ := time.Parse("2006-01-02T15:04", "2023-01-03T22:00")
+	endDate, _ := time.Parse("2006-01-02T15:04", "2023-01-03T23:00")
+	Dm.AddSharedAppointment(user.Id, "Terminfindung1", "here", beginDate, endDate, false, 0, true)
+	// user einladen
+	err = Dm.AddTokenToSharedAppointment(user.Id, "Terminfindung1", CreateURL("Anna", "Terminfindung1", "Peter"), "Anna")
+	assert.Nil(t, err)
+	// token extrahieren
+	tokenUrl, err := url.Parse(user.SharedAppointments["Terminfindung1"][0].Share.Tokens[0])
+	assert.Nil(t, err)
+	token := tokenUrl.Query().Get("token")
+	assert.False(t, IsVotingAllowed("Terminfindung1", token, nil, "Anna"))
+}
+
+func TestDataModel_IsVotingAllowedUnsuccessfulNoApp(t *testing.T) {
+	setup()
+	defer after()
+
+	user, err := Dm.AddUser("Peter", "test123", 1)
+	assert.Nil(t, err)
+	// Terminfindung erstellen
+	beginDate, _ := time.Parse("2006-01-02T15:04", "2023-01-03T22:00")
+	endDate, _ := time.Parse("2006-01-02T15:04", "2023-01-03T23:00")
+	Dm.AddSharedAppointment(user.Id, "Terminfindung1", "here", beginDate, endDate, false, 0, true)
+	// user einladen
+	err = Dm.AddTokenToSharedAppointment(user.Id, "Terminfindung1", CreateURL("Anna", "Terminfindung1", "Peter"), "Anna")
+	assert.Nil(t, err)
+	// token extrahieren
+	tokenUrl, err := url.Parse(user.SharedAppointments["Terminfindung1"][0].Share.Tokens[0])
+	assert.Nil(t, err)
+	token := tokenUrl.Query().Get("token")
+	assert.False(t, IsVotingAllowed("nicht vorhandene Terminfindung", token, user, "Anna"))
+}
+
+func TestDataModel_IsVotingAllowedUnsuccessfulWrongQuery(t *testing.T) {
+	setup()
+	defer after()
+
+	user, err := Dm.AddUser("Peter", "test123", 1)
+	assert.Nil(t, err)
+	// Terminfindung erstellen
+	beginDate, _ := time.Parse("2006-01-02T15:04", "2023-01-03T22:00")
+	endDate, _ := time.Parse("2006-01-02T15:04", "2023-01-03T23:00")
+	Dm.AddSharedAppointment(user.Id, "Terminfindung1", "here", beginDate, endDate, false, 0, true)
+	// user einladen
+	err = Dm.AddTokenToSharedAppointment(user.Id, "Terminfindung1", CreateURL("Anna", "Terminfindung1", "Peter"), "Anna")
+	assert.Nil(t, err)
+	// token extrahieren
+	tokenUrl, err := url.Parse(user.SharedAppointments["Terminfindung1"][0].Share.Tokens[0])
+	assert.Nil(t, err)
+	token := tokenUrl.Query().Get("token")
+	assert.False(t, IsVotingAllowed("Terminfindung1", token, user, "Hans"))
+}
+
+func TestCreateURL(t *testing.T) {
+	createdUrl := CreateURL("Peter", "Terminvorschlag1", "Hans")
+	assert.Contains(t, createdUrl, "/terminVoting?invitor=Hans&termin=Terminvorschlag1&token=")
+	assert.Contains(t, createdUrl, "&username=Peter")
+}
+
+func TestCreateToken(t *testing.T) {
+	InitSeed()
+	token1 := createToken(20)
+	assert.NotEqual(t, "", token1)
+	token2 := createToken(20)
+	assert.NotEqual(t, "", token2)
+	assert.NotEqual(t, token1, token2)
+}
+
+func setup() {
+	configuration.ReadFlags()
+	templates.Init()
+	InitDataModel(dataPath)
 }

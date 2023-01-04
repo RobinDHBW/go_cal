@@ -6,9 +6,7 @@ import (
 	"go_cal/dataModel"
 	error2 "go_cal/error"
 	"go_cal/templates"
-	"math/rand"
 	"net/http"
-	"net/url"
 	"regexp"
 	"time"
 )
@@ -71,7 +69,7 @@ func TerminShareHandler(w http.ResponseWriter, r *http.Request) {
 			templates.TempError.Execute(w, error2.CreateError(error2.InvalidInput, "/listShareTermin"))
 			return
 		}
-		url := CreateURL(username, title, user.UserName)
+		url := dataModel.CreateURL(username, title, user.UserName)
 		err := dataModel.Dm.AddTokenToSharedAppointment(user.Id, title, url, username)
 		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
@@ -102,18 +100,6 @@ func createSharedTermin(r *http.Request, user *data.User, title string) error2.D
 	return error2.DisplayedError{}
 }
 
-func CreateURL(username, title, invitor string) string {
-	token := createToken(20)
-	params := url.Values{}
-	params.Add("username", username)
-	params.Add("termin", title)
-	params.Add("token", token)
-	params.Add("invitor", invitor)
-	baseUrl, _ := url.Parse("/terminVoting")
-	baseUrl.RawQuery = params.Encode()
-	return baseUrl.String()
-}
-
 func validateInput(text string) (successful bool) {
 	// wenn Feld leer
 	if len(text) == 0 {
@@ -126,17 +112,4 @@ func validateInput(text string) (successful bool) {
 		return false
 	}
 	return true
-}
-
-func createToken(n int) string {
-	const letterBytes = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
-	b := make([]byte, n)
-	for i := range b {
-		b[i] = letterBytes[rand.Intn(len(letterBytes))]
-	}
-	return string(b)
-}
-
-func InitSeed() {
-	rand.Seed(time.Now().UnixNano())
 }

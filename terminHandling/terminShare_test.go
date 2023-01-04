@@ -424,12 +424,6 @@ func TestCreateSharedTerminUnsuccessfulEndBeforeBegin(t *testing.T) {
 	assert.Equal(t, string(error2.EndBeforeBegin), displayedError.Text)
 }
 
-func TestCreateURL(t *testing.T) {
-	url := CreateURL("Peter", "Terminvorschlag1", "Hans")
-	assert.Contains(t, url, "/terminVoting?invitor=Hans&termin=Terminvorschlag1&token=")
-	assert.Contains(t, url, "&username=Peter")
-}
-
 func TestValidateInput(t *testing.T) {
 	successful := validateInput("")
 	assert.False(t, successful)
@@ -437,13 +431,4 @@ func TestValidateInput(t *testing.T) {
 	assert.False(t, successful)
 	successful = validateInput("Test123_")
 	assert.True(t, successful)
-}
-
-func TestCreateToken(t *testing.T) {
-	InitSeed()
-	token1 := createToken(20)
-	assert.NotEqual(t, "", token1)
-	token2 := createToken(20)
-	assert.NotEqual(t, "", token2)
-	assert.NotEqual(t, token1, token2)
 }
