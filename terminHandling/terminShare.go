@@ -27,12 +27,6 @@ func TerminShareHandler(w http.ResponseWriter, r *http.Request) {
 		templates.TempError.Execute(w, error2.CreateError(error2.Authentification, "/"))
 		return
 	}
-	//feParams, err := frontendHandling.GetFrontendParameters(r)
-	//if err != nil {
-	//	w.WriteHeader(http.StatusBadRequest)
-	//	templates.TempError.Execute(w, error2.CreateError(error2.InvalidInput, "/shareTermin"))
-	//	return
-	//}
 	switch {
 	// Terminfindung erstellen
 	case r.Form.Has("shareCreate"):
