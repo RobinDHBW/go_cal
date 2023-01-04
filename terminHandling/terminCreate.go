@@ -28,7 +28,6 @@ func TerminCreateHandler(w http.ResponseWriter, r *http.Request) {
 		templates.TempError.Execute(w, error2.CreateError(error2.InvalidInput, r.Host+"/createTermin"))
 		return
 	}
-	//appointments := user.Appointments
 	switch {
 	case r.Form.Has("createTermin"):
 		templates.TempCreateTermin.Execute(w, struct {

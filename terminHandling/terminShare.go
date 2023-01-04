@@ -1,7 +1,6 @@
 package terminHandling
 
 import (
-	"fmt"
 	"go_cal/authentication"
 	"go_cal/data"
 	"go_cal/dataModel"
@@ -113,7 +112,6 @@ func TerminShareHandler(w http.ResponseWriter, r *http.Request) {
 				}
 				description = description + "\n\n"
 			}
-			fmt.Println(description)
 			dataModel.Dm.AddAppointment(user.Id, app.Title, description, app.Location, app.DateTimeStart, app.DateTimeEnd, app.Timeseries.Repeat, app.Timeseries.Intervall, true)
 			dataModel.Dm.DeleteSharedAppointment(app.Title, user.Id)
 			http.Redirect(w, r, "/listTermin", http.StatusFound)

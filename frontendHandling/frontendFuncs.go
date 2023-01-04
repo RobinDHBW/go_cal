@@ -162,7 +162,7 @@ func GetFeCookieString(view FrontendView) (string, error) {
 			Year:          time.Now().Year(),
 			TerminPerSite: 7,
 			TerminSite:    1,
-			MinDate:       time.Now(),
+			MinDate:       time.Date(time.Now().Year(), time.Now().Month(), time.Now().Day(), 10, 00, 0, 0, time.UTC),
 		}
 	}
 	fvToJSON, err := json.Marshal(view)

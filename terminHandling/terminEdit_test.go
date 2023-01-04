@@ -56,7 +56,7 @@ func TestTerminEditHandler_editTermin(t *testing.T) {
 	user, err := dataModel.Dm.AddUser("testUser", "test", 1)
 	assert.Nil(t, err)
 
-	request := initValidSession()
+	request := initValidSession("editTermin")
 	form := url.Values{}
 	form.Add("editTermin", "x")
 	request.PostForm = form
@@ -66,7 +66,7 @@ func TestTerminEditHandler_editTermin(t *testing.T) {
 
 	addAppointments(user.Id)
 
-	request = initValidSession()
+	request = initValidSession("editTermin")
 	form = url.Values{}
 	form.Add("editTermin", "1")
 	request.PostForm = form
@@ -74,7 +74,7 @@ func TestTerminEditHandler_editTermin(t *testing.T) {
 	http.HandlerFunc(TerminEditHandler).ServeHTTP(response, request)
 	assert.Equal(t, http.StatusOK, response.Result().StatusCode)
 
-	request = initValidSession()
+	request = initValidSession("editTermin")
 	form = url.Values{}
 	request.PostForm = form
 	response = httptest.NewRecorder()
@@ -92,7 +92,7 @@ func TestTerminEditHandler_editTerminSubmit(t *testing.T) {
 	user, err := dataModel.Dm.AddUser("testUser", "test", 1)
 	assert.Nil(t, err)
 
-	request := initValidSession()
+	request := initValidSession("editTermin")
 	form := url.Values{}
 	form.Add("editTerminSubmit", "x")
 	request.PostForm = form
@@ -102,7 +102,7 @@ func TestTerminEditHandler_editTerminSubmit(t *testing.T) {
 
 	addAppointments(user.Id)
 
-	request = initValidSession()
+	request = initValidSession("editTermin")
 	form = url.Values{}
 	form.Add("editTerminSubmit", "1")
 	request.PostForm = form
@@ -113,7 +113,7 @@ func TestTerminEditHandler_editTerminSubmit(t *testing.T) {
 	tNow := time.Now()
 	tThen := tNow.Add(time.Hour * time.Duration(1))
 
-	request = initValidSession()
+	request = initValidSession("editTermin")
 	form = url.Values{}
 	request.PostForm = form
 	form.Add("editTerminSubmit", "1")
@@ -138,7 +138,7 @@ func TestTerminEditHandler_deleteTerminSubmit(t *testing.T) {
 	user, err := dataModel.Dm.AddUser("testUser", "test", 1)
 	assert.Nil(t, err)
 
-	request := initValidSession()
+	request := initValidSession("editTermin")
 	form := url.Values{}
 	form.Add("deleteTerminSubmit", "x")
 	request.PostForm = form
@@ -148,7 +148,7 @@ func TestTerminEditHandler_deleteTerminSubmit(t *testing.T) {
 
 	addAppointments(user.Id)
 
-	request = initValidSession()
+	request = initValidSession("editTermin")
 	form = url.Values{}
 	request.PostForm = form
 	form.Add("deleteTerminSubmit", "1")
@@ -283,7 +283,7 @@ func TestEditTerminFromInputCorrectInputCreate(t *testing.T) {
 	form.Add("chooseRepeat", "week")
 	request.PostForm = form
 	err := EditTerminFromInput(request, false, user, 1)
-	maxId := 0 // maxId is newest Id = added Id
+	maxId := 0 // maxId is the newest ID = added ID
 	for k := range user.Appointments {
 		maxId = k
 	}
@@ -334,13 +334,13 @@ func after() {
 	_ = os.MkdirAll("../data/test/", 777)
 }
 
-func initValidSession() *http.Request {
+func initValidSession(path string) *http.Request {
 	templates.Init()
 
 	sessionToken, _ := authentication.CreateSession("testUser")
 	cookieValue, _ := frontendHandling.GetFeCookieString(frontendHandling.FrontendView{})
 	// TODO: http und localhost
-	request, _ := http.NewRequest(http.MethodPost, "http://localhost:8080/editTermin", nil)
+	request, _ := http.NewRequest(http.MethodPost, "http://localhost:8080/"+path, nil)
 
 	request.AddCookie(&http.Cookie{
 		Name:  "session_token",
