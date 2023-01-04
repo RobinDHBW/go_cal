@@ -13,7 +13,12 @@ import (
 type Appointments []data.Appointment
 
 func TerminVotingHandler(w http.ResponseWriter, r *http.Request) {
-	r.ParseForm()
+	err := r.ParseForm()
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		templates.TempError.Execute(w, error2.CreateError(error2.Default2, "/"))
+		return
+	}
 	if r.Method == http.MethodPost && r.PostForm.Has("submitVoting") {
 		split := strings.Split(r.PostFormValue("submitVoting"), "|")
 		if len(split) < 4 {
@@ -34,11 +39,13 @@ func TerminVotingHandler(w http.ResponseWriter, r *http.Request) {
 			keys = append(keys, index)
 		}
 		user := dataModel.Dm.GetUserByName(invitor)
-		if user != nil {
-			err := dataModel.Dm.SetVotingForToken(user, keys, title, token, username)
-			if err == nil {
-				templates.TempTerminVotingSuccess.Execute(w, nil)
-			}
+		err := dataModel.Dm.SetVotingForToken(user, keys, title, token, username)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			templates.TempError.Execute(w, error2.CreateError(error2.Default2, "/"))
+			return
+		} else {
+			templates.TempTerminVotingSuccess.Execute(w, nil)
 		}
 	} else {
 		title := r.URL.Query().Get("termin")
@@ -46,17 +53,19 @@ func TerminVotingHandler(w http.ResponseWriter, r *http.Request) {
 		token := r.URL.Query().Get("token")
 		username := r.URL.Query().Get("username")
 		user := dataModel.Dm.GetUserByName(invitor)
-		if user != nil {
-			if dataModel.IsVotingAllowed(title, token, user, username) {
-				// Query parameter in button value schreiben, sodass sie bei einem POST ausgelesen werden können
-				value := title + "|" + invitor + "|" + token + "|" + username
-				aps := Appointments(dataModel.Dm.GetUserByName(invitor).SharedAppointments[title])
-				templates.TempTerminVoting.Execute(w, struct {
-					Appointments
-					Value string
-				}{aps,
-					value})
-			}
+		if dataModel.IsVotingAllowed(title, token, user, username) {
+			// Query parameter in button value schreiben, sodass sie bei einem POST ausgelesen werden können
+			value := title + "|" + invitor + "|" + token + "|" + username
+			aps := Appointments(dataModel.Dm.GetUserByName(invitor).SharedAppointments[title])
+			templates.TempTerminVoting.Execute(w, struct {
+				Appointments
+				Value string
+			}{aps,
+				value})
+		} else {
+			w.WriteHeader(http.StatusBadRequest)
+			templates.TempError.Execute(w, error2.CreateError(error2.InvalidUrl, "/"))
+			return
 		}
 	}
 }

@@ -225,9 +225,15 @@ func (dm *DataModel) SetVotingForToken(user *data.User, votes []int, title, toke
 }
 
 func IsVotingAllowed(title, token string, user *data.User, username string) bool {
+	if user == nil {
+		return false
+	}
 	query := "/terminVoting?invitor=" + user.UserName + "&termin=" + title + "&token=" + token + "&username=" + username
+	if _, ok := user.SharedAppointments[title]; !ok {
+		return false
+	}
 	for _, val := range user.SharedAppointments[title][0].Share.Tokens {
-		if strings.Contains(val, query) {
+		if val == query {
 			return true
 		}
 	}

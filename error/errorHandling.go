@@ -12,6 +12,7 @@ const (
 	TitleIsEmpty      ErrorType = "Title of appointment is empty"
 	EndBeforeBegin    ErrorType = "End date is earlier than start date"
 	EmptyField        ErrorType = "Field for username/password is empty or usage of invalid characters (only alphanumeric and underscore are allowed)"
+	InvalidUrl        ErrorType = "Invalid Url"
 )
 
 type DisplayedError struct {
