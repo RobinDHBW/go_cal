@@ -232,3 +232,86 @@ func TestWrapperInvalidCookie(t *testing.T) {
 	body, _ := io.ReadAll(response.Result().Body)
 	assert.Contains(t, string(body), "Error")
 }
+
+func TestGetUsernameBySessionToken(t *testing.T) {
+	InitServer()
+	templates.Init()
+	// create Session
+	sessionToken, _ := CreateSession("testUser")
+	username := getUsernameBySessionToken(sessionToken)
+	assert.Equal(t, "testUser", username)
+
+	InitServer()
+	username = getUsernameBySessionToken(sessionToken)
+	assert.Equal(t, "", username)
+}
+
+func TestGetUserBySessionTokenSuccessful(t *testing.T) {
+	defer after()
+	InitServer()
+	templates.Init()
+	dataModel.InitDataModel("../data/test")
+	_, err := dataModel.Dm.AddUser("testUser", "test", 1)
+	assert.Nil(t, err)
+	// create Session
+	sessionToken, _ := CreateSession("testUser")
+	request, _ := http.NewRequest(http.MethodPost, "/", nil)
+	request.AddCookie(&http.Cookie{
+		Name:  "session_token",
+		Value: sessionToken,
+	})
+	user, err := GetUserBySessionToken(request)
+	assert.Nil(t, err)
+	assert.Equal(t, "testUser", user.UserName)
+}
+
+func TestGetUserBySessionTokenUnsuccessfulNoCookie(t *testing.T) {
+	defer after()
+	InitServer()
+	templates.Init()
+	dataModel.InitDataModel("../data/test")
+	_, err := dataModel.Dm.AddUser("testUser", "test", 1)
+	assert.Nil(t, err)
+	// create Session
+	CreateSession("testUser")
+	request, _ := http.NewRequest(http.MethodPost, "/", nil)
+	user, err := GetUserBySessionToken(request)
+	assert.Error(t, err)
+	assert.Nil(t, user)
+}
+
+func TestGetUserBySessionTokenUnsuccessfulNoSession(t *testing.T) {
+	defer after()
+	InitServer()
+	templates.Init()
+	dataModel.InitDataModel("../data/test")
+	_, err := dataModel.Dm.AddUser("testUser", "test", 1)
+	assert.Nil(t, err)
+	request, _ := http.NewRequest(http.MethodPost, "/", nil)
+	request.AddCookie(&http.Cookie{
+		Name:  "session_token",
+		Value: "value",
+	})
+	user, err := GetUserBySessionToken(request)
+	assert.Error(t, err)
+	assert.Equal(t, "cannot get User", err.Error())
+	assert.Nil(t, user)
+}
+
+func TestGetUserBySessionTokenUnsuccessfulNoUser(t *testing.T) {
+	defer after()
+	InitServer()
+	templates.Init()
+	dataModel.InitDataModel("../data/test")
+	// create Session
+	CreateSession("testUser")
+	request, _ := http.NewRequest(http.MethodPost, "/", nil)
+	request.AddCookie(&http.Cookie{
+		Name:  "session_token",
+		Value: "value",
+	})
+	user, err := GetUserBySessionToken(request)
+	assert.Error(t, err)
+	assert.Equal(t, "cannot get User", err.Error())
+	assert.Nil(t, user)
+}

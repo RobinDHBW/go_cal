@@ -242,13 +242,13 @@ func refreshCookie(r *http.Request) (sessionToken string, expires time.Time) {
 	// Sessiontoken auslesen
 	sessionToken = cookie.Value
 	Serv.Cmds <- Command{ty: update, sessionToken: sessionToken, replyChannel: replyChannel}
-	session := <-replyChannel
+	replySession := <-replyChannel
 	// session auslesen
 	//session, _ := sessions[sessionToken]
 	// Session ist valide, da zuvor CheckCookie ausgeführt wurde
 	// expires um 10 min verlägern
 	//session.expires = session.expires.Add(1 * time.Minute)
-	return sessionToken, session.expires
+	return sessionToken, replySession.expires
 }
 
 func createUUID(n int) string {
@@ -284,9 +284,9 @@ func checkCookie(r *http.Request) (successful bool) {
 	// read-Command schicken
 	Serv.Cmds <- Command{ty: read, sessionToken: sessionToken, replyChannel: replyChannel}
 	// session aus Antwortchannel lesen
-	session := <-replyChannel
+	replySession := <-replyChannel
 	// SessionToken is abgelaufen
-	if session.isExpired() {
+	if replySession.isExpired() {
 		// Session löschen
 		Serv.Cmds <- Command{ty: remove, sessionToken: sessionToken, replyChannel: replyChannel}
 		<-replyChannel
@@ -306,8 +306,8 @@ func CreateSession(username string) (sessionToken string, expires time.Time) {
 	// Session anhand des Sessiontokens speichern
 	Serv.Cmds <- Command{ty: write, sessionToken: sessionToken, session: &session{uname: username, expires: expires}, replyChannel: replyChannel}
 	// session aus Antwortchannel lesen
-	session := <-replyChannel
-	return sessionToken, session.expires
+	replySession := <-replyChannel
+	return sessionToken, replySession.expires
 }
 
 // Überprüft Nutzereingaben beim Login und Registrieren
