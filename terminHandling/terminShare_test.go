@@ -5,7 +5,6 @@ import (
 	"go_cal/authentication"
 	"go_cal/dataModel"
 	error2 "go_cal/error"
-	"go_cal/templates"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -15,9 +14,8 @@ import (
 )
 
 func TestTerminShareHandlerUnsuccessfulNoForm(t *testing.T) {
-	templates.Init()
+	setup()
 	defer after()
-	dataModel.InitDataModel("../data/test")
 	request, _ := http.NewRequest(http.MethodPost, "/shareTermin", nil)
 	response := httptest.NewRecorder()
 	http.HandlerFunc(TerminShareHandler).ServeHTTP(response, request)
@@ -27,9 +25,8 @@ func TestTerminShareHandlerUnsuccessfulNoForm(t *testing.T) {
 }
 
 func TestTerminShareHandlerUnsuccessfulNoSessiontoken(t *testing.T) {
-	templates.Init()
+	setup()
 	defer after()
-	dataModel.InitDataModel("../data/test")
 	request, _ := http.NewRequest(http.MethodPost, "/shareTermin", nil)
 	form := url.Values{}
 	request.PostForm = form
@@ -42,10 +39,8 @@ func TestTerminShareHandlerUnsuccessfulNoSessiontoken(t *testing.T) {
 
 // shareCreate-Button
 func TestTerminShareHandlerSuccessfulShareCreate(t *testing.T) {
-	authentication.InitServer()
-	templates.Init()
+	setup()
 	defer after()
-	dataModel.InitDataModel("../data/test")
 	_, err := dataModel.Dm.AddUser("peter", "test", 1)
 	assert.Nil(t, err)
 	sessionToken, _ := authentication.CreateSession("peter")
@@ -67,10 +62,8 @@ func TestTerminShareHandlerSuccessfulShareCreate(t *testing.T) {
 
 // terminShareCreateSubmit-Button
 func TestTerminShareHandlerSuccessfulTerminShareCreateSubmit(t *testing.T) {
-	authentication.InitServer()
-	templates.Init()
+	setup()
 	defer after()
-	dataModel.InitDataModel("../data/test")
 	_, err := dataModel.Dm.AddUser("peter", "test", 1)
 	assert.Nil(t, err)
 	sessionToken, _ := authentication.CreateSession("peter")
@@ -97,10 +90,8 @@ func TestTerminShareHandlerSuccessfulTerminShareCreateSubmit(t *testing.T) {
 
 // terminShareCreateSubmit-Button
 func TestTerminShareHandlerUnsuccessfulTerminShareCreateSubmitEndBeforeBegin(t *testing.T) {
-	authentication.InitServer()
-	templates.Init()
+	setup()
 	defer after()
-	dataModel.InitDataModel("../data/test")
 	_, err := dataModel.Dm.AddUser("peter", "test", 1)
 	assert.Nil(t, err)
 	sessionToken, _ := authentication.CreateSession("peter")
@@ -127,10 +118,8 @@ func TestTerminShareHandlerUnsuccessfulTerminShareCreateSubmitEndBeforeBegin(t *
 
 // terminShareCreateSubmit-Button
 func TestTerminShareHandlerUnsuccessfulTerminShareCreateSubmitEmptyTitle(t *testing.T) {
-	authentication.InitServer()
-	templates.Init()
+	setup()
 	defer after()
-	dataModel.InitDataModel("../data/test")
 	_, err := dataModel.Dm.AddUser("peter", "test", 1)
 	assert.Nil(t, err)
 	sessionToken, _ := authentication.CreateSession("peter")
@@ -157,10 +146,8 @@ func TestTerminShareHandlerUnsuccessfulTerminShareCreateSubmitEmptyTitle(t *test
 
 // editShareTermin-Button
 func TestTerminShareHandlerSuccessfulEditShareTermin(t *testing.T) {
-	authentication.InitServer()
-	templates.Init()
+	setup()
 	defer after()
-	dataModel.InitDataModel("../data/test")
 	user, err := dataModel.Dm.AddUser("peter", "test", 1)
 	assert.Nil(t, err)
 	sessionToken, _ := authentication.CreateSession("peter")
@@ -190,10 +177,8 @@ func TestTerminShareHandlerSuccessfulEditShareTermin(t *testing.T) {
 
 // editShareTerminSubmit-Button
 func TestTerminShareHandlerSuccessfulEditShareTerminSubmit(t *testing.T) {
-	authentication.InitServer()
-	templates.Init()
+	setup()
 	defer after()
-	dataModel.InitDataModel("../data/test")
 	user, err := dataModel.Dm.AddUser("peter", "test", 1)
 	assert.Nil(t, err)
 	sessionToken, _ := authentication.CreateSession("peter")
@@ -223,10 +208,8 @@ func TestTerminShareHandlerSuccessfulEditShareTerminSubmit(t *testing.T) {
 
 // editShareTerminSubmit-Button
 func TestTerminShareHandlerUnsuccessfulEditShareTerminSubmitEndBeforeBegin(t *testing.T) {
-	authentication.InitServer()
-	templates.Init()
+	setup()
 	defer after()
-	dataModel.InitDataModel("../data/test")
 	user, err := dataModel.Dm.AddUser("peter", "test", 1)
 	assert.Nil(t, err)
 	sessionToken, _ := authentication.CreateSession("peter")
@@ -256,10 +239,8 @@ func TestTerminShareHandlerUnsuccessfulEditShareTerminSubmitEndBeforeBegin(t *te
 
 // inviteUserSubmit-Button
 func TestTerminShareHandlerSuccessfulInviteUserSubmit(t *testing.T) {
-	authentication.InitServer()
-	templates.Init()
+	setup()
 	defer after()
-	dataModel.InitDataModel("../data/test")
 	user, err := dataModel.Dm.AddUser("peter", "test", 1)
 	assert.Nil(t, err)
 	sessionToken, _ := authentication.CreateSession("peter")
@@ -291,10 +272,8 @@ func TestTerminShareHandlerSuccessfulInviteUserSubmit(t *testing.T) {
 
 // inviteUserSubmit-Button
 func TestTerminShareHandlerUnsuccessfulInviteUserSubmitInvalidInput(t *testing.T) {
-	authentication.InitServer()
-	templates.Init()
+	setup()
 	defer after()
-	dataModel.InitDataModel("../data/test")
 	user, err := dataModel.Dm.AddUser("peter", "test", 1)
 	assert.Nil(t, err)
 	sessionToken, _ := authentication.CreateSession("peter")
@@ -322,10 +301,8 @@ func TestTerminShareHandlerUnsuccessfulInviteUserSubmitInvalidInput(t *testing.T
 
 // inviteUserSubmit-Button
 func TestTerminShareHandlerUnsuccessfulInviteUserSubmitDuplicateUsername(t *testing.T) {
-	authentication.InitServer()
-	templates.Init()
+	setup()
 	defer after()
-	dataModel.InitDataModel("../data/test")
 	user, err := dataModel.Dm.AddUser("peter", "test", 1)
 	assert.Nil(t, err)
 	sessionToken, _ := authentication.CreateSession("peter")
@@ -370,8 +347,8 @@ func TestTerminShareHandlerUnsuccessfulInviteUserSubmitDuplicateUsername(t *test
 }
 
 func TestCreateSharedTerminSuccessful(t *testing.T) {
+	setup()
 	defer after()
-	dataModel.InitDataModel("../data/test")
 	// user erstellen
 	user, err := dataModel.Dm.AddUser("otto", "test123", 1)
 	assert.Nil(t, err)
@@ -394,8 +371,8 @@ func TestCreateSharedTerminSuccessful(t *testing.T) {
 }
 
 func TestCreateSharedTerminUnsuccessfulWrongFormatBegin(t *testing.T) {
+	setup()
 	defer after()
-	dataModel.InitDataModel("../data/test")
 	// user erstellen
 	user, err := dataModel.Dm.AddUser("otto", "test123", 1)
 	assert.Nil(t, err)
@@ -412,8 +389,8 @@ func TestCreateSharedTerminUnsuccessfulWrongFormatBegin(t *testing.T) {
 }
 
 func TestCreateSharedTerminUnsuccessfulWrongFormatEnd(t *testing.T) {
+	setup()
 	defer after()
-	dataModel.InitDataModel("../data/test")
 	// user erstellen
 	user, err := dataModel.Dm.AddUser("otto", "test123", 1)
 	assert.Nil(t, err)
@@ -430,8 +407,8 @@ func TestCreateSharedTerminUnsuccessfulWrongFormatEnd(t *testing.T) {
 }
 
 func TestCreateSharedTerminUnsuccessfulEndBeforeBegin(t *testing.T) {
+	setup()
 	defer after()
-	dataModel.InitDataModel("../data/test")
 	// user erstellen
 	user, err := dataModel.Dm.AddUser("otto", "test123", 1)
 	assert.Nil(t, err)

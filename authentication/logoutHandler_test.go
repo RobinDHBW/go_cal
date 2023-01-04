@@ -10,11 +10,10 @@ import (
 )
 
 func TestLogoutHandlerSuccessful(t *testing.T) {
-	InitServer()
+	setup()
 	defer after()
 	// create user
-	dm := dataModel.NewDM("../data/test")
-	_, err := dm.AddUser("testUser", "test", 1)
+	_, err := dataModel.Dm.AddUser("testUser", "test", 1)
 	assert.Nil(t, err)
 	// create session
 	sessionToken, _ := CreateSession("testUser")
@@ -37,11 +36,10 @@ func TestLogoutHandlerSuccessful(t *testing.T) {
 }
 
 func TestLogoutHandlerNoCookie(t *testing.T) {
-	InitServer()
+	setup()
 	defer after()
 	// create user
-	dm := dataModel.NewDM("../data/test")
-	_, err := dm.AddUser("testUser", "test", 1)
+	_, err := dataModel.Dm.AddUser("testUser", "test", 1)
 	assert.Nil(t, err)
 	// create session
 	CreateSession("testUser")

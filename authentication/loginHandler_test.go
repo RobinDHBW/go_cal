@@ -2,6 +2,7 @@ package authentication
 
 import (
 	"github.com/stretchr/testify/assert"
+	"go_cal/configuration"
 	"go_cal/dataModel"
 	"go_cal/templates"
 	"io"
@@ -19,16 +20,16 @@ func after() {
 }
 
 func TestSuccessfulAuthentification(t *testing.T) {
+	setup()
 	defer after()
-	dataModel.InitDataModel("../data/test")
 	_, err := dataModel.Dm.AddUser("test", "test123", 1)
 	assert.Nil(t, err)
 	assert.True(t, AuthenticateUser("test", "test123"))
 }
 
 func TestUnsuccessfulAuthentification(t *testing.T) {
+	setup()
 	defer after()
-	dataModel.InitDataModel("../data/test")
 	_, err := dataModel.Dm.AddUser("test", "test123", 1)
 	assert.Nil(t, err)
 	// wrong username
@@ -38,7 +39,8 @@ func TestUnsuccessfulAuthentification(t *testing.T) {
 }
 
 func TestCheckCookieSuccessful(t *testing.T) {
-	InitServer()
+	setup()
+	defer after()
 	username := "test"
 	// prepare session
 	sessionToken, _ := CreateSession(username)
@@ -50,7 +52,8 @@ func TestCheckCookieSuccessful(t *testing.T) {
 }
 
 func TestCheckCookieUnsuccessfulWrongCookieName(t *testing.T) {
-	InitServer()
+	setup()
+	defer after()
 	username := "test"
 	// prepare session
 	sessionToken, _ := CreateSession(username)
@@ -62,7 +65,8 @@ func TestCheckCookieUnsuccessfulWrongCookieName(t *testing.T) {
 }
 
 func TestCheckCookieUnsuccessfulWrongSessionToken(t *testing.T) {
-	InitServer()
+	setup()
+	defer after()
 	username := "test"
 	// prepare session
 	CreateSession(username)
@@ -74,7 +78,8 @@ func TestCheckCookieUnsuccessfulWrongSessionToken(t *testing.T) {
 }
 
 func TestCheckCookieUnsuccessfulSessionExpired(t *testing.T) {
-	InitServer()
+	setup()
+	defer after()
 	username := "test"
 	// prepare session
 	sessionToken, _ := createExpiredSession(username)
@@ -100,10 +105,11 @@ func createExpiredSession(username string) (sessionToken string, expires time.Ti
 }
 
 func TestCreateSession(t *testing.T) {
-	InitServer()
+	setup()
+	defer after()
 	sessionToken, expires := CreateSession("testUser")
 	assert.Equal(t, "testUser", getUsernameBySessionToken(sessionToken))
-	assert.LessOrEqual(t, expires.Sub(time.Now()).Minutes(), 2.0)
+	assert.LessOrEqual(t, expires.Sub(time.Now()).Minutes(), 10.0)
 }
 
 func TestIsExpired(t *testing.T) {
@@ -117,10 +123,8 @@ func TestIsExpired(t *testing.T) {
 }
 
 func TestLoginHandlerWithoutCookie(t *testing.T) {
-	templates.Init()
-	InitServer()
+	setup()
 	defer after()
-	dataModel.InitDataModel("../data/test")
 	_, err := dataModel.Dm.AddUser("testUser", "test", 1)
 	assert.Nil(t, err)
 
@@ -147,10 +151,8 @@ func TestLoginHandlerWithoutCookie(t *testing.T) {
 }
 
 func TestLoginHandlerWithValidCookie(t *testing.T) {
-	templates.Init()
-	InitServer()
+	setup()
 	defer after()
-	dataModel.InitDataModel("../data/test")
 	// create User
 	_, err := dataModel.Dm.AddUser("testUser", "test", 1)
 	assert.Nil(t, err)
@@ -171,9 +173,8 @@ func TestLoginHandlerWithValidCookie(t *testing.T) {
 }
 
 func TestRegisterHandler(t *testing.T) {
+	setup()
 	defer after()
-	dataModel.InitDataModel("../data/test")
-	templates.Init()
 
 	request, _ := http.NewRequest(http.MethodPost, "/register", nil)
 	form := url.Values{}
@@ -196,7 +197,8 @@ func TestValidateInput(t *testing.T) {
 }
 
 func TestWrapperValidCookie(t *testing.T) {
-	InitServer()
+	setup()
+	defer after()
 	// create Session
 	sessionToken, expires := CreateSession("testUser")
 	request, _ := http.NewRequest(http.MethodGet, "/updateCalendar", nil)
@@ -217,8 +219,8 @@ func TestWrapperValidCookie(t *testing.T) {
 }
 
 func TestWrapperInvalidCookie(t *testing.T) {
-	InitServer()
-	templates.Init()
+	setup()
+	defer after()
 	// create Session
 	CreateSession("testUser")
 	request, _ := http.NewRequest(http.MethodGet, "/updateCalendar", nil)
@@ -234,8 +236,8 @@ func TestWrapperInvalidCookie(t *testing.T) {
 }
 
 func TestGetUsernameBySessionToken(t *testing.T) {
-	InitServer()
-	templates.Init()
+	setup()
+	defer after()
 	// create Session
 	sessionToken, _ := CreateSession("testUser")
 	username := getUsernameBySessionToken(sessionToken)
@@ -247,10 +249,8 @@ func TestGetUsernameBySessionToken(t *testing.T) {
 }
 
 func TestGetUserBySessionTokenSuccessful(t *testing.T) {
+	setup()
 	defer after()
-	InitServer()
-	templates.Init()
-	dataModel.InitDataModel("../data/test")
 	_, err := dataModel.Dm.AddUser("testUser", "test", 1)
 	assert.Nil(t, err)
 	// create Session
@@ -266,10 +266,8 @@ func TestGetUserBySessionTokenSuccessful(t *testing.T) {
 }
 
 func TestGetUserBySessionTokenUnsuccessfulNoCookie(t *testing.T) {
+	setup()
 	defer after()
-	InitServer()
-	templates.Init()
-	dataModel.InitDataModel("../data/test")
 	_, err := dataModel.Dm.AddUser("testUser", "test", 1)
 	assert.Nil(t, err)
 	// create Session
@@ -281,10 +279,8 @@ func TestGetUserBySessionTokenUnsuccessfulNoCookie(t *testing.T) {
 }
 
 func TestGetUserBySessionTokenUnsuccessfulNoSession(t *testing.T) {
+	setup()
 	defer after()
-	InitServer()
-	templates.Init()
-	dataModel.InitDataModel("../data/test")
 	_, err := dataModel.Dm.AddUser("testUser", "test", 1)
 	assert.Nil(t, err)
 	request, _ := http.NewRequest(http.MethodPost, "/", nil)
@@ -299,10 +295,8 @@ func TestGetUserBySessionTokenUnsuccessfulNoSession(t *testing.T) {
 }
 
 func TestGetUserBySessionTokenUnsuccessfulNoUser(t *testing.T) {
+	setup()
 	defer after()
-	InitServer()
-	templates.Init()
-	dataModel.InitDataModel("../data/test")
 	// create Session
 	CreateSession("testUser")
 	request, _ := http.NewRequest(http.MethodPost, "/", nil)
@@ -314,4 +308,11 @@ func TestGetUserBySessionTokenUnsuccessfulNoUser(t *testing.T) {
 	assert.Error(t, err)
 	assert.Equal(t, "cannot get User", err.Error())
 	assert.Nil(t, user)
+}
+
+func setup() {
+	configuration.ReadFlags()
+	InitServer()
+	templates.Init()
+	dataModel.InitDataModel("../data/test")
 }

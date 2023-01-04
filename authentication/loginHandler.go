@@ -79,7 +79,7 @@ func StartSessionManager() chan<- Command {
 				delete(sessions, cmd.sessionToken)
 				cmd.replyChannel <- &session{}
 			case update:
-				sessions[cmd.sessionToken].expires = time.Now().Add(time.Minute * time.Duration(*configuration.Timeout))
+				sessions[cmd.sessionToken].expires = time.Now().Add(time.Minute * time.Duration(configuration.Timeout))
 				cmd.replyChannel <- sessions[cmd.sessionToken]
 			}
 		}
@@ -298,7 +298,7 @@ func CreateSession(username string) (sessionToken string, expires time.Time) {
 	// Sessiontoken generieren
 	sessionToken = createUUID(25)
 	// Session läuft nach x Minuten ab (über flag gesteuert)
-	expires = time.Now().Add(time.Minute * time.Duration(*configuration.Timeout))
+	expires = time.Now().Add(time.Minute * time.Duration(configuration.Timeout))
 	// Session anhand des Sessiontokens speichern
 	Serv.Cmds <- Command{ty: write, sessionToken: sessionToken, session: &session{uname: username, expires: expires}, replyChannel: replyChannel}
 	// session aus Antwortchannel lesen

@@ -3,6 +3,7 @@ package terminHandling
 import (
 	"github.com/stretchr/testify/assert"
 	"go_cal/authentication"
+	"go_cal/configuration"
 	"go_cal/dataModel"
 	error2 "go_cal/error"
 	"go_cal/templates"
@@ -14,10 +15,8 @@ import (
 )
 
 func TestTerminShareListHandlerUnsuccessful(t *testing.T) {
-	authentication.InitServer()
-	templates.Init()
+	setup()
 	defer after()
-	dataModel.InitDataModel("../data/test")
 	_, err := dataModel.Dm.AddUser("peter", "test", 1)
 	assert.Nil(t, err)
 	request, _ := http.NewRequest(http.MethodPost, "/listShareTermin", nil)
@@ -30,10 +29,8 @@ func TestTerminShareListHandlerUnsuccessful(t *testing.T) {
 }
 
 func TestTerminShareListHandlerSuccessful(t *testing.T) {
-	authentication.InitServer()
-	templates.Init()
+	setup()
 	defer after()
-	dataModel.InitDataModel("../data/test")
 	user, err := dataModel.Dm.AddUser("peter", "test", 1)
 	assert.Nil(t, err)
 	sessionToken, _ := authentication.CreateSession("peter")
@@ -63,4 +60,11 @@ func TestTerminShareListHandlerSuccessful(t *testing.T) {
 	// Terminfindung wird angezeigt
 	assert.Contains(t, string(body), "Terminfindung1")
 	assert.Contains(t, string(body), "Terminfindung anzeigen")
+}
+
+func setup() {
+	configuration.ReadFlags()
+	authentication.InitServer()
+	templates.Init()
+	dataModel.InitDataModel("../data/test")
 }

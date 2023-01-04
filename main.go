@@ -20,7 +20,7 @@ func main() {
 	// Flags einlesen
 	configuration.ReadFlags()
 	// Datamodel initialisieren
-	dataModel.InitDataModel(*configuration.Folder)
+	dataModel.InitDataModel(configuration.Folder)
 	// Server für Channel-Kommunikation initialisieren
 	authentication.InitServer()
 	// html templates initialisieren
@@ -43,5 +43,5 @@ func main() {
 	//http.HandleFunc("/download", export.Wrapper(export.AuthenticatorFunc(export.CheckUserValid), terminHandling.DownloadHandler))
 	http.Handle("/templates/static/", http.StripPrefix("/templates/static", http.FileServer(http.Dir("templates/static"))))
 
-	log.Fatalln(http.ListenAndServe(":"+strconv.Itoa(*configuration.Port), nil))
+	log.Fatalln(http.ListenAndServe(":"+strconv.Itoa(configuration.Port), nil))
 }
