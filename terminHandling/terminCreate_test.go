@@ -20,8 +20,7 @@ func TestTerminCreateHandler_InvalidRequest(t *testing.T) {
 	_, err := dataModel.Dm.AddUser("testUser", "test", 1)
 	assert.Nil(t, err)
 
-	// TODO: http und localhost
-	request, _ := http.NewRequest(http.MethodPost, "http://localhost:8080/editTermin", nil)
+	request, _ := http.NewRequest(http.MethodPost, "/editTermin", nil)
 	form := url.Values{}
 	request.PostForm = form
 	request.AddCookie(&http.Cookie{
@@ -33,8 +32,7 @@ func TestTerminCreateHandler_InvalidRequest(t *testing.T) {
 	assert.Equal(t, http.StatusUnauthorized, response.Result().StatusCode)
 
 	sessionToken, _ := authentication.CreateSession("testUser")
-	// TODO: http und localhost
-	request, _ = http.NewRequest(http.MethodPost, "http://localhost:8080/editTermin", nil)
+	request, _ = http.NewRequest(http.MethodPost, "/editTermin", nil)
 	form = url.Values{}
 	request.PostForm = form
 	request.AddCookie(&http.Cookie{

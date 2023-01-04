@@ -14,7 +14,6 @@ import (
 	"time"
 )
 
-
 func TestUpdateCalendarHandler_InvalidRequest(t *testing.T) {
 	defer after()
 	authentication.InitServer()
@@ -23,8 +22,7 @@ func TestUpdateCalendarHandler_InvalidRequest(t *testing.T) {
 	_, err := dataModel.Dm.AddUser("Testuser", "test", 0)
 	assert.Nil(t, err)
 
-	// TODO: http und localhost
-	request, _ := http.NewRequest(http.MethodPost, "http://localhost:8080/updateCalendar", nil)
+	request, _ := http.NewRequest(http.MethodPost, "/updateCalendar", nil)
 	form := url.Values{}
 	request.PostForm = form
 	response := httptest.NewRecorder()
@@ -33,7 +31,7 @@ func TestUpdateCalendarHandler_InvalidRequest(t *testing.T) {
 	expString, _ := frontendHandling.GetFeCookieString(frontendHandling.FrontendView{})
 	assert.Equal(t, expString, response.Result().Cookies()[0].Value)
 
-	request, _ = http.NewRequest(http.MethodPost, "http://localhost:8080/updateCalendar", nil)
+	request, _ = http.NewRequest(http.MethodPost, "/updateCalendar", nil)
 	cookieValue, _ := frontendHandling.GetFeCookieString(frontendHandling.FrontendView{})
 	request.AddCookie(&http.Cookie{
 		Name:  "fe_parameter",
@@ -182,8 +180,8 @@ func initValidSession(path string) *http.Request {
 
 	sessionToken, _ := authentication.CreateSession("testUser")
 	cookieValue, _ := frontendHandling.GetFeCookieString(frontendHandling.FrontendView{})
-	// TODO: http und localhost
-	request, _ := http.NewRequest(http.MethodPost, "http://localhost:8080/"+path, nil)
+
+	request, _ := http.NewRequest(http.MethodPost, "/"+path, nil)
 
 	request.AddCookie(&http.Cookie{
 		Name:  "session_token",

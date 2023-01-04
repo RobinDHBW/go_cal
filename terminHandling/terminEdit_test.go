@@ -23,8 +23,7 @@ func TestTerminEditHandler_InvalidRequest(t *testing.T) {
 	_, err := dataModel.Dm.AddUser("testUser", "test", 1)
 	assert.Nil(t, err)
 
-	// TODO: http und localhost
-	request, _ := http.NewRequest(http.MethodPost, "http://localhost:8080/editTermin", nil)
+	request, _ := http.NewRequest(http.MethodPost, "/editTermin", nil)
 	form := url.Values{}
 	request.PostForm = form
 	request.AddCookie(&http.Cookie{
@@ -36,8 +35,7 @@ func TestTerminEditHandler_InvalidRequest(t *testing.T) {
 	assert.Equal(t, http.StatusUnauthorized, response.Result().StatusCode)
 
 	sessionToken, _ := authentication.CreateSession("testUser")
-	// TODO: http und localhost
-	request, _ = http.NewRequest(http.MethodPost, "http://localhost:8080/editTermin", nil)
+	request, _ = http.NewRequest(http.MethodPost, "/editTermin", nil)
 	form = url.Values{}
 	request.PostForm = form
 	request.AddCookie(&http.Cookie{
@@ -215,8 +213,7 @@ func TestEditTerminFromInputIncorrectInput(t *testing.T) {
 	tNow := time.Now()
 	tThen := tNow.Add(time.Hour * time.Duration(1))
 
-	// TODO: http und localhost
-	request, _ := http.NewRequest(http.MethodPost, "http://localhost:8080/", nil)
+	request, _ := http.NewRequest(http.MethodPost, "/", nil)
 	form := url.Values{}
 	form.Add("dateBegin", "keinDatum")
 	form.Add("dateEnd", tThen.Format("2006-01-02T15:04"))
@@ -227,8 +224,7 @@ func TestEditTerminFromInputIncorrectInput(t *testing.T) {
 	err := EditTerminFromInput(request, false, user, 1)
 	assert.Equal(t, error2.CreateError(error2.InvalidInput, request.Host+"/listTermin"), err)
 
-	// TODO: http und localhost
-	request, _ = http.NewRequest(http.MethodPost, "http://localhost:8080/", nil)
+	request, _ = http.NewRequest(http.MethodPost, "/", nil)
 	form = url.Values{}
 	form.Add("dateBegin", tNow.Format("2006-01-02T15:04"))
 	form.Add("dateEnd", tThen.Format("keinDatum"))
@@ -239,8 +235,7 @@ func TestEditTerminFromInputIncorrectInput(t *testing.T) {
 	err = EditTerminFromInput(request, false, user, 1)
 	assert.Equal(t, error2.CreateError(error2.InvalidInput, request.Host+"/listTermin"), err)
 
-	// TODO: http und localhost
-	request, _ = http.NewRequest(http.MethodPost, "http://localhost:8080/", nil)
+	request, _ = http.NewRequest(http.MethodPost, "/", nil)
 	form = url.Values{}
 	form.Add("dateBegin", tThen.Format("2006-01-02T15:04"))
 	form.Add("dateEnd", tNow.Format("2006-01-02T15:04"))
@@ -251,8 +246,7 @@ func TestEditTerminFromInputIncorrectInput(t *testing.T) {
 	err = EditTerminFromInput(request, false, user, 1)
 	assert.Equal(t, error2.CreateError(error2.EndBeforeBegin, request.Host+"/listTermin"), err)
 
-	// TODO: http und localhost
-	request, _ = http.NewRequest(http.MethodPost, "http://localhost:8080/", nil)
+	request, _ = http.NewRequest(http.MethodPost, "/", nil)
 	form = url.Values{}
 	form.Add("dateBegin", tNow.Format("2006-01-02T15:04"))
 	form.Add("dateEnd", tThen.Format("2006-01-02T15:04"))
@@ -272,8 +266,7 @@ func TestEditTerminFromInputCorrectInputCreate(t *testing.T) {
 	user, _ := dataModel.Dm.AddUser("Testuser", "test", 0)
 	//apIDstart := dataModel.GetApID()
 
-	// TODO: http und localhost
-	request, _ := http.NewRequest(http.MethodPost, "http://localhost:8080/", nil)
+	request, _ := http.NewRequest(http.MethodPost, "/", nil)
 	form := url.Values{}
 	form.Add("dateBegin", tNow.Format("2006-01-02T15:04"))
 	form.Add("dateEnd", tThen.Format("2006-01-02T15:04"))
@@ -305,8 +298,8 @@ func TestEditTerminFromInputCorrectInputEdit(t *testing.T) {
 	tNow := time.Now()
 	tThen := tNow.Add(time.Hour * time.Duration(1))
 	user, _ := dataModel.Dm.AddUser("Testuser", "test", 0)
-	// TODO: http und localhost
-	request, _ := http.NewRequest(http.MethodPost, "http://localhost:8080/", nil)
+
+	request, _ := http.NewRequest(http.MethodPost, "/", nil)
 	form := url.Values{}
 	form.Add("dateBegin", tNow.Format("2006-01-02T15:04"))
 	form.Add("dateEnd", tThen.Format("2006-01-02T15:04"))
@@ -339,8 +332,7 @@ func initValidSession(path string) *http.Request {
 
 	sessionToken, _ := authentication.CreateSession("testUser")
 	cookieValue, _ := frontendHandling.GetFeCookieString(frontendHandling.FrontendView{})
-	// TODO: http und localhost
-	request, _ := http.NewRequest(http.MethodPost, "http://localhost:8080/"+path, nil)
+	request, _ := http.NewRequest(http.MethodPost, "/"+path, nil)
 
 	request.AddCookie(&http.Cookie{
 		Name:  "session_token",

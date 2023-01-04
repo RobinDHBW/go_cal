@@ -44,13 +44,13 @@ func TestAppointment_GetDescriptionFromInterval(t *testing.T) {
 }
 
 func TestShare_GetUsernameFromUrl(t *testing.T) {
-	text := "http://localhost:8080/terminVoting?invitor=test&termin=test&token=jWAgIWSYiPxDiauBNPfQusername=Testuser"
+	text := "/terminVoting?invitor=test&termin=test&token=jWAgIWSYiPxDiauBNPfQusername=Testuser"
 	tNow := time.Now()
 	tThen := tNow.Add(time.Hour * time.Duration(1))
 	ap := NewAppointment("test", "hallo 123", "here", tNow, tThen, 1, 1, true, 1, false)
 	result := ap.Share.GetUsernameFromUrl(text)
 	assert.Equal(t, "", result)
-	text = "http://localhost:8080/terminVoting?invitor=test&termin=test&token=jWAgIWSYiPxDiauBNPfQ&username=Testuser"
+	text = "/terminVoting?invitor=test&termin=test&token=jWAgIWSYiPxDiauBNPfQ&username=Testuser"
 	result = ap.Share.GetUsernameFromUrl(text)
 	assert.Equal(t, "Testuser", result)
 }

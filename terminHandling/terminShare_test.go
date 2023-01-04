@@ -346,6 +346,123 @@ func TestTerminShareHandlerUnsuccessfulInviteUserSubmitDuplicateUsername(t *test
 	assert.Contains(t, string(body), string(error2.DuplicateUserName))
 }
 
+// acceptTermin-Button
+func TestTerminShareHandlerSuccessfulAcceptTermin(t *testing.T) {
+	setup()
+	defer after()
+	user, err := dataModel.Dm.AddUser("peter", "test", 1)
+	assert.Nil(t, err)
+	sessionToken, _ := authentication.CreateSession("peter")
+	assert.Empty(t, user.Appointments)
+	// Terminfindung erstellen
+	beginDate, _ := time.Parse("2006-01-02T15:04", "2023-01-03T22:00")
+	endDate, _ := time.Parse("2006-01-02T15:04", "2023-01-03T23:00")
+	dataModel.Dm.AddSharedAppointment(user.Id, "Terminfindung1", "here", beginDate, endDate, false, 0, true)
+	assert.Equal(t, 1, len(user.SharedAppointments))
+	assert.Equal(t, 0, len(user.Appointments))
+	request, _ := http.NewRequest(http.MethodPost, "/shareTermin", nil)
+	request.AddCookie(&http.Cookie{
+		Name:  "session_token",
+		Value: sessionToken,
+	})
+	form := url.Values{}
+	form.Add("acceptTermin", "0|Terminfindung1")
+	request.PostForm = form
+	response := httptest.NewRecorder()
+	http.HandlerFunc(TerminShareHandler).ServeHTTP(response, request)
+	assert.Equal(t, 0, len(user.SharedAppointments))
+	assert.Equal(t, 1, len(user.Appointments))
+	// SharedTermin hatte ID 1
+	assert.Equal(t, "Terminfindung1", user.Appointments[2].Title)
+	assert.Contains(t, user.Appointments[2].Description, "Abgestimmt:")
+	assert.Contains(t, user.Appointments[2].Description, "Abstimmungsergebnis:")
+	assert.Equal(t, beginDate, user.Appointments[2].DateTimeStart)
+	assert.Equal(t, endDate, user.Appointments[2].DateTimeEnd)
+	assert.Equal(t, http.StatusFound, response.Result().StatusCode)
+	locationHeader, err := response.Result().Location()
+	assert.NoError(t, err)
+	assert.Equal(t, "/listTermin", locationHeader.Path)
+}
+
+// acceptTermin-Button
+func TestTerminShareHandlerUnsuccessfulWrongValue(t *testing.T) {
+	setup()
+	defer after()
+	user, err := dataModel.Dm.AddUser("peter", "test", 1)
+	assert.Nil(t, err)
+	sessionToken, _ := authentication.CreateSession("peter")
+	assert.Empty(t, user.Appointments)
+	// Terminfindung erstellen
+	beginDate, _ := time.Parse("2006-01-02T15:04", "2023-01-03T22:00")
+	endDate, _ := time.Parse("2006-01-02T15:04", "2023-01-03T23:00")
+	dataModel.Dm.AddSharedAppointment(user.Id, "Terminfindung1", "here", beginDate, endDate, false, 0, true)
+	request, _ := http.NewRequest(http.MethodPost, "/shareTermin", nil)
+	request.AddCookie(&http.Cookie{
+		Name:  "session_token",
+		Value: sessionToken,
+	})
+	form := url.Values{}
+	// more than 2 splits
+	form.Add("acceptTermin", "0|Terminfindung1|test")
+	request.PostForm = form
+	response := httptest.NewRecorder()
+	http.HandlerFunc(TerminShareHandler).ServeHTTP(response, request)
+	assert.Equal(t, http.StatusBadRequest, response.Result().StatusCode)
+	body, _ := io.ReadAll(response.Result().Body)
+	assert.Contains(t, string(body), string(error2.InvalidInput))
+
+}
+
+// acceptTermin-Button
+func TestTerminShareHandlerUnsuccessfulInvalidId(t *testing.T) {
+	setup()
+	defer after()
+	user, err := dataModel.Dm.AddUser("peter", "test", 1)
+	assert.Nil(t, err)
+	sessionToken, _ := authentication.CreateSession("peter")
+	assert.Empty(t, user.Appointments)
+	// Terminfindung erstellen
+	beginDate, _ := time.Parse("2006-01-02T15:04", "2023-01-03T22:00")
+	endDate, _ := time.Parse("2006-01-02T15:04", "2023-01-03T23:00")
+	dataModel.Dm.AddSharedAppointment(user.Id, "Terminfindung1", "here", beginDate, endDate, false, 0, true)
+	request, _ := http.NewRequest(http.MethodPost, "/shareTermin", nil)
+	request.AddCookie(&http.Cookie{
+		Name:  "session_token",
+		Value: sessionToken,
+	})
+	form := url.Values{}
+	// more than 2 splits
+	form.Add("acceptTermin", "-1|Terminfindung1")
+	request.PostForm = form
+	response := httptest.NewRecorder()
+	http.HandlerFunc(TerminShareHandler).ServeHTTP(response, request)
+	assert.Equal(t, http.StatusBadRequest, response.Result().StatusCode)
+	body, _ := io.ReadAll(response.Result().Body)
+	assert.Contains(t, string(body), string(error2.InvalidInput))
+}
+
+// default-case
+func TestTerminShareHandlerDefaultCase(t *testing.T) {
+	setup()
+	defer after()
+	_, err := dataModel.Dm.AddUser("peter", "test", 1)
+	assert.Nil(t, err)
+	sessionToken, _ := authentication.CreateSession("peter")
+	request, _ := http.NewRequest(http.MethodPost, "/shareTermin", nil)
+	request.AddCookie(&http.Cookie{
+		Name:  "session_token",
+		Value: sessionToken,
+	})
+	form := url.Values{}
+	request.PostForm = form
+	response := httptest.NewRecorder()
+	http.HandlerFunc(TerminShareHandler).ServeHTTP(response, request)
+	assert.Equal(t, http.StatusFound, response.Result().StatusCode)
+	locationHeader, err := response.Result().Location()
+	assert.NoError(t, err)
+	assert.Equal(t, "/listShareTermin", locationHeader.Path)
+}
+
 func TestCreateSharedTerminSuccessful(t *testing.T) {
 	setup()
 	defer after()

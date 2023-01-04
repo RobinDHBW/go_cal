@@ -48,6 +48,7 @@ type DataModel struct {
 }
 
 func NewDM(dataPath string) DataModel {
+	apID = 0
 	fH := fileHandler.NewFH(dataPath)
 	sList := fH.ReadAll()
 	uMap := make(map[int]data.User)

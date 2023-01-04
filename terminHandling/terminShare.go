@@ -79,17 +79,18 @@ func TerminShareHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		http.Redirect(w, r, "/listShareTermin", http.StatusFound)
+	// Terminvorschlag übernehmen
 	case r.Form.Has("acceptTermin"):
 		parts := strings.Split(r.PostFormValue("acceptTermin"), "|")
 		if len(parts) != 2 {
 			w.WriteHeader(http.StatusBadRequest)
-			templates.TempError.Execute(w, error2.CreateError(error2.InvalidInput, r.Host+"/listShareTermin"))
+			templates.TempError.Execute(w, error2.CreateError(error2.InvalidInput, "/listShareTermin"))
 			return
 		}
 		id, err := strconv.Atoi(parts[0])
 		if err != nil || id < 0 {
 			w.WriteHeader(http.StatusBadRequest)
-			templates.TempError.Execute(w, error2.CreateError(error2.InvalidInput, r.Host+"/listShareTermin"))
+			templates.TempError.Execute(w, error2.CreateError(error2.InvalidInput, "/listShareTermin"))
 			return
 		}
 		if len(user.SharedAppointments[parts[1]]) > 0 && len(user.SharedAppointments[parts[1]]) > id {
@@ -108,7 +109,6 @@ func TerminShareHandler(w http.ResponseWriter, r *http.Request) {
 			dataModel.Dm.DeleteSharedAppointment(app.Title, user.Id)
 			http.Redirect(w, r, "/listTermin", http.StatusFound)
 		}
-
 	default:
 		//templates.TempShareTermin.Execute(w, user.SharedAppointments)
 		http.Redirect(w, r, "/listShareTermin", http.StatusFound)
