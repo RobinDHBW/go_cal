@@ -26,7 +26,7 @@ func main() {
 	// html templates initialisieren
 	templates.Init()
 	// setzt rand.Seed für Generierung von einmaligen Tokens
-	terminHandling.InitSeed()
+	dataModel.InitSeed()
 
 	// Endpunkte definieren
 	http.HandleFunc("/updateCalendar", authentication.Wrapper(calendar.UpdateCalendarHandler))
