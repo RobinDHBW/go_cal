@@ -2,6 +2,7 @@ package authentication
 
 import (
 	"github.com/stretchr/testify/assert"
+	"go_cal/configuration"
 	"go_cal/dataModel"
 	"go_cal/templates"
 	"io"
@@ -19,16 +20,16 @@ func after() {
 }
 
 func TestSuccessfulAuthentification(t *testing.T) {
+	setup()
 	defer after()
-	dataModel.InitDataModel("../data/test")
 	_, err := dataModel.Dm.AddUser("test", "test123", 1)
 	assert.Nil(t, err)
 	assert.True(t, AuthenticateUser("test", "test123"))
 }
 
 func TestUnsuccessfulAuthentification(t *testing.T) {
+	setup()
 	defer after()
-	dataModel.InitDataModel("../data/test")
 	_, err := dataModel.Dm.AddUser("test", "test123", 1)
 	assert.Nil(t, err)
 	// wrong username
@@ -38,7 +39,8 @@ func TestUnsuccessfulAuthentification(t *testing.T) {
 }
 
 func TestCheckCookieSuccessful(t *testing.T) {
-	InitServer()
+	setup()
+	defer after()
 	username := "test"
 	// prepare session
 	sessionToken, _ := CreateSession(username)
@@ -50,7 +52,8 @@ func TestCheckCookieSuccessful(t *testing.T) {
 }
 
 func TestCheckCookieUnsuccessfulWrongCookieName(t *testing.T) {
-	InitServer()
+	setup()
+	defer after()
 	username := "test"
 	// prepare session
 	sessionToken, _ := CreateSession(username)
@@ -62,7 +65,8 @@ func TestCheckCookieUnsuccessfulWrongCookieName(t *testing.T) {
 }
 
 func TestCheckCookieUnsuccessfulWrongSessionToken(t *testing.T) {
-	InitServer()
+	setup()
+	defer after()
 	username := "test"
 	// prepare session
 	CreateSession(username)
@@ -74,7 +78,8 @@ func TestCheckCookieUnsuccessfulWrongSessionToken(t *testing.T) {
 }
 
 func TestCheckCookieUnsuccessfulSessionExpired(t *testing.T) {
-	InitServer()
+	setup()
+	defer after()
 	username := "test"
 	// prepare session
 	sessionToken, _ := createExpiredSession(username)
@@ -100,10 +105,11 @@ func createExpiredSession(username string) (sessionToken string, expires time.Ti
 }
 
 func TestCreateSession(t *testing.T) {
-	InitServer()
+	setup()
+	defer after()
 	sessionToken, expires := CreateSession("testUser")
 	assert.Equal(t, "testUser", getUsernameBySessionToken(sessionToken))
-	assert.LessOrEqual(t, expires.Sub(time.Now()).Minutes(), 2.0)
+	assert.LessOrEqual(t, expires.Sub(time.Now()).Minutes(), 10.0)
 }
 
 func TestIsExpired(t *testing.T) {
@@ -117,15 +123,12 @@ func TestIsExpired(t *testing.T) {
 }
 
 func TestLoginHandlerWithoutCookie(t *testing.T) {
-	templates.Init()
-	InitServer()
+	setup()
 	defer after()
-	dataModel.InitDataModel("../data/test")
 	_, err := dataModel.Dm.AddUser("testUser", "test", 1)
 	assert.Nil(t, err)
 
-	// TODO: http und localhost
-	request, _ := http.NewRequest(http.MethodPost, "http://localhost:8080/", nil)
+	request, _ := http.NewRequest(http.MethodPost, "/", nil)
 	form := url.Values{}
 	form.Add("uname", "testUser")
 	form.Add("passwd", "test")
@@ -148,17 +151,14 @@ func TestLoginHandlerWithoutCookie(t *testing.T) {
 }
 
 func TestLoginHandlerWithValidCookie(t *testing.T) {
-	templates.Init()
-	InitServer()
+	setup()
 	defer after()
-	dataModel.InitDataModel("../data/test")
 	// create User
 	_, err := dataModel.Dm.AddUser("testUser", "test", 1)
 	assert.Nil(t, err)
 	// create Session
 	sessionToken, _ := CreateSession("testUser")
-	// TODO: http und localhost
-	request, _ := http.NewRequest(http.MethodGet, "http://localhost:8080/", nil)
+	request, _ := http.NewRequest(http.MethodGet, "/", nil)
 	request.AddCookie(&http.Cookie{
 		Name:  "session_token",
 		Value: sessionToken,
@@ -173,12 +173,10 @@ func TestLoginHandlerWithValidCookie(t *testing.T) {
 }
 
 func TestRegisterHandler(t *testing.T) {
+	setup()
 	defer after()
-	dataModel.InitDataModel("../data/test")
-	templates.Init()
 
-	// TODO: http und localhost
-	request, _ := http.NewRequest(http.MethodPost, "http://localhost:8080/register", nil)
+	request, _ := http.NewRequest(http.MethodPost, "/register", nil)
 	form := url.Values{}
 	form.Add("uname", "testUser")
 	form.Add("passwd", "test123")
@@ -199,10 +197,11 @@ func TestValidateInput(t *testing.T) {
 }
 
 func TestWrapperValidCookie(t *testing.T) {
-	InitServer()
+	setup()
+	defer after()
 	// create Session
 	sessionToken, expires := CreateSession("testUser")
-	request, _ := http.NewRequest(http.MethodGet, "http://localhost:8080/updateCalendar", nil)
+	request, _ := http.NewRequest(http.MethodGet, "/updateCalendar", nil)
 	request.AddCookie(&http.Cookie{
 		Name:  "session_token",
 		Value: sessionToken,
@@ -220,11 +219,11 @@ func TestWrapperValidCookie(t *testing.T) {
 }
 
 func TestWrapperInvalidCookie(t *testing.T) {
-	InitServer()
-	templates.Init()
+	setup()
+	defer after()
 	// create Session
 	CreateSession("testUser")
-	request, _ := http.NewRequest(http.MethodGet, "http://localhost:8080/updateCalendar", nil)
+	request, _ := http.NewRequest(http.MethodGet, "/updateCalendar", nil)
 	request.AddCookie(&http.Cookie{
 		Name:  "session_token",
 		Value: "wrong_value",
@@ -234,4 +233,86 @@ func TestWrapperInvalidCookie(t *testing.T) {
 	assert.Equal(t, http.StatusUnauthorized, response.Result().StatusCode)
 	body, _ := io.ReadAll(response.Result().Body)
 	assert.Contains(t, string(body), "Error")
+}
+
+func TestGetUsernameBySessionToken(t *testing.T) {
+	setup()
+	defer after()
+	// create Session
+	sessionToken, _ := CreateSession("testUser")
+	username := getUsernameBySessionToken(sessionToken)
+	assert.Equal(t, "testUser", username)
+
+	InitServer()
+	username = getUsernameBySessionToken(sessionToken)
+	assert.Equal(t, "", username)
+}
+
+func TestGetUserBySessionTokenSuccessful(t *testing.T) {
+	setup()
+	defer after()
+	_, err := dataModel.Dm.AddUser("testUser", "test", 1)
+	assert.Nil(t, err)
+	// create Session
+	sessionToken, _ := CreateSession("testUser")
+	request, _ := http.NewRequest(http.MethodPost, "/", nil)
+	request.AddCookie(&http.Cookie{
+		Name:  "session_token",
+		Value: sessionToken,
+	})
+	user, err := GetUserBySessionToken(request)
+	assert.Nil(t, err)
+	assert.Equal(t, "testUser", user.UserName)
+}
+
+func TestGetUserBySessionTokenUnsuccessfulNoCookie(t *testing.T) {
+	setup()
+	defer after()
+	_, err := dataModel.Dm.AddUser("testUser", "test", 1)
+	assert.Nil(t, err)
+	// create Session
+	CreateSession("testUser")
+	request, _ := http.NewRequest(http.MethodPost, "/", nil)
+	user, err := GetUserBySessionToken(request)
+	assert.Error(t, err)
+	assert.Nil(t, user)
+}
+
+func TestGetUserBySessionTokenUnsuccessfulNoSession(t *testing.T) {
+	setup()
+	defer after()
+	_, err := dataModel.Dm.AddUser("testUser", "test", 1)
+	assert.Nil(t, err)
+	request, _ := http.NewRequest(http.MethodPost, "/", nil)
+	request.AddCookie(&http.Cookie{
+		Name:  "session_token",
+		Value: "value",
+	})
+	user, err := GetUserBySessionToken(request)
+	assert.Error(t, err)
+	assert.Equal(t, "cannot get User", err.Error())
+	assert.Nil(t, user)
+}
+
+func TestGetUserBySessionTokenUnsuccessfulNoUser(t *testing.T) {
+	setup()
+	defer after()
+	// create Session
+	CreateSession("testUser")
+	request, _ := http.NewRequest(http.MethodPost, "/", nil)
+	request.AddCookie(&http.Cookie{
+		Name:  "session_token",
+		Value: "value",
+	})
+	user, err := GetUserBySessionToken(request)
+	assert.Error(t, err)
+	assert.Equal(t, "cannot get User", err.Error())
+	assert.Nil(t, user)
+}
+
+func setup() {
+	configuration.ReadFlags()
+	InitServer()
+	templates.Init()
+	dataModel.InitDataModel("../data/test")
 }

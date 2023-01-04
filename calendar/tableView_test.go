@@ -14,6 +14,7 @@ import (
 	"time"
 )
 
+
 func TestUpdateCalendarHandler_InvalidRequest(t *testing.T) {
 	defer after()
 	authentication.InitServer()

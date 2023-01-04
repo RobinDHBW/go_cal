@@ -13,19 +13,19 @@ func TerminCreateHandler(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
-		templates.TempError.Execute(w, error2.CreateError(error2.Default2, r.Host+"/createTermin"))
+		templates.TempError.Execute(w, error2.CreateError(error2.Default2, "/createTermin"))
 		return
 	}
 	user, err := authentication.GetUserBySessionToken(r)
 	if err != nil || user == nil {
 		w.WriteHeader(http.StatusUnauthorized)
-		templates.TempError.Execute(w, error2.CreateError(error2.Authentification, r.Host+"/"))
+		templates.TempError.Execute(w, error2.CreateError(error2.Authentification, "/"))
 		return
 	}
 	feParams, err := frontendHandling.GetFrontendParameters(r)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
-		templates.TempError.Execute(w, error2.CreateError(error2.InvalidInput, r.Host+"/createTermin"))
+		templates.TempError.Execute(w, error2.CreateError(error2.InvalidInput, "/createTermin"))
 		return
 	}
 	switch {

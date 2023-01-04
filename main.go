@@ -3,11 +3,13 @@ package main
 import (
 	"go_cal/authentication"
 	"go_cal/calendar"
+	"go_cal/configuration"
 	"go_cal/dataModel"
 	"go_cal/templates"
 	"go_cal/terminHandling"
 	"log"
 	"net/http"
+	"strconv"
 )
 
 func mainHandler(w http.ResponseWriter, r *http.Request) {
@@ -15,11 +17,18 @@ func mainHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-	dataModel.InitDataModel("./files")
+	// Flags einlesen
+	configuration.ReadFlags()
+	// Datamodel initialisieren
+	dataModel.InitDataModel(configuration.Folder)
+	// Server für Channel-Kommunikation initialisieren
 	authentication.InitServer()
-	//authentication.Serv = &authentication.Server{Cmds: authentication.StartSessionManager()}
+	// html templates initialisieren
 	templates.Init()
+	// setzt rand.Seed für Generierung von einmaligen Tokens
+	dataModel.InitSeed()
 
+	// Endpunkte definieren
 	http.HandleFunc("/updateCalendar", authentication.Wrapper(calendar.UpdateCalendarHandler))
 	http.HandleFunc("/register", authentication.RegisterHandler)
 	http.HandleFunc("/logout", authentication.LogoutHandler)
@@ -36,5 +45,5 @@ func main() {
 	//http.HandleFunc("/download", export.Wrapper(export.AuthenticatorFunc(export.CheckUserValid), terminHandling.DownloadHandler))
 	http.Handle("/templates/static/", http.StripPrefix("/templates/static", http.FileServer(http.Dir("templates/static"))))
 
-	log.Fatalln(http.ListenAndServe(":8080", nil))
+	log.Fatalln(http.ListenAndServe(":"+strconv.Itoa(configuration.Port), nil))
 }

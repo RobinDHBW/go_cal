@@ -5,6 +5,8 @@ package authentication
 // https://github.com/eliben/code-for-blog/blob/master/2019/gohttpconcurrency/channel-manager-server.go
 
 import (
+	"errors"
+	"go_cal/configuration"
 	"go_cal/data"
 	"go_cal/dataModel"
 	error2 "go_cal/error"
@@ -77,7 +79,7 @@ func StartSessionManager() chan<- Command {
 				delete(sessions, cmd.sessionToken)
 				cmd.replyChannel <- &session{}
 			case update:
-				sessions[cmd.sessionToken].expires = time.Now().Add(1 * time.Minute)
+				sessions[cmd.sessionToken].expires = time.Now().Add(time.Minute * time.Duration(configuration.Timeout))
 				cmd.replyChannel <- sessions[cmd.sessionToken]
 			}
 		}
@@ -104,7 +106,7 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 				// Response header 400 setzen
 				w.WriteHeader(http.StatusBadRequest)
 				// Fehlermeldung für Nutzer anzeigen
-				templates.TempError.Execute(w, error2.CreateError(error2.EmptyField, r.Host+"/"))
+				templates.TempError.Execute(w, error2.CreateError(error2.EmptyField, "/"))
 				return
 			}
 			// user authentifizieren
@@ -122,7 +124,7 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 				cookieValue, err := frontendHandling.GetFeCookieString(frontendHandling.FrontendView{})
 				if err != nil {
 					w.WriteHeader(http.StatusBadRequest)
-					templates.TempError.Execute(w, error2.CreateError(error2.InvalidInput, r.Host+"/"))
+					templates.TempError.Execute(w, error2.CreateError(error2.InvalidInput, "/"))
 					return
 				}
 				http.SetCookie(w, &http.Cookie{
@@ -137,7 +139,7 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 				// Response header 401 setzen
 				w.WriteHeader(http.StatusUnauthorized)
 				// Fehlermeldung für Nutzer anzeigen
-				templates.TempError.Execute(w, error2.CreateError(error2.WrongCredentials, r.Host+"/"))
+				templates.TempError.Execute(w, error2.CreateError(error2.WrongCredentials, "/"))
 				return
 			}
 		}
@@ -165,7 +167,7 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 			// Response header 400 setzen
 			w.WriteHeader(http.StatusBadRequest)
 			// Fehlermeldung für Nutzer anzeigen
-			templates.TempError.Execute(w, error2.CreateError(error2.EmptyField, r.Host+"/register"))
+			templates.TempError.Execute(w, error2.CreateError(error2.EmptyField, "/register"))
 			return
 		}
 		// neuen User erstellen
@@ -175,7 +177,7 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 			// Response header 400 setzen
 			w.WriteHeader(http.StatusBadRequest)
 			// Fehlermeldung für Nutzer anzeigen
-			templates.TempError.Execute(w, error2.CreateError(error2.DuplicateUserName, r.Host+"/register"))
+			templates.TempError.Execute(w, error2.CreateError(error2.DuplicateUserName, "/register"))
 			return
 			// Nutzername existiert noch nicht, Erstellung war erfolgreich
 		} else {
@@ -190,7 +192,7 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 			cookieValue, err := frontendHandling.GetFeCookieString(frontendHandling.FrontendView{})
 			if err != nil {
 				w.WriteHeader(http.StatusBadRequest)
-				templates.TempError.Execute(w, error2.CreateError(error2.InvalidInput, r.Host+"/"))
+				templates.TempError.Execute(w, error2.CreateError(error2.InvalidInput, "/"))
 				return
 			}
 			http.SetCookie(w, &http.Cookie{
@@ -228,7 +230,7 @@ func Wrapper(handler http.HandlerFunc) http.HandlerFunc {
 			// Response header 401 setzen
 			w.WriteHeader(http.StatusUnauthorized)
 			// Fehlermeldung für Nutzer anzeigen
-			templates.TempError.Execute(w, error2.CreateError(error2.Authentification, r.Host+"/"))
+			templates.TempError.Execute(w, error2.CreateError(error2.Authentification, "/"))
 			return
 		}
 	}
@@ -240,14 +242,10 @@ func refreshCookie(r *http.Request) (sessionToken string, expires time.Time) {
 	cookie, _ := r.Cookie("session_token")
 	// Sessiontoken auslesen
 	sessionToken = cookie.Value
+	// Session aktualisieren
 	Serv.Cmds <- Command{ty: update, sessionToken: sessionToken, replyChannel: replyChannel}
-	session := <-replyChannel
-	// session auslesen
-	//session, _ := sessions[sessionToken]
-	// Session ist valide, da zuvor CheckCookie ausgeführt wurde
-	// expires um 10 min verlägern
-	//session.expires = session.expires.Add(1 * time.Minute)
-	return sessionToken, session.expires
+	replySession := <-replyChannel
+	return sessionToken, replySession.expires
 }
 
 func createUUID(n int) string {
@@ -283,9 +281,9 @@ func checkCookie(r *http.Request) (successful bool) {
 	// read-Command schicken
 	Serv.Cmds <- Command{ty: read, sessionToken: sessionToken, replyChannel: replyChannel}
 	// session aus Antwortchannel lesen
-	session := <-replyChannel
+	replySession := <-replyChannel
 	// SessionToken is abgelaufen
-	if session.isExpired() {
+	if replySession.isExpired() {
 		// Session löschen
 		Serv.Cmds <- Command{ty: remove, sessionToken: sessionToken, replyChannel: replyChannel}
 		<-replyChannel
@@ -299,14 +297,13 @@ func CreateSession(username string) (sessionToken string, expires time.Time) {
 	replyChannel := make(chan *session)
 	// Sessiontoken generieren
 	sessionToken = createUUID(25)
-	// Session läuft nach x Minuten ab
-	// TODO Zeit anpassen
-	expires = time.Now().Add(1 * time.Minute)
+	// Session läuft nach x Minuten ab (über flag gesteuert)
+	expires = time.Now().Add(time.Minute * time.Duration(configuration.Timeout))
 	// Session anhand des Sessiontokens speichern
 	Serv.Cmds <- Command{ty: write, sessionToken: sessionToken, session: &session{uname: username, expires: expires}, replyChannel: replyChannel}
 	// session aus Antwortchannel lesen
-	session := <-replyChannel
-	return sessionToken, session.expires
+	replySession := <-replyChannel
+	return sessionToken, replySession.expires
 }
 
 // Überprüft Nutzereingaben beim Login und Registrieren
@@ -329,22 +326,29 @@ func GetUserBySessionToken(r *http.Request) (*data.User, error) {
 	cookie, err := r.Cookie("session_token")
 	if err != nil {
 		return nil, err
-
 	}
 	sessionToken := cookie.Value
 
 	replyChannel := make(chan *session)
 	Serv.Cmds <- Command{ty: read, sessionToken: sessionToken, replyChannel: replyChannel}
-	session := <-replyChannel
-
-	username := session.uname
+	replySession := <-replyChannel
+	if *replySession == (session{}) {
+		return nil, errors.New("cannot get User")
+	}
+	username := replySession.uname
 	user := dataModel.Dm.GetUserByName(username)
+	if user == nil {
+		return nil, errors.New("cannot get User")
+	}
 	return user, nil
 }
 
 func getUsernameBySessionToken(sessionToken string) string {
 	replyChannel := make(chan *session)
 	Serv.Cmds <- Command{ty: read, sessionToken: sessionToken, replyChannel: replyChannel}
-	session := <-replyChannel
-	return session.uname
+	replySession := <-replyChannel
+	if *replySession == (session{}) {
+		return ""
+	}
+	return replySession.uname
 }

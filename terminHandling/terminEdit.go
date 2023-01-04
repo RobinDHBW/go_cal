@@ -16,20 +16,20 @@ func TerminEditHandler(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
-		templates.TempError.Execute(w, error2.CreateError(error2.Default2, r.Host+"/listTermin"))
+		templates.TempError.Execute(w, error2.CreateError(error2.Default2, "/listTermin"))
 		return
 	}
 	user, err := authentication.GetUserBySessionToken(r)
 	if err != nil || user == nil {
 		w.WriteHeader(http.StatusUnauthorized)
 		// Fehlermeldung für Nutzer anzeigen
-		templates.TempError.Execute(w, error2.CreateError(error2.Authentification, r.Host+"/"))
+		templates.TempError.Execute(w, error2.CreateError(error2.Authentification, "/"))
 		return
 	}
 	feParams, err := frontendHandling.GetFrontendParameters(r)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
-		templates.TempError.Execute(w, error2.CreateError(error2.InvalidInput, r.Host+"/listTermin"))
+		templates.TempError.Execute(w, error2.CreateError(error2.InvalidInput, "/listTermin"))
 		return
 	}
 	switch {
@@ -37,7 +37,7 @@ func TerminEditHandler(w http.ResponseWriter, r *http.Request) {
 		index, err := strconv.Atoi(r.Form.Get("editTermin"))
 		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
-			templates.TempError.Execute(w, error2.CreateError(error2.InvalidInput, r.Host+"/listTermin"))
+			templates.TempError.Execute(w, error2.CreateError(error2.InvalidInput, "/listTermin"))
 			return
 		}
 		u := *user
@@ -121,20 +121,20 @@ func GetRepeatingMode(mode string) int {
 func EditTerminFromInput(r *http.Request, edit bool, user *data.User, id int) error2.DisplayedError {
 	begin, err := time.Parse("2006-01-02T15:04", r.PostFormValue("dateBegin"))
 	if err != nil {
-		return error2.CreateError(error2.InvalidInput, r.Host+"/listTermin")
+		return error2.CreateError(error2.InvalidInput, "/listTermin")
 	}
 	end, err := time.Parse("2006-01-02T15:04", r.PostFormValue("dateEnd"))
 	if err != nil {
-		return error2.CreateError(error2.InvalidInput, r.Host+"/listTermin")
+		return error2.CreateError(error2.InvalidInput, "/listTermin")
 	}
 	if end.Before(begin) {
-		return error2.CreateError(error2.EndBeforeBegin, r.Host+"/listTermin")
+		return error2.CreateError(error2.EndBeforeBegin, "/listTermin")
 	}
 
 	repeat := GetRepeatingMode(r.PostFormValue("chooseRepeat"))
 	title := r.PostFormValue("title")
 	if len(title) == 0 {
-		return error2.CreateError(error2.TitleIsEmpty, r.Host+"/listTermin")
+		return error2.CreateError(error2.TitleIsEmpty, "/listTermin")
 	}
 	content := r.PostFormValue("content")
 	if edit {
