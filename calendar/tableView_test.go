@@ -14,8 +14,7 @@ import (
 //	assert.Nil(t, err)
 //	sessionToken, _ := authentication.CreateSession("Testuser")
 //
-//	// TODO: http und localhost
-//	request, _ := http.NewRequest(http.MethodGet, "http://localhost:8080/updateCalendar", nil)
+//	request, _ := http.NewRequest(http.MethodGet, "updateCalendar", nil)
 //	request.AddCookie(&http.Cookie{
 //		Name:  "session_token",
 //		Value: sessionToken,
