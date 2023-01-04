@@ -27,7 +27,12 @@ func TerminHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	feParams, _ := frontendHandling.GetFrontendParameters(r)
+	feParams, err := frontendHandling.GetFrontendParameters(r)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		templates.TempError.Execute(w, error2.CreateError(error2.InvalidInput, r.Host+"/listTermin"))
+		return
+	}
 	switch {
 	case r.Form.Has("calendarBack"):
 		templates.TempInit.Execute(w, struct {
@@ -76,7 +81,6 @@ func TerminHandler(w http.ResponseWriter, r *http.Request) {
 			Name:  "fe_parameter",
 			Value: cookieValue,
 		})
-		//TView.GetTerminList()
 		templates.TempTerminList.Execute(w, struct {
 			*frontendHandling.FrontendView
 			*data.User

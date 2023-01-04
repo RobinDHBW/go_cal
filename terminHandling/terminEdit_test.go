@@ -164,7 +164,7 @@ func TestGetTerminFromEditIndex(t *testing.T) {
 	defer after()
 	dataModel.InitDataModel("../data/test")
 	user, _ := dataModel.Dm.AddUser("Testuser", "test", 0)
-	addAppointments(user.Id)
+	_, ap2, ap3, ap4, ap5 := addAppointments(user.Id)
 	// Termine ab 01.01.2023
 	fv := frontendHandling.FrontendView{
 		Month:         12,
@@ -175,16 +175,16 @@ func TestGetTerminFromEditIndex(t *testing.T) {
 	}
 	// Expected order of appointmentIds: 4 1 2 3
 	appIndex := GetTerminFromEditIndex(*user, fv, 2)
-	assert.Equal(t, 3, appIndex, "index 2 test")
+	assert.Equal(t, ap3.Id, appIndex, "index 2 test")
 
 	appIndex = GetTerminFromEditIndex(*user, fv, 3)
-	assert.Equal(t, 4, appIndex, "index 3 test")
+	assert.Equal(t, ap4.Id, appIndex, "index 3 test")
 
 	appIndex = GetTerminFromEditIndex(*user, fv, 0)
-	assert.Equal(t, 5, appIndex, "index 0 test")
+	assert.Equal(t, ap5.Id, appIndex, "index 0 test")
 
 	appIndex = GetTerminFromEditIndex(*user, fv, 1)
-	assert.Equal(t, 2, appIndex, "index 1 test")
+	assert.Equal(t, ap2.Id, appIndex, "index 1 test")
 }
 
 func TestGetRepeatingMode(t *testing.T) {
@@ -282,16 +282,20 @@ func TestEditTerminFromInputCorrectInputCreate(t *testing.T) {
 	form.Add("content", "TestContent")
 	form.Add("chooseRepeat", "week")
 	request.PostForm = form
-
 	err := EditTerminFromInput(request, false, user, 1)
+	maxId := 0 // maxId is newest Id = added Id
+	for k := range user.Appointments {
+		maxId = k
+	}
+
 	assert.Equal(t, error2.DisplayedError{}, err)
-	assert.Equal(t, "TestTitel", user.Appointments[1].Title)
-	assert.Equal(t, "TestContent", user.Appointments[1].Description)
-	assert.Equal(t, tNow.Format("2006-01-02T15:04"), user.Appointments[1].DateTimeStart.Format("2006-01-02T15:04"))
-	assert.Equal(t, tThen.Format("2006-01-02T15:04"), user.Appointments[1].DateTimeEnd.Format("2006-01-02T15:04"))
-	assert.Equal(t, 7, user.Appointments[1].Timeseries.Intervall)
-	assert.Equal(t, true, user.Appointments[1].Timeseries.Repeat)
-	assert.Equal(t, user.Id, user.Appointments[1].Userid)
+	assert.Equal(t, "TestTitel", user.Appointments[maxId].Title)
+	assert.Equal(t, "TestContent", user.Appointments[maxId].Description)
+	assert.Equal(t, tNow.Format("2006-01-02T15:04"), user.Appointments[maxId].DateTimeStart.Format("2006-01-02T15:04"))
+	assert.Equal(t, tThen.Format("2006-01-02T15:04"), user.Appointments[maxId].DateTimeEnd.Format("2006-01-02T15:04"))
+	assert.Equal(t, 7, user.Appointments[maxId].Timeseries.Intervall)
+	assert.Equal(t, true, user.Appointments[maxId].Timeseries.Repeat)
+	assert.Equal(t, user.Id, user.Appointments[maxId].Userid)
 
 }
 
@@ -301,7 +305,6 @@ func TestEditTerminFromInputCorrectInputEdit(t *testing.T) {
 	tNow := time.Now()
 	tThen := tNow.Add(time.Hour * time.Duration(1))
 	user, _ := dataModel.Dm.AddUser("Testuser", "test", 0)
-
 	// TODO: http und localhost
 	request, _ := http.NewRequest(http.MethodPost, "http://localhost:8080/", nil)
 	form := url.Values{}
@@ -313,19 +316,17 @@ func TestEditTerminFromInputCorrectInputEdit(t *testing.T) {
 	form.Add("chooseRepeat", "week")
 	request.PostForm = form
 
-	dataModel.Dm.AddAppointment(user.Id, "t", "c", "here", time.Now(), time.Now(), false, 0, true)
-
-	err := EditTerminFromInput(request, true, user, 1)
+	_, a := dataModel.Dm.AddAppointment(user.Id, "t", "c", "here", time.Now(), time.Now(), false, 0, true)
+	id := a.Id
+	err := EditTerminFromInput(request, true, user, id)
 	assert.Equal(t, error2.DisplayedError{}, err)
-	assert.Equal(t, "TestTitel", user.Appointments[1].Title)
-	assert.Equal(t, "TestContent", user.Appointments[1].Description)
-	assert.Equal(t, tNow.Format("2006-01-02T15:04"), user.Appointments[1].DateTimeStart.Format("2006-01-02T15:04"))
-	assert.Equal(t, tThen.Format("2006-01-02T15:04"), user.Appointments[1].DateTimeEnd.Format("2006-01-02T15:04"))
-	assert.Equal(t, 7, user.Appointments[1].Timeseries.Intervall)
-	assert.Equal(t, true, user.Appointments[1].Timeseries.Repeat)
-	assert.Equal(t, user.Id, user.Appointments[1].Userid)
-
-	addAppointments(user.Id)
+	assert.Equal(t, "TestTitel", user.Appointments[id].Title)
+	assert.Equal(t, "TestContent", user.Appointments[id].Description)
+	assert.Equal(t, tNow.Format("2006-01-02T15:04"), user.Appointments[id].DateTimeStart.Format("2006-01-02T15:04"))
+	assert.Equal(t, tThen.Format("2006-01-02T15:04"), user.Appointments[id].DateTimeEnd.Format("2006-01-02T15:04"))
+	assert.Equal(t, 7, user.Appointments[id].Timeseries.Intervall)
+	assert.Equal(t, true, user.Appointments[id].Timeseries.Repeat)
+	assert.Equal(t, user.Id, user.Appointments[id].Userid)
 }
 
 func after() {
