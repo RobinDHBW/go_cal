@@ -111,6 +111,11 @@ func (dm *DataModel) AddAppointment(userId int, title, description, location str
 	return user, &ap
 }
 
+// AddSharedAppointment
+// add SharedAppointment for user specified by userId
+// if title already exists, appointment is added as additional date for SharedAppointment
+// Tokens of new appointment are equal to tokens from existing, if one exists
+// Voting results are initially set to false, return user
 func (dm *DataModel) AddSharedAppointment(userId int, title, location string, dateTimeStart, dateTimeEnd time.Time, repeat bool, intervall int, public bool) *data.User {
 	apID++
 	ap := data.NewAppointment(title, "", location, dateTimeStart, dateTimeEnd, apID, userId, repeat, intervall, public)
@@ -151,18 +156,6 @@ func (dm *DataModel) EditAppointment(uId int, ap *data.Appointment) *data.User {
 	return user
 }
 
-//func (dm *DataModel) GetAppointmentsByTimeFrame(uId int, tFrom, tTo time.Time) (*data.User, *map[int]data.Appointment) {
-//	user := dm.GetUserById(uId)
-//	res := make(map[int]data.Appointment)
-//	for key, val := range user.Appointments {
-//		if CheckDate(val.DateTimeStart, tFrom, tTo) || CheckDate(val.DateTimeEnd, tFrom, tTo) {
-//			res[key] = val
-//		}
-//	}
-//
-//	return user, &res
-//}
-
 func (dm *DataModel) GetAppointmentsBySearchString(uId int, search string) (*data.User, *map[int]data.Appointment) {
 	user := dm.GetUserById(uId)
 	res := make(map[int]data.Appointment)
@@ -189,6 +182,10 @@ func (dm *DataModel) GetAppointmentsForUser(uId int) *map[int]data.Appointment {
 	return &user.Appointments
 }
 
+// AddTokenToSharedAppointment
+// Add token for invited user "username" for SharedAppointment "title" for user with id "id"
+// adds token for all dates of shared appointment, sets votes initially to false
+// return error if invited user is already invited
 func (dm *DataModel) AddTokenToSharedAppointment(id int, title, url, username string) error {
 	user := dm.GetUserById(id)
 	for _, val := range user.SharedAppointments[title] {
@@ -271,6 +268,9 @@ func InitSeed() {
 	rand.Seed(time.Now().UnixNano())
 }
 
+// DeleteSharedAppointment
+// deletes shared appointment with title "title" from user with "uId"
+// return user
 func (dm *DataModel) DeleteSharedAppointment(title string, uId int) *data.User {
 	user := dm.GetUserById(uId)
 	delete(user.SharedAppointments, title)

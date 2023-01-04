@@ -4,7 +4,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"go_cal/authentication"
 	"go_cal/dataModel"
-	"go_cal/templates"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -13,10 +12,8 @@ import (
 )
 
 func TestTerminCreateHandler_InvalidRequest(t *testing.T) {
-	templates.Init()
-	authentication.InitServer()
 	defer after()
-	dataModel.InitDataModel("../data/test")
+	setup()
 	_, err := dataModel.Dm.AddUser("testUser", "test", 1)
 	assert.Nil(t, err)
 
@@ -45,10 +42,8 @@ func TestTerminCreateHandler_InvalidRequest(t *testing.T) {
 }
 
 func TestTerminCreateHandler_CreateTermin(t *testing.T) {
-	templates.Init()
-	authentication.InitServer()
 	defer after()
-	dataModel.InitDataModel("../data/test")
+	setup()
 	_, err := dataModel.Dm.AddUser("testUser", "test", 1)
 	assert.Nil(t, err)
 

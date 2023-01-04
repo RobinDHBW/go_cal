@@ -11,6 +11,9 @@ import (
 	"time"
 )
 
+// UpdateCalendarHandler
+// handle inputs of the calendar view
+// change FrontendView-Cookie based on inputs, changing calendar-View
 func UpdateCalendarHandler(w http.ResponseWriter, r *http.Request) {
 	feParams := &frontendHandling.FrontendView{}
 	err := r.ParseForm()
@@ -19,6 +22,7 @@ func UpdateCalendarHandler(w http.ResponseWriter, r *http.Request) {
 		templates.TempError.Execute(w, error2.CreateError(error2.Default2, "/updateCalendar"))
 		return
 	}
+	// Get Cookie or set default-Cookie if not existing
 	feParams, err = frontendHandling.GetFrontendParameters(r)
 	if err != nil {
 		cookieValue, err := frontendHandling.GetFeCookieString(frontendHandling.FrontendView{})
@@ -37,12 +41,16 @@ func UpdateCalendarHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	if r.Method == http.MethodPost {
 		switch {
+		// Set calendar to next month
 		case r.Form.Has("next"):
 			feParams.NextMonth()
+		// Set calendar to previous month
 		case r.Form.Has("prev"):
 			feParams.PrevMonth()
+		// Set calendar to current month
 		case r.Form.Has("today"):
 			feParams.CurrentMonth()
+		// Get values from inputs
 		case r.Form.Has("choose"):
 			year, err := strconv.Atoi(r.Form.Get("chooseYear"))
 			if err != nil {
@@ -76,7 +84,6 @@ func UpdateCalendarHandler(w http.ResponseWriter, r *http.Request) {
 		templates.TempError.Execute(w, error2.CreateError(error2.Authentification, "/"))
 		return
 	}
-
 	http.SetCookie(w, &http.Cookie{
 		Name:  "fe_parameter",
 		Value: cookieValue,

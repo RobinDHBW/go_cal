@@ -13,10 +13,6 @@ import (
 	"strconv"
 )
 
-func mainHandler(w http.ResponseWriter, r *http.Request) {
-
-}
-
 func main() {
 	// Flags einlesen
 	configuration.ReadFlags()

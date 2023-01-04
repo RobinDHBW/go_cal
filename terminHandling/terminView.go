@@ -12,6 +12,8 @@ import (
 	"time"
 )
 
+// TerminHandler
+// handles inputs of appointment list view
 func TerminHandler(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {
@@ -34,18 +36,21 @@ func TerminHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	switch {
+	// navigates back to calendar
 	case r.Form.Has("calendarBack"):
 		templates.TempInit.Execute(w, struct {
 			*frontendHandling.FrontendView
 			*data.User
 		}{feParams,
 			user})
+	// navigates back to appointment list
 	case r.Form.Has("terminlistBack"):
 		templates.TempTerminList.Execute(w, struct {
 			*frontendHandling.FrontendView
 			*data.User
 		}{feParams,
 			user})
+	// changes appointment list based on user inputs and sets new cookie for view-parameters
 	case r.Form.Has("submitTermin"):
 		input, err := strconv.Atoi(r.Form.Get("numberPerSite"))
 		if err != nil {
@@ -86,6 +91,7 @@ func TerminHandler(w http.ResponseWriter, r *http.Request) {
 			*data.User
 		}{feParams,
 			user})
+	// lists appointments which match given input searchstring
 	case r.Form.Has("searchTerminSubmit"):
 		searchString := r.Form.Get("terminSearch")
 

@@ -9,6 +9,8 @@ import (
 	"net/http"
 )
 
+// TerminCreateHandler
+// handle inputs of the appointment creation
 func TerminCreateHandler(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {
@@ -29,12 +31,14 @@ func TerminCreateHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	switch {
+	// execute appointment creation template
 	case r.Form.Has("createTermin"):
 		templates.TempCreateTermin.Execute(w, struct {
 			*frontendHandling.FrontendView
 			*data.User
 		}{feParams,
 			user})
+	// execute func to create appointment based on user inputs
 	case r.Form.Has("createTerminSubmit"):
 		err := EditTerminFromInput(r, false, user, -1)
 		errEmpty := error2.DisplayedError{}
