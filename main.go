@@ -40,7 +40,7 @@ func main() {
 	http.HandleFunc("/listShareTermin", authentication.Wrapper(terminHandling.TerminShareListHandler))
 	http.HandleFunc("/shareTermin", authentication.Wrapper(terminHandling.TerminShareHandler))
 	http.HandleFunc("/terminVoting", terminHandling.TerminVotingHandler)
-	http.HandleFunc("/getIcal", terminHandling.ICalHandler)
+	http.HandleFunc("/getIcal", authentication.Wrapper(terminHandling.ICalHandler))
 
 	//http.HandleFunc("/download", export.Wrapper(export.AuthenticatorFunc(export.CheckUserValid), terminHandling.DownloadHandler))
 	http.Handle("/templates/static/", http.StripPrefix("/templates/static", http.FileServer(http.Dir("templates/static"))))

@@ -133,6 +133,10 @@ func (dm *DataModel) AddSharedAppointment(userId int, title, location string, da
 
 func (dm *DataModel) DeleteAppointment(apId, uId int) *data.User {
 	user := dm.GetUserById(uId)
+	if user == nil {
+		log.Fatal("No user for id: ", uId)
+		return nil
+	}
 	delete(user.Appointments, apId)
 
 	DataSync(user, dm)
