@@ -3,6 +3,7 @@ package export
 import (
 	"fmt"
 	"github.com/stretchr/testify/assert"
+	"go_cal/data"
 	"go_cal/dataModel"
 	"os"
 	"strings"
@@ -21,7 +22,7 @@ func after() {
 
 func TestNewVEvent(t *testing.T) {
 	stamp := time.Now()
-	subject := NewVEvent("test1", "Here", "test", "test", "Test", stamp, stamp, stamp)
+	subject := NewVEvent("test1", "Here", "test", "test", "Test", stamp, stamp, stamp, data.TimeSeries{false, 0})
 
 	assert.EqualValues(t, "test1", subject.UID)
 	assert.EqualValues(t, "Here", subject.Location)
@@ -74,11 +75,21 @@ func TestICal_ToString(t *testing.T) {
 	t1 := time.Date(2022, 12, 24, 10, 00, 00, 00, time.UTC)
 	t1End := time.Date(2022, 12, 24, 11, 00, 00, 00, time.UTC)
 
-	dM.AddAppointment(user.Id, "test", "search for", "here", t1, t1End, false, 0, false)
+	dM.AddAppointment(user.Id, "test", "search for", "here", t1, t1End, true, 1, false)
 	subject := NewICal(dM.GetAppointmentsForUser(user.Id))
 	check := subject.ToString()
 
 	splits := strings.Split(check, "\n")
 	assert.EqualValues(t, "BEGIN:VCALENDAR", splits[0])
 	assert.EqualValues(t, "END:VCALENDAR", splits[len(splits)-1])
+
+	index := 0
+	for i, val := range splits {
+		if strings.Contains(val, "RRULE") {
+			index = i
+		}
+
+	}
+
+	assert.True(t, strings.Contains(splits[index], "DAILY"))
 }
