@@ -332,6 +332,8 @@ func validateInput(username, password string) (successful bool) {
 	return true
 }
 
+// GetUserBySessionToken
+// return user from corresponding session token
 func GetUserBySessionToken(r *http.Request) (*data.User, error) {
 	cookie, err := r.Cookie("session_token")
 	if err != nil {
@@ -353,6 +355,8 @@ func GetUserBySessionToken(r *http.Request) (*data.User, error) {
 	return user, nil
 }
 
+// getUsernameBySessionToken
+// return username from corresponding session token
 func getUsernameBySessionToken(sessionToken string) string {
 	replyChannel := make(chan *session)
 	Serv.Cmds <- Command{ty: read, sessionToken: sessionToken, replyChannel: replyChannel}

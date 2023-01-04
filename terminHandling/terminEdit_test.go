@@ -6,7 +6,6 @@ import (
 	"go_cal/dataModel"
 	error2 "go_cal/error"
 	"go_cal/frontendHandling"
-	"go_cal/templates"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -16,10 +15,8 @@ import (
 )
 
 func TestTerminEditHandler_InvalidRequest(t *testing.T) {
-	templates.Init()
-	authentication.InitServer()
 	defer after()
-	dataModel.InitDataModel("../data/test")
+	setup()
 	_, err := dataModel.Dm.AddUser("testUser", "test", 1)
 	assert.Nil(t, err)
 
@@ -49,8 +46,7 @@ func TestTerminEditHandler_InvalidRequest(t *testing.T) {
 
 func TestTerminEditHandler_editTermin(t *testing.T) {
 	defer after()
-	authentication.InitServer()
-	dataModel.InitDataModel("../data/test")
+	setup()
 	user, err := dataModel.Dm.AddUser("testUser", "test", 1)
 	assert.Nil(t, err)
 
@@ -85,8 +81,7 @@ func TestTerminEditHandler_editTermin(t *testing.T) {
 
 func TestTerminEditHandler_editTerminSubmit(t *testing.T) {
 	defer after()
-	authentication.InitServer()
-	dataModel.InitDataModel("../data/test")
+	setup()
 	user, err := dataModel.Dm.AddUser("testUser", "test", 1)
 	assert.Nil(t, err)
 
@@ -131,8 +126,7 @@ func TestTerminEditHandler_editTerminSubmit(t *testing.T) {
 
 func TestTerminEditHandler_deleteTerminSubmit(t *testing.T) {
 	defer after()
-	authentication.InitServer()
-	dataModel.InitDataModel("../data/test")
+	setup()
 	user, err := dataModel.Dm.AddUser("testUser", "test", 1)
 	assert.Nil(t, err)
 
@@ -160,7 +154,7 @@ func TestTerminEditHandler_deleteTerminSubmit(t *testing.T) {
 
 func TestGetTerminFromEditIndex(t *testing.T) {
 	defer after()
-	dataModel.InitDataModel("../data/test")
+	setup()
 	user, _ := dataModel.Dm.AddUser("Testuser", "test", 0)
 	_, ap2, ap3, ap4, ap5 := addAppointments(user.Id)
 	// Termine ab 01.01.2023
@@ -207,7 +201,7 @@ func TestGetRepeatingMode(t *testing.T) {
 
 func TestEditTerminFromInputIncorrectInput(t *testing.T) {
 	defer after()
-	dataModel.InitDataModel("../data/test")
+	setup()
 	user, _ := dataModel.Dm.AddUser("Testuser", "test", 0)
 
 	tNow := time.Now()
@@ -260,11 +254,10 @@ func TestEditTerminFromInputIncorrectInput(t *testing.T) {
 
 func TestEditTerminFromInputCorrectInputCreate(t *testing.T) {
 	defer after()
-	dataModel.InitDataModel("../data/test")
+	setup()
 	tNow := time.Now()
 	tThen := tNow.Add(time.Hour * time.Duration(1))
 	user, _ := dataModel.Dm.AddUser("Testuser", "test", 0)
-	//apIDstart := dataModel.GetApID()
 
 	request, _ := http.NewRequest(http.MethodPost, "/", nil)
 	form := url.Values{}
@@ -294,7 +287,7 @@ func TestEditTerminFromInputCorrectInputCreate(t *testing.T) {
 
 func TestEditTerminFromInputCorrectInputEdit(t *testing.T) {
 	defer after()
-	dataModel.InitDataModel("../data/test")
+	setup()
 	tNow := time.Now()
 	tThen := tNow.Add(time.Hour * time.Duration(1))
 	user, _ := dataModel.Dm.AddUser("Testuser", "test", 0)
@@ -328,8 +321,6 @@ func after() {
 }
 
 func initValidSession(path string) *http.Request {
-	templates.Init()
-
 	sessionToken, _ := authentication.CreateSession("testUser")
 	cookieValue, _ := frontendHandling.GetFeCookieString(frontendHandling.FrontendView{})
 	request, _ := http.NewRequest(http.MethodPost, "/"+path, nil)
