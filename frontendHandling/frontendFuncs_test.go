@@ -13,12 +13,6 @@ import (
 	"time"
 )
 
-//var App1 data.Appointment
-//var App2 data.Appointment
-//var App3 data.Appointment
-//var App4 data.Appointment
-//var App5 data.Appointment
-
 func TestFrontendView_GetDaysOfMonth(t *testing.T) {
 	fv := FrontendView{
 		Month: 2,
@@ -363,6 +357,6 @@ func addAppointments(id int) (ap1, ap2, ap3, ap4, ap5 *data.Appointment) {
 }
 
 func after() {
-	os.RemoveAll("../data/test/")
-	os.MkdirAll("../data/test/", 777)
+	_ = os.RemoveAll("../data/test/")
+	_ = os.MkdirAll("../data/test/", 777)
 }

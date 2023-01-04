@@ -33,15 +33,15 @@ func NewVEvent(uid, location, summary, description, class string, dtstart, dtend
 	return VEvent{uid, location, summary, description, class, dtstart, dtend, dtstamp}
 }
 
-func NewICal(aps []*data.Appointment) ICal {
+func NewICal(aps *map[int]data.Appointment) ICal {
 	vevent := make([]VEvent, 0)
-	for _, ap := range aps {
+	for _, ap := range *aps {
 		vevent = append(vevent, NewVEvent(fmt.Sprintf("%d", ap.Id), ap.Location, ap.Title, ap.Description, "PUBLIC", ap.DateTimeStart, ap.DateTimeEnd, time.Now()))
 	}
 	return ICal{2.0, "Cal_App/go_cal", "PUBLISH", vevent}
 }
 
-func (ics *ICal) ToString() string {
+func (ics ICal) ToString() string {
 	res := "BEGIN:VCALENDAR"
 	//res += "\nVERSION:" + fmt.Sprintf("%f", ics.Version)
 	res += "\nVERSION:" + strconv.FormatFloat(ics.Version, 'f', 1, 64)

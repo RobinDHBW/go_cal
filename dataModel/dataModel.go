@@ -179,9 +179,9 @@ func (dm *DataModel) ComparePW(clear, hash string) bool {
 	return true
 }
 
-func (dm *DataModel) GetAppointmentsForUser(uId int) map[int]data.Appointment {
+func (dm *DataModel) GetAppointmentsForUser(uId int) *map[int]data.Appointment {
 	user := dm.GetUserById(uId)
-	return user.Appointments
+	return &user.Appointments
 }
 
 func (dm *DataModel) AddTokenToSharedAppointment(id int, title, url, username string) error {
@@ -264,4 +264,12 @@ func createToken(n int) string {
 
 func InitSeed() {
 	rand.Seed(time.Now().UnixNano())
+}
+
+func (dm *DataModel) DeleteSharedAppointment(title string, uId int) *data.User {
+	user := dm.GetUserById(uId)
+	delete(user.SharedAppointments, title)
+
+	DataSync(user, dm)
+	return user
 }
