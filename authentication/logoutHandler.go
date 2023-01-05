@@ -5,6 +5,7 @@ import (
 	"time"
 )
 
+// LogoutHandler handle logout
 func LogoutHandler(w http.ResponseWriter, r *http.Request) {
 	replyChannel := make(chan *session)
 	cookie, err := r.Cookie("session_token")

@@ -19,7 +19,7 @@ var TempTerminVoting *template.Template
 var TempTerminVotingSuccess *template.Template
 var TempSearchTermin *template.Template
 
-// Init initialize html template
+// Init initialize html templates
 // dir has to be the root path
 func Init(dir string) {
 	TempInit = template.Must(template.ParseFiles(filepath.Join(dir, "/templates/calendar.tmpl.html"), filepath.Join(dir, "/templates/header.tmpl.html")))
@@ -35,5 +35,4 @@ func Init(dir string) {
 	TempSearchTermin = template.Must(template.ParseFiles(filepath.Join(dir, "/templates/terminsearch.tmpl.html"), filepath.Join(dir, "/templates/header.tmpl.html")))
 	TempTerminVoting = template.Must(template.ParseFiles(filepath.Join(dir, "/templates/terminvoting.tmpl.html")))
 	TempTerminVotingSuccess = template.Must(template.ParseFiles(filepath.Join(dir, "/templates/terminvotingsuccess.tmpl.html")))
-
 }

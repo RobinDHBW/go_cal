@@ -10,8 +10,11 @@ import (
 	"strings"
 )
 
+// Appointments wird für Template-Ausführung benötigt
 type Appointments []data.Appointment
 
+// TerminVotingHandler handles inputs of termin voting
+// after the first GET request, the query parameters are stored in a button value in order to be transferred in a POST request
 func TerminVotingHandler(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {
@@ -20,6 +23,7 @@ func TerminVotingHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if r.Method == http.MethodPost && r.PostForm.Has("submitVoting") {
+		// button value enthält zuvor gespeicherte Query parameter, getrennt durch |
 		split := strings.Split(r.PostFormValue("submitVoting"), "|")
 		if len(split) < 4 {
 			w.WriteHeader(http.StatusBadRequest)
@@ -31,6 +35,7 @@ func TerminVotingHandler(w http.ResponseWriter, r *http.Request) {
 		token := split[2]
 		username := split[3]
 		keys := make([]int, 0, len(r.PostForm))
+		// herausfinden welche Checkboxen/Termine angeklickt bzw. zugesagt wurden
 		for k := range r.PostForm {
 			index, err := strconv.Atoi(k)
 			if err != nil {
@@ -39,6 +44,7 @@ func TerminVotingHandler(w http.ResponseWriter, r *http.Request) {
 			keys = append(keys, index)
 		}
 		user := dataModel.Dm.GetUserByName(invitor)
+		// Voting ergebnis speichern
 		err := dataModel.Dm.SetVotingForToken(user, keys, title, token, username)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
@@ -48,11 +54,13 @@ func TerminVotingHandler(w http.ResponseWriter, r *http.Request) {
 			templates.TempTerminVotingSuccess.Execute(w, nil)
 		}
 	} else {
+		// Query Parameter auslesen
 		title := r.URL.Query().Get("termin")
 		invitor := r.URL.Query().Get("invitor")
 		token := r.URL.Query().Get("token")
 		username := r.URL.Query().Get("username")
 		user := dataModel.Dm.GetUserByName(invitor)
+		// Überprüfung, ob überhaupt gevotet werden darf
 		if dataModel.IsVotingAllowed(title, token, user, username) {
 			// Query parameter in button value schreiben, sodass sie bei einem POST ausgelesen werden können
 			value := title + "|" + invitor + "|" + token + "|" + username

@@ -66,7 +66,7 @@ func (ap Appointment) GetDescriptionFromInterval() string {
 }
 
 // GetUsernameFromUrl
-// return username out of authentification token
+// return username out of authentication token
 func (sh Share) GetUsernameFromUrl(text string) string {
 	link, _ := url.Parse(text)
 	return link.Query().Get("username")

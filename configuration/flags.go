@@ -10,6 +10,7 @@ var Folder string
 var CertPath string
 var KeyPath string
 
+// ReadFlags reads flags from the command line and stores the values in global var
 func ReadFlags() {
 	//flags and configuration of application
 	if flag.Lookup("port") == nil {
@@ -27,6 +28,5 @@ func ReadFlags() {
 	if flag.Lookup("keyPath") == nil {
 		flag.StringVar(&KeyPath, "keyPath", "./", "Define path to your ssl key.pem. Default: ./")
 	}
-
 	flag.Parse()
 }

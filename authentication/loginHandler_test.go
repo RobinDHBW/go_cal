@@ -25,7 +25,7 @@ func after() {
 	}
 }
 
-func TestSuccessfulAuthentification(t *testing.T) {
+func TestSuccessfulAuthentication(t *testing.T) {
 	setup()
 	defer after()
 	_, err := dataModel.Dm.AddUser("test", "test123", 1)
@@ -33,7 +33,7 @@ func TestSuccessfulAuthentification(t *testing.T) {
 	assert.True(t, AuthenticateUser("test", "test123"))
 }
 
-func TestUnsuccessfulAuthentification(t *testing.T) {
+func TestUnsuccessfulAuthentication(t *testing.T) {
 	setup()
 	defer after()
 	_, err := dataModel.Dm.AddUser("test", "test123", 1)

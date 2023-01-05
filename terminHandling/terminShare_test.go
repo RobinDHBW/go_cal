@@ -34,7 +34,7 @@ func TestTerminShareHandlerUnsuccessfulNoSessiontoken(t *testing.T) {
 	http.HandlerFunc(TerminShareHandler).ServeHTTP(response, request)
 	body, _ := io.ReadAll(response.Result().Body)
 	assert.Equal(t, http.StatusUnauthorized, response.Result().StatusCode)
-	assert.Contains(t, string(body), string(error2.Authentification))
+	assert.Contains(t, string(body), string(error2.Authentication))
 }
 
 // shareCreate-Button

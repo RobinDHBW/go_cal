@@ -204,6 +204,9 @@ func (dm *DataModel) AddTokenToSharedAppointment(id int, title, url, username st
 	return nil
 }
 
+// SetVotingForToken
+// sets voting result of termin proposals to corresponding shared Termin
+// return error if voting is not allowed
 func (dm *DataModel) SetVotingForToken(user *data.User, votes []int, title, token, username string) error {
 	if IsVotingAllowed(title, token, user, username) {
 		var index int
@@ -217,6 +220,7 @@ func (dm *DataModel) SetVotingForToken(user *data.User, votes []int, title, toke
 		for i, _ := range user.SharedAppointments[title] {
 			user.SharedAppointments[title][i].Share.Voting[index] = false
 		}
+		// Votes bei zugesagten Terminen auf true setzen
 		for i := range votes {
 			user.SharedAppointments[title][votes[i]].Share.Voting[index] = true
 		}
@@ -227,6 +231,8 @@ func (dm *DataModel) SetVotingForToken(user *data.User, votes []int, title, toke
 	}
 }
 
+// IsVotingAllowed
+// checks whether URL with provided Query Parameters is allowed for voting
 func IsVotingAllowed(title, token string, user *data.User, username string) bool {
 	if user == nil {
 		return false
@@ -243,6 +249,8 @@ func IsVotingAllowed(title, token string, user *data.User, username string) bool
 	return false
 }
 
+// CreateURL
+// creates URL with 4 query parameters: username, title, token and invitor
 func CreateURL(username, title, invitor string) string {
 	token := createToken(20)
 	params := url2.Values{}
@@ -255,6 +263,8 @@ func CreateURL(username, title, invitor string) string {
 	return baseUrl.String()
 }
 
+// createToken
+// generates a random token with length n
 func createToken(n int) string {
 	const letterBytes = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 	b := make([]byte, n)
@@ -264,6 +274,8 @@ func createToken(n int) string {
 	return string(b)
 }
 
+// InitSeed
+// initialize rand
 func InitSeed() {
 	rand.Seed(time.Now().UnixNano())
 }

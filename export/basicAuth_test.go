@@ -3,6 +3,8 @@ package export
 import (
 	"fmt"
 	"github.com/stretchr/testify/assert"
+	"go_cal/configuration"
+	"go_cal/dataModel"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -78,4 +80,18 @@ func TestWithCorrectPW(t *testing.T) {
 	body, err := io.ReadAll(res.Body)
 	assert.NoError(t, err)
 	assert.Equal(t, "Hello client\n", string(body), "wrong message")
+}
+
+func TestCheckUserValid(t *testing.T) {
+	setup()
+	defer after()
+	_, err := dataModel.Dm.AddUser("testUser", "test", 1)
+	assert.Nil(t, err)
+	assert.True(t, CheckUserValid("testUser", "test"))
+	assert.False(t, CheckUserValid("testUser", "wrongPassword"))
+}
+
+func setup() {
+	configuration.ReadFlags()
+	dataModel.InitDataModel(dataPath)
 }

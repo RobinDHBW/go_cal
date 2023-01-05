@@ -1,8 +1,7 @@
 package authentication
 
-// session authentification inspired from https://github.com/sohamkamani/go-session-auth-example
+// session authentication inspired from https://github.com/sohamkamani/go-session-auth-example
 // channel communication inspried from https://eli.thegreenplace.net/2019/on-concurrency-in-go-http-servers/
-// https://github.com/eliben/code-for-blog/blob/master/2019/gohttpconcurrency/channel-manager-server.go
 
 import (
 	"errors"
@@ -18,16 +17,20 @@ import (
 	"time"
 )
 
+// for channel communication
 type Server struct {
 	Cmds chan<- Command
 }
 
-// session consist of n user and an expiry time
+var Serv *Server
+
+// session consists of username and expiry time
 type session struct {
 	uname   string
 	expires time.Time
 }
 
+// CommandType for channel communication (read, write, remove, update)
 type CommandType string
 
 const (
@@ -37,6 +40,8 @@ const (
 	update CommandType = "update"
 )
 
+// Command for channel communication
+// conatains necessary information
 type Command struct {
 	ty           CommandType
 	sessionToken string
@@ -44,25 +49,29 @@ type Command struct {
 	replyChannel chan *session
 }
 
-var Serv *Server
-
+// InitServer sets global var Serv
+// execute StartSessionManager
 func InitServer() {
 	Serv = &Server{
 		Cmds: StartSessionManager(),
 	}
 }
 
-// prüft ob Session abgelaufen ist
+// isExpired checks whether a session is expired
 func (s session) isExpired() bool {
 	return s.expires.Before(time.Now())
 }
 
+// StartSessionManager starts a go routine to handle parallel access to the session map
+// communication is done via channels
+// read, write, remove or update a session
 func StartSessionManager() chan<- Command {
-	// map with SessionTokens and corresponding sessions
+	// map with SessionTokens and corresponding sessions, cannot be accessed from outside
 	sessions := map[string]*session{}
-
 	cmds := make(chan Command)
-
+	// start go routine
+	// listen on incoming Commands (read, write, remove, update)
+	// write result in replyChannel
 	go func() {
 		for cmd := range cmds {
 			switch cmd.ty {
@@ -87,6 +96,7 @@ func StartSessionManager() chan<- Command {
 	return cmds
 }
 
+// LoginHandler handle inputs of login
 func LoginHandler(w http.ResponseWriter, r *http.Request) {
 	// Cookie überprüfen
 	isCookieValid := checkCookie(r)
@@ -158,6 +168,7 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 	templates.TempLogin.Execute(w, nil)
 }
 
+// RegisterHandler handle inputs of registration
 func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 	// übermitteltes Formular parsen
 	err := r.ParseForm()
@@ -240,12 +251,14 @@ func Wrapper(handler http.HandlerFunc) http.HandlerFunc {
 			// Response header 401 setzen
 			w.WriteHeader(http.StatusUnauthorized)
 			// Fehlermeldung für Nutzer anzeigen
-			templates.TempError.Execute(w, error2.CreateError(error2.Authentification, "/"))
+			templates.TempError.Execute(w, error2.CreateError(error2.Authentication, "/"))
 			return
 		}
 	}
 }
 
+// refreshCookie refreshes provided cookie in request
+// increase expires
 func refreshCookie(r *http.Request) (sessionToken string, expires time.Time) {
 	replyChannel := make(chan *session)
 	// Cookie auslesen
@@ -258,6 +271,7 @@ func refreshCookie(r *http.Request) (sessionToken string, expires time.Time) {
 	return sessionToken, replySession.expires
 }
 
+// createUUID creates alphabetical ID for sessionToken
 func createUUID(n int) string {
 	rand.Seed(time.Now().UnixNano())
 	const letterBytes = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
@@ -268,6 +282,7 @@ func createUUID(n int) string {
 	return string(b)
 }
 
+// AuthenticateUser checks whether the provided username and password are correct
 func AuthenticateUser(username, unHashedPassword string) (successful bool) {
 	user := dataModel.Dm.GetUserByName(username)
 	if user != nil && dataModel.Dm.ComparePW(unHashedPassword, user.Password) {
@@ -277,6 +292,7 @@ func AuthenticateUser(username, unHashedPassword string) (successful bool) {
 	}
 }
 
+// checkCookie checks whether the provided cookie in the request is valid
 func checkCookie(r *http.Request) (successful bool) {
 	// Anwortchannel erstellen
 	replyChannel := make(chan *session)
@@ -302,6 +318,7 @@ func checkCookie(r *http.Request) (successful bool) {
 	return true
 }
 
+// CreateSession creates a session for a username
 func CreateSession(username string) (sessionToken string, expires time.Time) {
 	// Anwortchannel erstellen
 	replyChannel := make(chan *session)
@@ -316,7 +333,7 @@ func CreateSession(username string) (sessionToken string, expires time.Time) {
 	return sessionToken, replySession.expires
 }
 
-// Überprüft Nutzereingaben beim Login und Registrieren
+// validateInput Checks user input during login and registration
 func validateInput(username, password string) (successful bool) {
 	// wenn Felder leer
 	if len(username) == 0 || len(password) == 0 {
@@ -332,15 +349,13 @@ func validateInput(username, password string) (successful bool) {
 	return true
 }
 
-// GetUserBySessionToken
-// return user from corresponding session token
+// GetUserBySessionToken returns user from cookie inside a request
 func GetUserBySessionToken(r *http.Request) (*data.User, error) {
 	cookie, err := r.Cookie("session_token")
 	if err != nil {
 		return nil, err
 	}
 	sessionToken := cookie.Value
-
 	replyChannel := make(chan *session)
 	Serv.Cmds <- Command{ty: read, sessionToken: sessionToken, replyChannel: replyChannel}
 	replySession := <-replyChannel
@@ -355,8 +370,7 @@ func GetUserBySessionToken(r *http.Request) (*data.User, error) {
 	return user, nil
 }
 
-// getUsernameBySessionToken
-// return username from corresponding session token
+// getUsernameBySessionToken returns username from corresponding session token
 func getUsernameBySessionToken(sessionToken string) string {
 	replyChannel := make(chan *session)
 	Serv.Cmds <- Command{ty: read, sessionToken: sessionToken, replyChannel: replyChannel}

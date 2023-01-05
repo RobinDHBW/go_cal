@@ -1,29 +1,30 @@
 package error
 
-type ErrorType string
+type TypeError string
 
 // add more error descriptions here
 const (
-	Default2          ErrorType = "Internal Server Error"
-	Authentification  ErrorType = "Authentification failed"
-	DuplicateUserName ErrorType = "Username already exists"
-	WrongCredentials  ErrorType = "Username or password is wrong"
-	InvalidInput      ErrorType = "Given input has wrong type"
-	TitleIsEmpty      ErrorType = "Title of appointment is empty"
-	EndBeforeBegin    ErrorType = "End date is earlier than start date"
-	EmptyField        ErrorType = "Field for username/password is empty or usage of invalid characters (only alphanumeric and underscore are allowed)"
-	InvalidUrl        ErrorType = "Invalid Url"
+	Default2          TypeError = "Internal Server Error"
+	Authentication    TypeError = "Authentication failed"
+	DuplicateUserName TypeError = "Username already exists"
+	WrongCredentials  TypeError = "Username or password is wrong"
+	InvalidInput      TypeError = "Given input has wrong type"
+	TitleIsEmpty      TypeError = "Title of appointment is empty"
+	EndBeforeBegin    TypeError = "End date is earlier than start date"
+	EmptyField        TypeError = "Field for username/password is empty or usage of invalid characters (only alphanumeric and underscore are allowed)"
+	InvalidUrl        TypeError = "Invalid Url"
 )
 
+// DisplayedError displayed Error in html
 type DisplayedError struct {
 	Text string
 	Link string
 }
 
-func CreateError(errorType ErrorType, prevLink string) (error DisplayedError) {
+// CreateError creates DisplayedError for displaying to user
+func CreateError(errorType TypeError, prevLink string) (error DisplayedError) {
 	error = DisplayedError{
 		Text: string(errorType),
-		//Link: "http://" + prevLink,
 		Link: prevLink,
 	}
 	return error

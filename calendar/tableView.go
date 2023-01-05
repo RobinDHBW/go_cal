@@ -81,7 +81,7 @@ func UpdateCalendarHandler(w http.ResponseWriter, r *http.Request) {
 	user, err := authentication.GetUserBySessionToken(r)
 	if err != nil || user == nil {
 		w.WriteHeader(http.StatusUnauthorized)
-		templates.TempError.Execute(w, error2.CreateError(error2.Authentification, "/"))
+		templates.TempError.Execute(w, error2.CreateError(error2.Authentication, "/"))
 		return
 	}
 	http.SetCookie(w, &http.Cookie{
