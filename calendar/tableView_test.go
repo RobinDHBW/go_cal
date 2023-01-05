@@ -14,11 +14,13 @@ import (
 	"time"
 )
 
+const dataPath = "../data/test/Cal"
+
 func TestUpdateCalendarHandler_InvalidRequest(t *testing.T) {
 	defer after()
 	authentication.InitServer()
 	templates.Init()
-	dataModel.InitDataModel("../data/test")
+	dataModel.InitDataModel(dataPath)
 	_, err := dataModel.Dm.AddUser("Testuser", "test", 0)
 	assert.Nil(t, err)
 
@@ -47,7 +49,7 @@ func TestUpdateCalendarHandler_InvalidRequest(t *testing.T) {
 func TestUpdateCalendarHandler_CalendarButtons(t *testing.T) {
 	defer after()
 	authentication.InitServer()
-	dataModel.InitDataModel("../data/test")
+	dataModel.InitDataModel(dataPath)
 	_, err := dataModel.Dm.AddUser("testUser", "test", 0)
 	assert.Nil(t, err)
 
@@ -116,7 +118,7 @@ func TestUpdateCalendarHandler_CalendarButtons(t *testing.T) {
 func TestUpdateCalendarHandler_ChooseMonth(t *testing.T) {
 	defer after()
 	authentication.InitServer()
-	dataModel.InitDataModel("../data/test")
+	dataModel.InitDataModel(dataPath)
 	_, err := dataModel.Dm.AddUser("testUser", "test", 0)
 	assert.Nil(t, err)
 
@@ -171,8 +173,7 @@ func TestUpdateCalendarHandler_ChooseMonth(t *testing.T) {
 }
 
 func after() {
-	os.RemoveAll("../data/test/")
-	os.MkdirAll("../data/test/", 777)
+	os.RemoveAll(dataPath)
 }
 
 func initValidSession(path string) *http.Request {
