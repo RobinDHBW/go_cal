@@ -66,5 +66,5 @@ func setup() {
 	configuration.ReadFlags()
 	authentication.InitServer()
 	templates.Init()
-	dataModel.InitDataModel("../data/test")
+	dataModel.InitDataModel(dataPath)
 }
