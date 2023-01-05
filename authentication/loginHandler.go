@@ -1,3 +1,6 @@
+// Matrikelnummern:
+// 9495107, 4706893, 9608900
+
 package authentication
 
 // session authentication inspired from https://github.com/sohamkamani/go-session-auth-example

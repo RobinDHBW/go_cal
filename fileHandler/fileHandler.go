@@ -1,3 +1,6 @@
+// Matrikelnummern:
+// 9495107, 4706893, 9608900
+
 package fileHandler
 
 import (
