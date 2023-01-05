@@ -2,6 +2,8 @@ package templates
 
 import (
 	"github.com/stretchr/testify/assert"
+	"os"
+	"path/filepath"
 	"testing"
 )
 
@@ -19,7 +21,8 @@ func TestInit(t *testing.T) {
 	assert.Nil(t, TempTerminVoting)
 	assert.Nil(t, TempTerminVotingSuccess)
 	assert.Nil(t, TempSearchTermin)
-	Init()
+	dir, _ := os.Getwd()
+	Init(filepath.Join(dir, ".."))
 	assert.NotNil(t, TempInit)
 	assert.NotNil(t, TempLogin)
 	assert.NotNil(t, TempRegister)

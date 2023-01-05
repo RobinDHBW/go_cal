@@ -10,6 +10,7 @@ import (
 	"log"
 	"net/url"
 	"os"
+	"path/filepath"
 	"testing"
 	"time"
 )
@@ -444,7 +445,8 @@ func TestDataModel_GetAppointmentsForUser(t *testing.T) {
 
 func setup() {
 	configuration.ReadFlags()
-	templates.Init()
+	dir, _ := os.Getwd()
+	templates.Init(filepath.Join(dir, ".."))
 	InitDataModel(dataPath)
 }
 

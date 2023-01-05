@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"testing"
@@ -369,6 +370,7 @@ func after() {
 
 func setup() {
 	configuration.ReadFlags()
-	templates.Init()
+	dir, _ := os.Getwd()
+	templates.Init(filepath.Join(dir, ".."))
 	dataModel.InitDataModel(dataPath)
 }

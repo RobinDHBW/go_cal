@@ -1,7 +1,6 @@
 package export
 
 import (
-	"fmt"
 	"go_cal/authentication"
 	"net/http"
 )
@@ -26,7 +25,6 @@ func CheckUserValid(username, password string) bool {
 func Wrapper(authenticator Authenticator, handler http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		user, passwd, ok := r.BasicAuth()
-		fmt.Println(user, passwd)
 		if ok && authenticator.Authenticate(user, passwd) {
 			handler(w, r)
 		} else {

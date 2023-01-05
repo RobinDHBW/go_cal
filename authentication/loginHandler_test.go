@@ -11,6 +11,7 @@ import (
 	"net/http/httptest"
 	"net/url"
 	"os"
+	"path/filepath"
 	"testing"
 	"time"
 )
@@ -446,6 +447,7 @@ func TestGetUserBySessionTokenUnsuccessfulNoUser(t *testing.T) {
 func setup() {
 	configuration.ReadFlags()
 	InitServer()
-	templates.Init()
+	dir, _ := os.Getwd()
+	templates.Init(filepath.Join(dir, ".."))
 	dataModel.InitDataModel(dataPath)
 }

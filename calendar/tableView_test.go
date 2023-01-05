@@ -11,6 +11,7 @@ import (
 	"net/http/httptest"
 	"net/url"
 	"os"
+	"path/filepath"
 	"testing"
 	"time"
 )
@@ -194,6 +195,7 @@ func initValidSession(path string) *http.Request {
 func setup() {
 	configuration.ReadFlags()
 	authentication.InitServer()
-	templates.Init()
+	dir, _ := os.Getwd()
+	templates.Init(filepath.Join(dir, ".."))
 	dataModel.InitDataModel(dataPath)
 }

@@ -10,6 +10,8 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"os"
+	"path/filepath"
 	"testing"
 	"time"
 )
@@ -65,6 +67,7 @@ func TestTerminShareListHandlerSuccessful(t *testing.T) {
 func setup() {
 	configuration.ReadFlags()
 	authentication.InitServer()
-	templates.Init()
+	dir, _ := os.Getwd()
+	templates.Init(filepath.Join(dir, ".."))
 	dataModel.InitDataModel(dataPath)
 }
