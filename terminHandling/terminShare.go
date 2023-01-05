@@ -13,6 +13,7 @@ import (
 	"time"
 )
 
+// TerminShareHandler handles requests due to Terminfindung
 func TerminShareHandler(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {
@@ -24,9 +25,10 @@ func TerminShareHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil || user == nil {
 		w.WriteHeader(http.StatusUnauthorized)
 		// Fehlermeldung für Nutzer anzeigen
-		templates.TempError.Execute(w, error2.CreateError(error2.Authentification, "/"))
+		templates.TempError.Execute(w, error2.CreateError(error2.Authentication, "/"))
 		return
 	}
+	// Behandlung der verschiedenen Button-Events
 	switch {
 	// Terminfindung erstellen
 	case r.Form.Has("shareCreate"):
@@ -71,7 +73,9 @@ func TerminShareHandler(w http.ResponseWriter, r *http.Request) {
 			templates.TempError.Execute(w, error2.CreateError(error2.InvalidInput, "/listShareTermin"))
 			return
 		}
+		// URL zum Teilen erstellen
 		url := dataModel.CreateURL(username, title, user.UserName)
+		// eingeladenen User zur Terminfindung hinzufügen
 		err := dataModel.Dm.AddTokenToSharedAppointment(user.Id, title, url, username)
 		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
@@ -81,7 +85,9 @@ func TerminShareHandler(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/listShareTermin", http.StatusFound)
 	// Terminvorschlag übernehmen
 	case r.Form.Has("acceptTermin"):
+		// value an Trennzeichen (|) aufteilen
 		parts := strings.Split(r.PostFormValue("acceptTermin"), "|")
+		// Format des übergebenen values nicht valide
 		if len(parts) != 2 {
 			w.WriteHeader(http.StatusBadRequest)
 			templates.TempError.Execute(w, error2.CreateError(error2.InvalidInput, "/listShareTermin"))
@@ -93,6 +99,7 @@ func TerminShareHandler(w http.ResponseWriter, r *http.Request) {
 			templates.TempError.Execute(w, error2.CreateError(error2.InvalidInput, "/listShareTermin"))
 			return
 		}
+		// Abstimmungsergebnis wird als Beschreibung in neuen Termin übernommen
 		if len(user.SharedAppointments[parts[1]]) > 0 && len(user.SharedAppointments[parts[1]]) > id {
 			app := user.SharedAppointments[parts[1]][id]
 			description := "Abstimmungsergebnis: \n"
@@ -105,16 +112,18 @@ func TerminShareHandler(w http.ResponseWriter, r *http.Request) {
 				}
 				description = description + "\n\n"
 			}
+			// ausgewählten Termin übernehmen
 			dataModel.Dm.AddAppointment(user.Id, app.Title, description, app.Location, app.DateTimeStart, app.DateTimeEnd, app.Timeseries.Repeat, app.Timeseries.Intervall, true)
+			// Terminfindung löschen
 			dataModel.Dm.DeleteSharedAppointment(app.Title, user.Id)
 			http.Redirect(w, r, "/listTermin", http.StatusFound)
 		}
 	default:
-		//templates.TempShareTermin.Execute(w, user.SharedAppointments)
 		http.Redirect(w, r, "/listShareTermin", http.StatusFound)
 	}
 }
 
+// createSharedTermin creates a shared termin for a user with the same parameters as a default appointment
 func createSharedTermin(r *http.Request, user *data.User, title string) error2.DisplayedError {
 	begin, err := time.Parse("2006-01-02T15:04", r.PostFormValue("dateBegin"))
 	if err != nil {
@@ -132,14 +141,15 @@ func createSharedTermin(r *http.Request, user *data.User, title string) error2.D
 	return error2.DisplayedError{}
 }
 
+// validateInput checks whether a given string is not empty and only contains alphanumerical characters (+underscore)
 func validateInput(text string) (successful bool) {
 	// wenn Feld leer
 	if len(text) == 0 {
 		return false
 	}
-	// wenn unerlaubte Zeichen verwendet werden
 	const validCharacters string = "^[a-zA-Z0-9_]*$"
 	matchUsername, _ := regexp.MatchString(validCharacters, text)
+	// wenn unerlaubte Zeichen verwendet werden
 	if !matchUsername {
 		return false
 	}

@@ -22,7 +22,7 @@ func after() {
 
 func TestNewVEvent(t *testing.T) {
 	stamp := time.Now()
-	subject := NewVEvent("test1", "Here", "test", "test", "Test", stamp, stamp, stamp, data.TimeSeries{false, 0})
+	subject := NewVEvent("test1", "Here", "test", "test", "Test", stamp, stamp, stamp, data.TimeSeries{Repeat: false, Intervall: 0})
 
 	assert.EqualValues(t, "test1", subject.UID)
 	assert.EqualValues(t, "Here", subject.Location)

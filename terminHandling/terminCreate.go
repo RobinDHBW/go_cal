@@ -21,7 +21,7 @@ func TerminCreateHandler(w http.ResponseWriter, r *http.Request) {
 	user, err := authentication.GetUserBySessionToken(r)
 	if err != nil || user == nil {
 		w.WriteHeader(http.StatusUnauthorized)
-		templates.TempError.Execute(w, error2.CreateError(error2.Authentification, "/"))
+		templates.TempError.Execute(w, error2.CreateError(error2.Authentication, "/"))
 		return
 	}
 	feParams, err := frontendHandling.GetFrontendParameters(r)

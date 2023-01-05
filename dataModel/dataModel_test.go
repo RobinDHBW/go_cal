@@ -494,7 +494,6 @@ func TestDataModel_AddTokenToSharedAppointment(t *testing.T) {
 	user, err := Dm.AddUser("test6", "abc", 1)
 	if err != nil {
 		log.Fatal("error not nil")
-		t.FailNow()
 	}
 	tNow := time.Now()
 	tThen := tNow.Add(time.Hour * time.Duration(1))

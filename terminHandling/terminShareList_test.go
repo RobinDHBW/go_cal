@@ -27,7 +27,7 @@ func TestTerminShareListHandlerUnsuccessful(t *testing.T) {
 	body, _ := io.ReadAll(response.Result().Body)
 	// Fehler, da kein Cookie im Request
 	assert.Equal(t, http.StatusUnauthorized, response.Result().StatusCode)
-	assert.Contains(t, string(body), string(error2.Authentification))
+	assert.Contains(t, string(body), string(error2.Authentication))
 }
 
 func TestTerminShareListHandlerSuccessful(t *testing.T) {

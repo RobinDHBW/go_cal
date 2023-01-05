@@ -20,7 +20,7 @@ func ICalHandler(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		w.WriteHeader(http.StatusUnauthorized)
 		// Fehlermeldung für Nutzer anzeigen
-		templates.TempError.Execute(w, error2.CreateError(error2.Authentification, "/"))
+		templates.TempError.Execute(w, error2.CreateError(error2.Authentication, "/"))
 		return
 	}
 
