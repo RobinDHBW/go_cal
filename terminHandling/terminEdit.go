@@ -12,6 +12,8 @@ import (
 	"time"
 )
 
+// TerminEditHandler
+// handle inputs to edit or delete appointments
 func TerminEditHandler(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {
@@ -33,6 +35,7 @@ func TerminEditHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	switch {
+	// execute template for appointment editing with appointment index given by button value
 	case r.Form.Has("editTermin"):
 		index, err := strconv.Atoi(r.Form.Get("editTermin"))
 		if err != nil {
@@ -44,6 +47,7 @@ func TerminEditHandler(w http.ResponseWriter, r *http.Request) {
 		editIndex := GetTerminFromEditIndex(u, *feParams, index)
 		templates.TempTerminEdit.Execute(w, user.Appointments[editIndex])
 
+	// execute func to edit appointment based on user inputs
 	case r.Form.Has("editTerminSubmit"):
 		id, err1 := strconv.Atoi(r.FormValue("editTerminSubmit"))
 		if err1 != nil {
@@ -61,6 +65,7 @@ func TerminEditHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
+	// execute func to delete appointment given by index
 	case r.Form.Has("deleteTerminSubmit"):
 		id, err := strconv.Atoi(r.FormValue("deleteTerminSubmit"))
 		if err != nil {
@@ -88,13 +93,6 @@ func GetTerminFromEditIndex(user data.User, fv frontendHandling.FrontendView, in
 	}
 	return -1
 }
-
-//func DeleteTermin(user *data.User) {
-//	dataModel.Dm.DeleteAppointment(user.Appointments[currentTerminIndex].Id, user.Id)
-//	//(*tl).Termine[currentTerminIndex] = (*tl).Termine[len((*tl).Termine)-1]
-//	//currentTerminIndex = -1
-//	//(*tl).Termine = (*tl).Termine[:len((*tl).Termine)-1]
-//}
 
 // GetRepeatingMode
 // calculates for given repating mode interval of appointment

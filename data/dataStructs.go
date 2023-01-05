@@ -48,6 +48,8 @@ func NewAppointment(title, description, location string, dateTimeStart, dateTime
 	return res
 }
 
+// GetDescriptionFromInterval
+// returns output string for frontend based on appointment interval
 func (ap Appointment) GetDescriptionFromInterval() string {
 	switch ap.Timeseries.Intervall {
 	case 1:
@@ -63,6 +65,8 @@ func (ap Appointment) GetDescriptionFromInterval() string {
 	}
 }
 
+// GetUsernameFromUrl
+// return username out of authentification token
 func (sh Share) GetUsernameFromUrl(text string) string {
 	link, _ := url.Parse(text)
 	return link.Query().Get("username")

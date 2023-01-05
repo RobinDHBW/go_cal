@@ -2,8 +2,10 @@ package frontendHandling
 
 import (
 	"github.com/stretchr/testify/assert"
+	"go_cal/configuration"
 	"go_cal/data"
 	"go_cal/dataModel"
+	"go_cal/templates"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -156,7 +158,7 @@ func TestFrontendView_GetCurrentDate(t *testing.T) {
 
 func TestFrontendView_GetAppointmentsForMonth(t *testing.T) {
 	defer after()
-	dataModel.InitDataModel("../data/test")
+	setup()
 	fv := FrontendView{
 		Year:  2022,
 		Month: 12,
@@ -283,7 +285,7 @@ func TestGetFeCookieString(t *testing.T) {
 
 func TestGetTerminList(t *testing.T) {
 	defer after()
-	dataModel.InitDataModel("../data/test")
+	setup()
 	user, _ := dataModel.Dm.AddUser("Testuser", "test", 0)
 	ap1, ap2, ap3, ap4, ap5 := addAppointments(user.Id)
 	// Termine ab 11.12.2022
@@ -359,4 +361,10 @@ func addAppointments(id int) (ap1, ap2, ap3, ap4, ap5 *data.Appointment) {
 func after() {
 	_ = os.RemoveAll("../data/test/")
 	_ = os.MkdirAll("../data/test/", 777)
+}
+
+func setup() {
+	configuration.ReadFlags()
+	templates.Init()
+	dataModel.InitDataModel("../data/test")
 }

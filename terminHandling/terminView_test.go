@@ -6,7 +6,6 @@ import (
 	"go_cal/data"
 	"go_cal/dataModel"
 	"go_cal/frontendHandling"
-	"go_cal/templates"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -14,17 +13,9 @@ import (
 	"time"
 )
 
-//var App1 data.Appointment
-//var App2 data.Appointment
-//var App3 data.Appointment
-//var App4 data.Appointment
-//var App5 data.Appointment
-
 func TestTerminHandler_InvalidRequest(t *testing.T) {
-	templates.Init()
-	authentication.InitServer()
 	defer after()
-	dataModel.InitDataModel("../data/test")
+	setup()
 	_, err := dataModel.Dm.AddUser("testUser", "test", 1)
 	assert.Nil(t, err)
 
@@ -54,10 +45,8 @@ func TestTerminHandler_InvalidRequest(t *testing.T) {
 }
 
 func TestTerminHandler_ButtonBackAndSearch(t *testing.T) {
-	templates.Init()
-	authentication.InitServer()
 	defer after()
-	dataModel.InitDataModel("../data/test")
+	setup()
 	_, err := dataModel.Dm.AddUser("testUser", "test", 1)
 	assert.Nil(t, err)
 
@@ -94,10 +83,8 @@ func TestTerminHandler_ButtonBackAndSearch(t *testing.T) {
 }
 
 func TestTerminHandler_SubmitTermin(t *testing.T) {
-	templates.Init()
-	authentication.InitServer()
 	defer after()
-	dataModel.InitDataModel("../data/test")
+	setup()
 	_, err := dataModel.Dm.AddUser("testUser", "test", 1)
 	assert.Nil(t, err)
 
@@ -156,7 +143,7 @@ func TestTerminHandler_SubmitTermin(t *testing.T) {
 
 func TestGetFirstTerminOfRepeatingInDate(t *testing.T) {
 	defer after()
-	dataModel.InitDataModel("../data/test")
+	setup()
 	user, _ := dataModel.Dm.AddUser("Testuser", "test", 0)
 	ap1, ap2, ap3, ap4, ap5 := addAppointments(user.Id)
 	// Termine ab 01.01.2023

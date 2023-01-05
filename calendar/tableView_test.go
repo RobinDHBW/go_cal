@@ -3,6 +3,7 @@ package calendar
 import (
 	"github.com/stretchr/testify/assert"
 	"go_cal/authentication"
+	"go_cal/configuration"
 	"go_cal/dataModel"
 	"go_cal/frontendHandling"
 	"go_cal/templates"
@@ -18,8 +19,7 @@ const dataPath = "../data/test/Cal"
 
 func TestUpdateCalendarHandler_InvalidRequest(t *testing.T) {
 	defer after()
-	authentication.InitServer()
-	templates.Init()
+	setup()
 	dataModel.InitDataModel(dataPath)
 	_, err := dataModel.Dm.AddUser("Testuser", "test", 0)
 	assert.Nil(t, err)
@@ -48,8 +48,7 @@ func TestUpdateCalendarHandler_InvalidRequest(t *testing.T) {
 
 func TestUpdateCalendarHandler_CalendarButtons(t *testing.T) {
 	defer after()
-	authentication.InitServer()
-	dataModel.InitDataModel(dataPath)
+	setup()
 	_, err := dataModel.Dm.AddUser("testUser", "test", 0)
 	assert.Nil(t, err)
 
@@ -117,8 +116,7 @@ func TestUpdateCalendarHandler_CalendarButtons(t *testing.T) {
 
 func TestUpdateCalendarHandler_ChooseMonth(t *testing.T) {
 	defer after()
-	authentication.InitServer()
-	dataModel.InitDataModel(dataPath)
+	setup()
 	_, err := dataModel.Dm.AddUser("testUser", "test", 0)
 	assert.Nil(t, err)
 
@@ -177,8 +175,6 @@ func after() {
 }
 
 func initValidSession(path string) *http.Request {
-	templates.Init()
-
 	sessionToken, _ := authentication.CreateSession("testUser")
 	cookieValue, _ := frontendHandling.GetFeCookieString(frontendHandling.FrontendView{})
 
@@ -193,4 +189,11 @@ func initValidSession(path string) *http.Request {
 		Value: cookieValue,
 	})
 	return request
+}
+
+func setup() {
+	configuration.ReadFlags()
+	authentication.InitServer()
+	templates.Init()
+	dataModel.InitDataModel(dataPath)
 }

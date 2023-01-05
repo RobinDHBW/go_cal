@@ -206,38 +206,6 @@ func TestDataModel_EditAppointment(t *testing.T) {
 	assert.EqualValues(t, title, user.Appointments[ap.Id].Title)
 }
 
-//func TestDataModel_GetAppointmentByTimeFrame(t *testing.T) {
-//	dataPath := "../data/test"
-//	dataModel := NewDM(dataPath)
-//
-//	user, err := dataModel.AddUser("test", "abc", 1)
-//	if err != nil {
-//		t.FailNow()
-//	}
-//
-//	t1 := time.Date(2022, 12, 24, 10, 00, 00, 00, time.UTC)
-//	t1End := time.Date(2022, 12, 24, 11, 00, 00, 00, time.UTC)
-//
-//	t2 := time.Date(2022, 12, 24, 11, 00, 00, 00, time.UTC)
-//	t2End := time.Date(2022, 12, 24, 12, 00, 00, 00, time.UTC)
-//
-//	t3 := time.Date(2022, 12, 24, 12, 00, 00, 00, time.UTC)
-//	t3End := time.Date(2022, 12, 24, 13, 00, 00, 00, time.UTC)
-//
-//	user, _ = dataModel.AddAppointment(user.Id, "test", "hello 123", "here", t1, t1End, false, 0, false, "")
-//	user, _ = dataModel.AddAppointment(user.Id, "test1", "hello 123", "here", t2, t2End, false, 0, false, "")
-//	user, _ = dataModel.AddAppointment(user.Id, "test2", "hello 123", "Here", t3, t3End, false, 0, false, "")
-//
-//	//user = dataModel.AddAppointment(dataModel.AddAppointment(dataModel.AddAppointment(user.Id, ap1).Id, ap2).Id, ap3)
-//
-//	_, check := dataModel.GetAppointmentsByTimeFrame(user.Id, time.Date(2022, 12, 24, 9, 59, 00, 00, time.UTC), time.Date(2022, 12, 24, 13, 01, 00, 00, time.UTC))
-//	assert.EqualValues(t, len(user.Appointments), len(*check))
-//
-//	_, check2 := dataModel.GetAppointmentsByTimeFrame(user.Id, time.Date(2022, 12, 24, 10, 00, 00, 00, time.UTC), time.Date(2022, 12, 24, 11, 00, 00, 00, time.UTC))
-//	assert.EqualValues(t, len(user.Appointments)-1, len(*check2))
-//
-//}
-
 func TestDataModel_GetAppointmentsBySearchString(t *testing.T) {
 	//dataPath := "../data/test"
 	dataModel := NewDM(dataPath)
@@ -459,6 +427,19 @@ func TestCreateToken(t *testing.T) {
 	token2 := createToken(20)
 	assert.NotEqual(t, "", token2)
 	assert.NotEqual(t, token1, token2)
+}
+
+func TestDataModel_GetAppointmentsForUser(t *testing.T) {
+	setup()
+	defer after()
+
+	user, err := Dm.AddUser("Peter", "test123", 1)
+	assert.Nil(t, err)
+	// Terminfindung erstellen
+	beginDate, _ := time.Parse("2006-01-02T15:04", "2023-01-03T22:00")
+	endDate, _ := time.Parse("2006-01-02T15:04", "2023-01-03T23:00")
+	Dm.AddSharedAppointment(user.Id, "Terminfindung1", "here", beginDate, endDate, false, 0, true)
+	assert.Equal(t, &user.Appointments, Dm.GetAppointmentsForUser(user.Id))
 }
 
 func setup() {

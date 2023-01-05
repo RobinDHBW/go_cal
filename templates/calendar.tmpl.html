@@ -37,7 +37,12 @@
                         <button style="font-size: 16px" name="today" id="today" type="submit">Today: {{.GetCurrentDate.Format "02.01.2006"}}</button>
                     </li>
                 </ul>
-            </form><br>
+            </form>
+            <br>
+            <form id="IcalForm" method="post" action="/getIcal">
+                <button style="font-size: 16px" name="Ical" id="Ical" type="submit">Kalender exportieren</button>
+            </form>
+            <br>
             <form id="terminForm" method="post" action="/listTermin">
                 <button style="font-size: 16px" name="terminlist" id="terminlist" type="submit">Termine</button>
             </form>
