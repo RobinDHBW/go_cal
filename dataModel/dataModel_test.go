@@ -19,6 +19,12 @@ var uMap = map[int]data.User{1: data.NewUser("test1", "test", 1, 3), 2: data.New
 
 const dataPath = "../data/test/DM"
 
+func setup() {
+	configuration.ReadFlags()
+	templates.Init()
+	InitDataModel(dataPath)
+}
+
 func after() {
 	err := os.RemoveAll(dataPath)
 	if err != nil {
@@ -440,12 +446,6 @@ func TestDataModel_GetAppointmentsForUser(t *testing.T) {
 	endDate, _ := time.Parse("2006-01-02T15:04", "2023-01-03T23:00")
 	Dm.AddSharedAppointment(user.Id, "Terminfindung1", "here", beginDate, endDate, false, 0, true)
 	assert.Equal(t, &user.Appointments, Dm.GetAppointmentsForUser(user.Id))
-}
-
-func setup() {
-	configuration.ReadFlags()
-	templates.Init()
-	InitDataModel(dataPath)
 }
 
 func TestDataModel_AddSharedAppointment(t *testing.T) {
