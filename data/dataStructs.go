@@ -1,23 +1,23 @@
 package data
 
 import (
+	"net/url"
 	"time"
 )
 
-// TimeSeries - Substruct of Appointment
+//var ApId = 0
+
 type TimeSeries struct {
 	Repeat    bool `json:"repeat"`
 	Intervall int  `json:"intervall"`
 }
 
-// Share - Substruct of Appointment
 type Share struct {
 	Public bool `json:"public"`
 	Tokens []string
 	Voting []bool
 }
 
-// Appointment - Information of an Appointment
 type Appointment struct {
 	Id            int        `json:"id"`
 	DateTimeStart time.Time  `json:"dateTimeStart"`
@@ -30,7 +30,6 @@ type Appointment struct {
 	Share         Share      `json:"share"`
 }
 
-// User - Information of an User
 type User struct {
 	UserName           string `json:"userName"`
 	Password           string `json:"password"`
@@ -40,18 +39,17 @@ type User struct {
 	SharedAppointments map[string][]Appointment
 }
 
-// NewUser constructs a new User
 func NewUser(name, pw string, id, userLevel int) User {
 	return User{name, pw, userLevel, id, make(map[int]Appointment), make(map[string][]Appointment)}
 }
 
-// NewAppointment constructs a new Appointment
 func NewAppointment(title, description, location string, dateTimeStart, dateTimeEnd time.Time, id, userId int, repeat bool, intervall int, public bool) Appointment {
 	res := Appointment{id, dateTimeStart, dateTimeEnd, location, title, description, userId, TimeSeries{repeat, intervall}, Share{public, make([]string, 0), make([]bool, 0)}}
 	return res
 }
 
-// GetDescriptionFromInterval returns a string representing the information of an Appointment
+// GetDescriptionFromInterval
+// returns output string for frontend based on appointment interval
 func (ap Appointment) GetDescriptionFromInterval() string {
 	switch ap.Timeseries.Intervall {
 	case 1:
@@ -65,4 +63,11 @@ func (ap Appointment) GetDescriptionFromInterval() string {
 	default:
 		return "keine"
 	}
+}
+
+// GetUsernameFromUrl
+// return username out of authentication token
+func (sh Share) GetUsernameFromUrl(text string) string {
+	link, _ := url.Parse(text)
+	return link.Query().Get("username")
 }
