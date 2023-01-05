@@ -7,6 +7,7 @@ import (
 	error2 "go_cal/error"
 	"go_cal/templates"
 	"net/http"
+	"net/url"
 	"regexp"
 	"strconv"
 	"strings"
@@ -107,7 +108,7 @@ func TerminShareHandler(w http.ResponseWriter, r *http.Request) {
 				description = description + "Zeitraum: " + val.DateTimeStart.Format("02.01.2006 15:04") + " bis " + val.DateTimeEnd.Format("02.01.2006 15:04") + " | Wiederholung: " + val.GetDescriptionFromInterval() + "\n Abgestimmt: "
 				for i, voted := range val.Share.Voting {
 					if voted {
-						description = description + val.Share.GetUsernameFromUrl(val.Share.Tokens[i]) + ", "
+						description = description + GetUsernameFromUrl(val.Share.Tokens[i]) + ", "
 					}
 				}
 				description = description + "\n\n"
@@ -154,4 +155,10 @@ func validateInput(text string) (successful bool) {
 		return false
 	}
 	return true
+}
+
+// GetUsernameFromUrl returns username out of authentication token
+func GetUsernameFromUrl(text string) string {
+	link, _ := url.Parse(text)
+	return link.Query().Get("username")
 }
