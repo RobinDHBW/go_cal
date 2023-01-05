@@ -16,10 +16,12 @@ import (
 var Dm DataModel
 var apID = 0
 
+// InitDataModel creates a new DataModel and declares the var Dm
 func InitDataModel(path string) {
 	Dm = NewDM(path)
 }
 
+// encryptPW returns the salted-hash encrypted string of given clear passwordstring
 func encryptPW(password string) string {
 	hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.MinCost)
 	if err != nil {
@@ -28,8 +30,8 @@ func encryptPW(password string) string {
 	return string(hash)
 }
 
-func DataSync(user *data.User, dm *DataModel) {
-	//@TODO make parallel
+// DataSync syncs a user
+func dataSync(user *data.User, dm *DataModel) {
 	write, err := json.Marshal(user)
 	if err != nil {
 		log.Fatal(err)
@@ -96,7 +98,7 @@ func (dm *DataModel) AddUser(name, pw string, userLevel int) (*data.User, error)
 	}
 	user := data.NewUser(name, encryptPW(pw), len(dm.UserMap)+1, userLevel)
 
-	DataSync(&user, dm)
+	dataSync(&user, dm)
 	return &user, nil
 }
 
@@ -107,7 +109,7 @@ func (dm *DataModel) AddAppointment(userId int, title, description, location str
 	user := dm.GetUserById(userId)
 	user.Appointments[ap.Id] = ap
 
-	DataSync(user, dm)
+	dataSync(user, dm)
 	return user, &ap
 }
 
@@ -132,7 +134,7 @@ func (dm *DataModel) AddSharedAppointment(userId int, title, location string, da
 		}
 	}
 
-	DataSync(user, dm)
+	dataSync(user, dm)
 	return user
 }
 
@@ -144,7 +146,7 @@ func (dm *DataModel) DeleteAppointment(apId, uId int) *data.User {
 	}
 	delete(user.Appointments, apId)
 
-	DataSync(user, dm)
+	dataSync(user, dm)
 	return user
 }
 
@@ -152,7 +154,7 @@ func (dm *DataModel) EditAppointment(uId int, ap *data.Appointment) *data.User {
 	user := dm.GetUserById(uId)
 	user.Appointments[ap.Id] = *ap
 
-	DataSync(user, dm)
+	dataSync(user, dm)
 	return user
 }
 
@@ -200,7 +202,7 @@ func (dm *DataModel) AddTokenToSharedAppointment(id int, title, url, username st
 		user.SharedAppointments[title][i].Share.Tokens = append(user.SharedAppointments[title][i].Share.Tokens, url)
 		user.SharedAppointments[title][i].Share.Voting = append(user.SharedAppointments[title][i].Share.Voting, false)
 	}
-	DataSync(user, dm)
+	dataSync(user, dm)
 	return nil
 }
 
@@ -224,7 +226,7 @@ func (dm *DataModel) SetVotingForToken(user *data.User, votes []int, title, toke
 		for i := range votes {
 			user.SharedAppointments[title][votes[i]].Share.Voting[index] = true
 		}
-		DataSync(user, dm)
+		dataSync(user, dm)
 		return nil
 	} else {
 		return errors.New("voting not allowed")
@@ -287,6 +289,6 @@ func (dm *DataModel) DeleteSharedAppointment(title string, uId int) *data.User {
 	user := dm.GetUserById(uId)
 	delete(user.SharedAppointments, title)
 
-	DataSync(user, dm)
+	dataSync(user, dm)
 	return user
 }

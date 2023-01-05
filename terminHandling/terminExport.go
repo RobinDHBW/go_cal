@@ -9,6 +9,8 @@ import (
 	"strconv"
 )
 
+// ICalHandler
+// Handles the Download of an ICal for an user authenticated through BasicAuth
 func ICalHandler(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {
@@ -25,6 +27,7 @@ func ICalHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	user := dataModel.Dm.GetUserByName(uName)
+
 	//http://host/getIcal --> no queries needed
 	ical := []byte(export.NewICal(&user.Appointments).ToString())
 
