@@ -217,7 +217,7 @@ func (dm *DataModel) SetVotingForToken(user *data.User, votes []int, title, toke
 			}
 		}
 		// alle Votes auf false setzen
-		for i, _ := range user.SharedAppointments[title] {
+		for i := range user.SharedAppointments[title] {
 			user.SharedAppointments[title][i].Share.Voting[index] = false
 		}
 		// Votes bei zugesagten Terminen auf true setzen

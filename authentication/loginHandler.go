@@ -17,7 +17,7 @@ import (
 	"time"
 )
 
-// for channel communication
+// Server for channel communication
 type Server struct {
 	Cmds chan<- Command
 }
