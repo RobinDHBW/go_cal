@@ -11,13 +11,18 @@ import (
 	"net/http/httptest"
 	"net/url"
 	"os"
+	"path/filepath"
 	"testing"
 	"time"
 )
 
+const dataPath = "../data/test/authentication"
+
 func after() {
-	os.RemoveAll("../data/test/")
-	os.MkdirAll("../data/test/", 777)
+	err := os.RemoveAll(dataPath)
+	if err != nil {
+		return
+	}
 }
 
 func TestSuccessfulAuthentification(t *testing.T) {
@@ -442,6 +447,7 @@ func TestGetUserBySessionTokenUnsuccessfulNoUser(t *testing.T) {
 func setup() {
 	configuration.ReadFlags()
 	InitServer()
-	templates.Init()
-	dataModel.InitDataModel("../data/test")
+	dir, _ := os.Getwd()
+	templates.Init(filepath.Join(dir, ".."))
+	dataModel.InitDataModel(dataPath)
 }

@@ -9,11 +9,14 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"testing"
 	"time"
 )
+
+const dataPath = "../data/test/frontendHandling"
 
 func TestFrontendView_GetDaysOfMonth(t *testing.T) {
 	fv := FrontendView{
@@ -359,12 +362,15 @@ func addAppointments(id int) (ap1, ap2, ap3, ap4, ap5 *data.Appointment) {
 }
 
 func after() {
-	_ = os.RemoveAll("../data/test/")
-	_ = os.MkdirAll("../data/test/", 777)
+	err := os.RemoveAll(dataPath)
+	if err != nil {
+		return
+	}
 }
 
 func setup() {
 	configuration.ReadFlags()
-	templates.Init()
-	dataModel.InitDataModel("../data/test")
+	dir, _ := os.Getwd()
+	templates.Init(filepath.Join(dir, ".."))
+	dataModel.InitDataModel(dataPath)
 }

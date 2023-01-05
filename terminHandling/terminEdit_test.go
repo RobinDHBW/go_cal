@@ -316,8 +316,10 @@ func TestEditTerminFromInputCorrectInputEdit(t *testing.T) {
 }
 
 func after() {
-	_ = os.RemoveAll("../data/test/")
-	_ = os.MkdirAll("../data/test/", 777)
+	err := os.RemoveAll(dataPath)
+	if err != nil {
+		return
+	}
 }
 
 func initValidSession(path string) *http.Request {

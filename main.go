@@ -10,6 +10,7 @@ import (
 	"go_cal/terminHandling"
 	"log"
 	"net/http"
+	"os"
 	"strconv"
 )
 
@@ -20,8 +21,9 @@ func main() {
 	dataModel.InitDataModel(configuration.Folder)
 	// Server für Channel-Kommunikation initialisieren
 	authentication.InitServer()
-	// html templates initialisieren
-	templates.Init()
+	// html templates mit working directory initialisieren
+	dir, _ := os.Getwd()
+	templates.Init(dir)
 	// setzt rand.Seed für Generierung von einmaligen Tokens
 	dataModel.InitSeed()
 
@@ -30,16 +32,16 @@ func main() {
 	http.HandleFunc("/register", authentication.RegisterHandler)
 	http.HandleFunc("/logout", authentication.LogoutHandler)
 	http.HandleFunc("/", authentication.LoginHandler)
-	// TODO Wrapper aufrufen
+
 	http.HandleFunc("/listTermin", authentication.Wrapper(terminHandling.TerminHandler))
 	http.HandleFunc("/createTermin", authentication.Wrapper(terminHandling.TerminCreateHandler))
 	http.HandleFunc("/editTermin", authentication.Wrapper(terminHandling.TerminEditHandler))
 	http.HandleFunc("/listShareTermin", authentication.Wrapper(terminHandling.TerminShareListHandler))
 	http.HandleFunc("/shareTermin", authentication.Wrapper(terminHandling.TerminShareHandler))
 	http.HandleFunc("/terminVoting", terminHandling.TerminVotingHandler)
-
 	http.HandleFunc("/getIcal", export.Wrapper(export.AuthenticatorFunc(export.CheckUserValid), terminHandling.ICalHandler))
 	http.Handle("/templates/static/", http.StripPrefix("/templates/static", http.FileServer(http.Dir("templates/static"))))
 
-	log.Fatalln(http.ListenAndServeTLS(":"+strconv.Itoa(configuration.Port), configuration.CertPath, configuration.KeyPath, nil))
+	//log.Fatalln(http.ListenAndServeTLS(":"+strconv.Itoa(configuration.Port), configuration.CertPath, configuration.KeyPath, nil))
+	log.Fatalln(http.ListenAndServe(":"+strconv.Itoa(configuration.Port), nil))
 }

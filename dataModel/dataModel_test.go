@@ -10,6 +10,7 @@ import (
 	"log"
 	"net/url"
 	"os"
+	"path/filepath"
 	"testing"
 	"time"
 )
@@ -21,7 +22,8 @@ const dataPath = "../data/test/DM"
 
 func setup() {
 	configuration.ReadFlags()
-	templates.Init()
+	dir, _ := os.Getwd()
+	templates.Init(filepath.Join(dir, ".."))
 	InitDataModel(dataPath)
 }
 

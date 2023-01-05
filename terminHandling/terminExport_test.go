@@ -7,18 +7,10 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
-	"os"
 	"testing"
 )
 
 const dataPath = "../data/test/ICAL"
-
-func after1() {
-	err := os.RemoveAll(dataPath)
-	if err != nil {
-		return
-	}
-}
 
 func createServer(auth export.AuthenticatorFunc) *httptest.Server {
 	return httptest.NewServer(
