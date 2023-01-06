@@ -19,12 +19,14 @@ import (
 var Dm DataModel
 var apID = 0
 
-// InitDataModel creates a new DataModel and declares the var Dm
+// InitDataModel
+// creates a new DataModel and declares the var Dm
 func InitDataModel(path string) {
 	Dm = NewDM(path)
 }
 
-// encryptPW returns the salted-hash encrypted string of given clear passwordstring
+// encryptPW
+// returns the salted-hash encrypted string of given clear passwordstring
 func encryptPW(password string) string {
 	hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.MinCost)
 	if err != nil {
@@ -33,7 +35,8 @@ func encryptPW(password string) string {
 	return string(hash)
 }
 
-// DataSync syncs a user
+// DataSync
+// syncs a user
 func dataSync(user *data.User, dm *DataModel) {
 	write, err := json.Marshal(user)
 	if err != nil {
@@ -43,15 +46,15 @@ func dataSync(user *data.User, dm *DataModel) {
 	dm.fH.SyncToFile(write, user.Id)
 }
 
-//func CheckDate(toCheck, from, to time.Time) bool {
-//	return from.Equal(toCheck) || !from.After(toCheck) || to.Equal(toCheck) || !to.Before(toCheck)
-//}
-
+// DataModel
+// represents an Object to store and handle all Information
 type DataModel struct {
 	UserMap map[int]data.User
 	fH      fileHandler.FileHandler
 }
 
+// NewDM
+// constructs a new DataModel instance
 func NewDM(dataPath string) DataModel {
 	apID = 0
 	fH := fileHandler.NewFH(dataPath)
@@ -77,6 +80,8 @@ func NewDM(dataPath string) DataModel {
 	return DataModel{uMap, fH}
 }
 
+// GetUserById
+// returns a Pointer to a User by given id
 func (dm *DataModel) GetUserById(id int) *data.User {
 	if res, ok := dm.UserMap[id]; ok {
 		return &res
@@ -84,6 +89,8 @@ func (dm *DataModel) GetUserById(id int) *data.User {
 	return nil
 }
 
+// GetUserByName
+// return a Pointer to a User by given Name
 func (dm *DataModel) GetUserByName(search string) *data.User {
 	for _, val := range dm.UserMap {
 		if val.UserName == search {
@@ -93,6 +100,9 @@ func (dm *DataModel) GetUserByName(search string) *data.User {
 	return nil
 }
 
+// AddUser
+// adds a new User to DataModel
+// returns a Pointer to it
 func (dm *DataModel) AddUser(name, pw string, userLevel int) (*data.User, error) {
 	for _, val := range dm.UserMap {
 		if val.UserName == name {
@@ -105,6 +115,9 @@ func (dm *DataModel) AddUser(name, pw string, userLevel int) (*data.User, error)
 	return &user, nil
 }
 
+// AddAppointment
+// adds a new Appointment to a user
+// returns a Pointer to the User and the Appointment
 func (dm *DataModel) AddAppointment(userId int, title, description, location string, dateTimeStart, dateTimeEnd time.Time, repeat bool, intervall int, public bool) (*data.User, *data.Appointment) {
 	apID++
 	ap := data.NewAppointment(title, description, location, dateTimeStart, dateTimeEnd, apID, userId, repeat, intervall, public)
@@ -141,6 +154,8 @@ func (dm *DataModel) AddSharedAppointment(userId int, title, location string, da
 	return user
 }
 
+// DeleteAppointment deletes an Appointment by given id
+// returns a Pointer to the corresponding User
 func (dm *DataModel) DeleteAppointment(apId, uId int) *data.User {
 	user := dm.GetUserById(uId)
 	if user == nil {
@@ -153,6 +168,8 @@ func (dm *DataModel) DeleteAppointment(apId, uId int) *data.User {
 	return user
 }
 
+// EditAppointment overwrites the given Appointment
+// returns a Pointer to the corresponding User
 func (dm *DataModel) EditAppointment(uId int, ap *data.Appointment) *data.User {
 	user := dm.GetUserById(uId)
 	user.Appointments[ap.Id] = *ap
@@ -161,6 +178,8 @@ func (dm *DataModel) EditAppointment(uId int, ap *data.Appointment) *data.User {
 	return user
 }
 
+// GetAppointmentsBySearchString searches in title and description
+// returns a Pointer to the corresponding User and a map of the matching Appointments
 func (dm *DataModel) GetAppointmentsBySearchString(uId int, search string) (*data.User, *map[int]data.Appointment) {
 	user := dm.GetUserById(uId)
 	res := make(map[int]data.Appointment)
@@ -173,6 +192,8 @@ func (dm *DataModel) GetAppointmentsBySearchString(uId int, search string) (*dat
 	return user, &res
 }
 
+// ComparePW compares a plaintext and a hash
+// returns as a matching result a boolean value
 func (dm *DataModel) ComparePW(clear, hash string) bool {
 	err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(clear))
 	if err != nil {
@@ -182,6 +203,8 @@ func (dm *DataModel) ComparePW(clear, hash string) bool {
 	return true
 }
 
+// GetAppointmentsForUser
+// returns a Map of all Appointments of a User
 func (dm *DataModel) GetAppointmentsForUser(uId int) *map[int]data.Appointment {
 	user := dm.GetUserById(uId)
 	return &user.Appointments
