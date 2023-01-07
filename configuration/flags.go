@@ -26,10 +26,10 @@ func ReadFlags() {
 		flag.StringVar(&Folder, "folder", "./files", "Define the folder where the user files are stored in the file system, relative to the root directory. Default: ./files")
 	}
 	if flag.Lookup("certPath") == nil {
-		flag.StringVar(&CertPath, "certPath", "./", "Define path to your ssl cert.pem. Default: ./")
+		flag.StringVar(&CertPath, "certPath", "./server.crt", "Define path to your ssl cert.pem. Default: ./")
 	}
 	if flag.Lookup("keyPath") == nil {
-		flag.StringVar(&KeyPath, "keyPath", "./", "Define path to your ssl key.pem. Default: ./")
+		flag.StringVar(&KeyPath, "keyPath", "./server.key", "Define path to your ssl key.pem. Default: ./")
 	}
 	flag.Parse()
 }
